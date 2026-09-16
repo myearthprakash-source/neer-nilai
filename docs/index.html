@@ -62,16 +62,18 @@ h1,h2,h3{margin:0;text-wrap:balance;line-height:1.2}
 .date{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
 .date .d{font-weight:600}
 .q{font-size:22px;font-weight:700;margin-bottom:14px}
-.yn{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.yn button{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:22px 8px;font-size:22px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform .08s ease}
+.yn{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.yn button{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:16px 4px 14px;font-size:20px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform .08s ease}
+.yn small{font-size:12px;font-weight:500;color:var(--muted);line-height:1.2;text-align:center}
 .yn button:active{transform:scale(.97)}
 .yn .ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:2px solid currentColor;font-size:22px}
-.yn .yes{color:var(--good)} .yn .no{color:var(--bad)}
+.yn .yes{color:var(--good)} .yn .partial{color:var(--warn)} .yn .no{color:var(--bad)}
 .yn .yes[aria-pressed="true"]{background:var(--good-bg);border-color:var(--good)}
 .yn .no[aria-pressed="true"]{background:var(--bad-bg);border-color:var(--bad)}
+.yn .partial[aria-pressed="true"]{background:var(--warn-bg);border-color:var(--warn)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chips button{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:9px 14px;font-size:15px;font-weight:500}
-.chips button[aria-pressed="true"]{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.chips button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .field{display:flex;flex-direction:column;gap:6px;margin-top:14px}
 textarea,input,select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--surface);font-size:16px}
 textarea{min-height:76px;resize:vertical}
@@ -80,13 +82,13 @@ textarea{min-height:76px;resize:vertical}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .saved{display:flex;gap:14px;align-items:flex-start}
 .saved .mark{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:24px;font-weight:700;flex:none}
-.saved.yes .mark{background:var(--good-bg);color:var(--good)} .saved.no .mark{background:var(--bad-bg);color:var(--bad)}
+.saved.yes .mark{background:var(--good-bg);color:var(--good)} .saved.partial .mark{background:var(--warn-bg);color:var(--warn)} .saved.no .mark{background:var(--bad-bg);color:var(--bad)}
 .saved h3{font-size:18px}
 .saved p{margin:4px 0 0;color:var(--muted);font-size:14px}
 .strip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
 .strip div{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
 .strip i{display:block;width:100%;height:10px;border-radius:4px;background:var(--line)}
-.strip i.yes{background:var(--good)} .strip i.no{background:var(--bad)}
+.strip i.yes{background:var(--good)} .strip i.partial{background:var(--warn)} .strip i.no{background:var(--bad)}
 .err{color:var(--bad);font-size:14px;margin-top:8px}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.on{opacity:1}
@@ -97,26 +99,28 @@ textarea{min-height:76px;resize:vertical}
 .head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .head h2{font-size:24px;font-weight:700}
 .head .sub{color:var(--muted);font-size:14px}
-.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:520px){.tiles{grid-template-columns:repeat(2,1fr)}}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;border-top:4px solid var(--line)}
 .tile .n{font-size:34px;font-weight:600;line-height:1;font-family:var(--mono);font-variant-numeric:tabular-nums}
 .tile .t{font-size:13px;color:var(--muted);margin-top:6px}
-.tile.yes{border-top-color:var(--good)} .tile.no{border-top-color:var(--bad)} .tile.silent{border-top-color:var(--warn)}
+.tile.yes{border-top-color:var(--good)} .tile.partial{border-top-color:var(--warn)} .tile.no{border-top-color:var(--bad)} .tile.silent{border-top-color:var(--muted)}
 .bar{height:8px;border-radius:4px;overflow:hidden;display:flex;background:var(--line)}
 .bar i{display:block;height:100%}
-.bar .y{background:var(--good)} .bar .n{background:var(--bad)} .bar .s{background:var(--warn)}
+.bar .y{background:var(--good)} .bar .p{background:var(--warn)} .bar .n{background:var(--bad)} .bar .s{background:var(--muted)}
 .section-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
 .section-h h3{font-size:16px;font-weight:700}
 .alerts{display:flex;flex-direction:column;gap:8px}
 .alert{display:grid;grid-template-columns:4px 1fr auto;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px 0;overflow:hidden}
 .alert .stripe{background:var(--bad);border-radius:0 2px 2px 0}
-.alert.silent .stripe{background:var(--warn)}
+.alert.partial .stripe{background:var(--warn)}
+.alert.silent .stripe{background:var(--muted)}
 .alert b{display:block;font-weight:600}
 .alert .meta{color:var(--muted);font-size:13px}
 .alert .cm{font-size:14px;margin-top:4px}
 .alert .time{font-size:13px;color:var(--muted);white-space:nowrap;padding-right:14px}
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600}
-.pill.yes{background:var(--good-bg);color:var(--good)} .pill.no{background:var(--bad-bg);color:var(--bad)} .pill.silent{background:var(--warn-bg);color:var(--warn)}
+.pill.yes{background:var(--good-bg);color:var(--good)} .pill.partial{background:var(--warn-bg);color:var(--warn)} .pill.no{background:var(--bad-bg);color:var(--bad)} .pill.silent{background:var(--soft);color:var(--muted)}
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .filters button{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:500}
 .filters button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
@@ -171,7 +175,7 @@ const sb = LIVE ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPAB
 // ---------------------------------------------------------------- i18n
 const T = {
   ta: {
-    q: "இன்று தண்ணீர் தொட்டிக்கு வந்ததா?", yes: "ஆம்", no: "இல்லை", reason: "காரணம்", comment: "குறிப்பு (விருப்பம்)",
+    q: "இன்று தண்ணீர் தொட்டிக்கு வந்ததா?", yes: "ஆம்", partial: "பகுதியளவு", no: "இல்லை", yesSub: "வழக்கம் போல்", partialSub: "குறைவாக வந்தது", noSub: "வரவில்லை", qReason: "என்ன பிரச்சனை?", savedPartial: "பகுதியளவு தண்ணீர் வந்தது என பதிவு செய்யப்பட்டது. அலுவலர்களுக்கு தகவல் அனுப்பப்பட்டது.", partialDelivered: "பகுதியளவு", reason: "காரணம்", comment: "குறிப்பு (விருப்பம்)",
     commentPh: "உதாரணம்: மோட்டார் காலை 9 மணிக்கு பழுதானது", save: "சேமி", saving: "சேமிக்கிறது…", saved: "இன்றைய பதிவு சேமிக்கப்பட்டது",
     savedNo: "தண்ணீர் வரவில்லை என பதிவு செய்யப்பட்டது. அலுவலர்களுக்கு தகவல் அனுப்பப்பட்டது.", savedYes: "தண்ணீர் வந்தது என பதிவு செய்யப்பட்டது.",
     change: "மாற்று", today: "இன்று", last7: "கடந்த 7 நாட்கள்", pickReason: "காரணத்தை தேர்வு செய்யவும்",
@@ -186,7 +190,7 @@ const T = {
     reset: "டெமோ தரவை மீட்டமை",
   },
   en: {
-    q: "Did water reach the tank today?", yes: "Yes", no: "No", reason: "Reason", comment: "Comment (optional)",
+    q: "Did water reach the tank today?", yes: "Yes", partial: "Partial", no: "No", yesSub: "Normal supply", partialSub: "Limited supply", noSub: "No supply", qReason: "What caused the problem?", savedPartial: "Recorded as partial supply. Block officers have been notified.", partialDelivered: "Partial", reason: "Reason", comment: "Comment (optional)",
     commentPh: "e.g. motor failed at 9 am, electrician informed", save: "Save report", saving: "Saving…", saved: "Today's report saved",
     savedNo: "Recorded as not delivered. Block and district officers have been notified.", savedYes: "Recorded as delivered.",
     change: "Change", today: "Today", last7: "Last 7 days", pickReason: "Pick a reason",
@@ -206,6 +210,7 @@ const REASONS = [
   { code: "motor", en: "Motor / pump failure", ta: "மோட்டார் பழுது" },
   { code: "pipe", en: "Pipeline burst / leak", ta: "குழாய் உடைப்பு" },
   { code: "source", en: "Source dry / low water", ta: "நீர் ஆதாரம் வறண்டது" },
+  { code: "pressure", en: "Low pressure / short duration", ta: "அழுத்தம் குறைவு / குறைந்த நேரம்" },
   { code: "tanker", en: "Tanker did not arrive", ta: "டேங்கர் லாரி வரவில்லை" },
   { code: "operator", en: "Operator not available", ta: "ஆபரேட்டர் இல்லை" },
   { code: "other", en: "Other", ta: "மற்றவை" },
@@ -240,7 +245,7 @@ let state = {
   role: store.get("role", "op"),
   lang: store.get("lang", "ta"),
   place: store.get("place", null),          // {id, code, pin, name, ta, block, blockTa}
-  draft: { delivered: null, reason: null, comment: "" },
+  draft: { status: null, reason: null, comment: "" },
   filterBlock: 0, filterStatus: "all",
   busy: false, error: "",
   prefs: store.get("prefs", { email: true, wa: false, digest: true }),
@@ -249,21 +254,22 @@ const t = (k) => T[state.lang][k] ?? k;
 const nm = (o) => state.lang === "ta" && o.ta ? o.ta : o.name;
 
 function seedDemo() {
-  if (store.get("reports", null)) return;
+  if (store.get("reports_v2", null)) return;
   const at = (h, m) => { const d = new Date(); d.setHours(h, m, 0, 0); return d.toISOString(); };
   const rows = [];
   const today = istToday();
   // History for the sample operator (Nallur), last 6 days.
-  const hist = [true, true, false, true, true, true];
-  hist.forEach((v, i) => rows.push({ panchayat_id: 1, date: dayOffset(-6 + i), delivered: v, reason: v ? null : "power", comment: "", at: at(8, 30) }));
-  // Today: 5 reported yes, 2 no, Nallur (id 1) and Thenpalapattu (id 8) not yet reported.
-  rows.push({ panchayat_id: 2, date: today, delivered: true, reason: null, comment: "", at: at(7, 55) });
-  rows.push({ panchayat_id: 3, date: today, delivered: false, reason: "motor", comment: "Motor burnt, electrician called", at: at(8, 10) });
-  rows.push({ panchayat_id: 4, date: today, delivered: true, reason: null, comment: "", at: at(8, 42) });
-  rows.push({ panchayat_id: 5, date: today, delivered: true, reason: null, comment: "", at: at(7, 20) });
-  rows.push({ panchayat_id: 6, date: today, delivered: false, reason: "pipe", comment: "பிரதான குழாய் உடைந்தது, பழுது பார்க்க ஆள் வந்துள்ளார்", at: at(9, 5) });
-  rows.push({ panchayat_id: 7, date: today, delivered: true, reason: null, comment: "", at: at(8, 0) });
-  store.set("reports", rows);
+  const hist = ["yes", "yes", "no", "partial", "yes", "yes"];
+  hist.forEach((v, i) => rows.push({ panchayat_id: 1, date: dayOffset(-6 + i), status: v, reason: v === "yes" ? null : v === "no" ? "power" : "pressure", comment: "", at: at(8, 30) }));
+  // Today: 4 yes, 1 partial, 2 no, Nallur (id 1) not yet reported.
+  rows.push({ panchayat_id: 2, date: today, status: "yes", reason: null, comment: "", at: at(7, 55) });
+  rows.push({ panchayat_id: 3, date: today, status: "no", reason: "motor", comment: "Motor burnt, electrician called", at: at(8, 10) });
+  rows.push({ panchayat_id: 4, date: today, status: "yes", reason: null, comment: "", at: at(8, 42) });
+  rows.push({ panchayat_id: 5, date: today, status: "yes", reason: null, comment: "", at: at(7, 20) });
+  rows.push({ panchayat_id: 6, date: today, status: "no", reason: "pipe", comment: "பிரதான குழாய் உடைந்தது, பழுது பார்க்க ஆள் வந்துள்ளார்", at: at(9, 5) });
+  rows.push({ panchayat_id: 7, date: today, status: "yes", reason: null, comment: "", at: at(8, 0) });
+  rows.push({ panchayat_id: 8, date: today, status: "partial", reason: "pressure", comment: "Only 20 minutes, low pressure", at: at(8, 25) });
+  store.set("reports_v2", rows);
 }
 
 // ---------------------------------------------------------------- data layer (demo | live)
@@ -283,20 +289,20 @@ const data = {
   async myHistory(place) {
     if (LIVE) {
       const { data: rows } = await sb.rpc("operator_history", { p_code: place.code, p_pin: place.pin });
-      return (rows ?? []).map((r) => ({ date: r.report_date, delivered: r.delivered, reason: r.reason }));
+      return (rows ?? []).map((r) => ({ date: r.report_date, status: r.status, reason: r.reason }));
     }
-    return store.get("reports", []).filter((r) => r.panchayat_id === place.id).map((r) => ({ date: r.date, delivered: r.delivered, reason: r.reason, comment: r.comment, at: r.at }));
+    return store.get("reports_v2", []).filter((r) => r.panchayat_id === place.id).map((r) => ({ date: r.date, status: r.status, reason: r.reason, comment: r.comment, at: r.at }));
   },
   async submit(place, d) {
     if (LIVE) {
       if (!navigator.onLine) { queue(place, d); return { queued: true }; }
-      const { error } = await sb.rpc("submit_report", { p_code: place.code, p_pin: place.pin, p_delivered: d.delivered, p_reason: d.reason, p_comment: d.comment, p_device: deviceId() });
+      const { error } = await sb.rpc("submit_report", { p_code: place.code, p_pin: place.pin, p_status: d.status, p_reason: d.reason, p_comment: d.comment, p_device: deviceId() });
       if (error) throw error;
       return { ok: true };
     }
-    const rows = store.get("reports", []).filter((r) => !(r.panchayat_id === place.id && r.date === istToday()));
-    rows.push({ panchayat_id: place.id, date: istToday(), delivered: d.delivered, reason: d.delivered ? null : d.reason, comment: d.comment, at: nowIso() });
-    store.set("reports", rows);
+    const rows = store.get("reports_v2", []).filter((r) => !(r.panchayat_id === place.id && r.date === istToday()));
+    rows.push({ panchayat_id: place.id, date: istToday(), status: d.status, reason: d.status === "yes" ? null : d.reason, comment: d.comment, at: nowIso() });
+    store.set("reports_v2", rows);
     return { ok: true };
   },
   async today() {
@@ -306,12 +312,12 @@ const data = {
       return rows.map((r) => ({ block_id: r.block_id, block: r.block, blockTa: r.block_ta, id: r.panchayat_id, code: r.code, name: r.panchayat, ta: r.panchayat_ta,
         status: r.status, reason: r.reason, comment: r.comment, at: r.reported_at }));
     }
-    const rows = store.get("reports", []);
+    const rows = store.get("reports_v2", []);
     return DEMO.panchayats.map((p) => {
       const b = DEMO.blocks.find((x) => x.id === p.b);
       const r = rows.find((x) => x.panchayat_id === p.id && x.date === istToday());
       return { block_id: b.id, block: b.name, blockTa: b.ta, id: p.id, code: p.code, name: p.name, ta: p.ta,
-        status: r ? (r.delivered ? "yes" : "no") : "not_reported", reason: r?.reason ?? null, comment: r?.comment ?? "", at: r?.at ?? null };
+        status: r ? r.status : "not_reported", reason: r?.reason ?? null, comment: r?.comment ?? "", at: r?.at ?? null };
     });
   },
 };
@@ -354,38 +360,39 @@ async function renderOperator() {
   const strip = days.map((day) => {
     const r = hist.find((x) => x.date === day);
     const short = new Date(day + "T00:00:00").toLocaleDateString(state.lang === "ta" ? "ta-IN" : "en-IN", { weekday: "narrow" });
-    return `<div><i class="${r ? (r.delivered ? "yes" : "no") : ""}"></i>${esc(short)}</div>`;
+    return `<div><i class="${r ? r.status : ""}"></i>${esc(short)}</div>`;
   }).join("");
 
   let body;
   if (todayRow && !state.editing) {
     body = `
-      <div class="card saved ${todayRow.delivered ? "yes" : "no"}">
-        <div class="mark">${todayRow.delivered ? "✓" : "✕"}</div>
+      <div class="card saved ${todayRow.status}">
+        <div class="mark">${{ yes: "✓", partial: "◐", no: "✕" }[todayRow.status]}</div>
         <div style="flex:1">
           <h3>${esc(t("saved"))}</h3>
-          <p>${esc(todayRow.delivered ? t("savedYes") : t("savedNo"))}</p>
-          ${!todayRow.delivered ? `<p><b>${esc(t("reason"))}:</b> ${esc(reasonLabel(todayRow.reason))}</p>` : ""}
+          <p>${esc(t(todayRow.status === "yes" ? "savedYes" : todayRow.status === "partial" ? "savedPartial" : "savedNo"))}</p>
+          ${todayRow.status !== "yes" ? `<p><b>${esc(t("reason"))}:</b> ${esc(reasonLabel(todayRow.reason))}</p>` : ""}
           ${todayRow.comment ? `<p>“${esc(todayRow.comment)}”</p>` : ""}
           ${todayRow.at ? `<p class="mono">${esc(t("reportedAt"))} ${esc(fmtTime(todayRow.at))}</p>` : ""}
           <p style="margin-top:10px"><button class="link" id="editBtn">${esc(t("change"))}</button></p>
         </div>
       </div>`;
   } else {
-    const canSave = d.delivered === true || (d.delivered === false && d.reason);
+    const canSave = d.status === "yes" || ((d.status === "partial" || d.status === "no") && d.reason);
     body = `
       <div class="card">
         <div class="q">${esc(t("q"))}</div>
         <div class="yn">
-          <button class="yes" id="yesBtn" aria-pressed="${d.delivered === true}"><span class="ic">✓</span>${esc(t("yes"))}</button>
-          <button class="no" id="noBtn" aria-pressed="${d.delivered === false}"><span class="ic">✕</span>${esc(t("no"))}</button>
+          <button class="yes" id="yesBtn" aria-pressed="${d.status === "yes"}"><span class="ic">✓</span>${esc(t("yes"))}<small>${esc(t("yesSub"))}</small></button>
+          <button class="partial" id="partialBtn" aria-pressed="${d.status === "partial"}"><span class="ic">◐</span>${esc(t("partial"))}<small>${esc(t("partialSub"))}</small></button>
+          <button class="no" id="noBtn" aria-pressed="${d.status === "no"}"><span class="ic">✕</span>${esc(t("no"))}<small>${esc(t("noSub"))}</small></button>
         </div>
-        <div id="reasonBox" ${d.delivered === false ? "" : "hidden"}>
-          <div class="field"><span class="label">${esc(t("reason"))}</span>
+        <div id="reasonBox" ${d.status && d.status !== "yes" ? "" : "hidden"}>
+          <div class="field"><span style="font-weight:600">${esc(t("qReason"))}</span>
             <div class="chips">${REASONS.map((r) => `<button data-reason="${r.code}" aria-pressed="${d.reason === r.code}">${esc(state.lang === "ta" ? r.ta : r.en)}</button>`).join("")}</div>
           </div>
         </div>
-        <div class="field" ${d.delivered === null ? "hidden" : ""}>
+        <div class="field" ${!d.status ? "hidden" : ""}>
           <label class="label" for="comment">${esc(t("comment"))}</label>
           <textarea id="comment" placeholder="${esc(t("commentPh"))}">${esc(d.comment)}</textarea>
         </div>
@@ -410,10 +417,11 @@ async function renderOperator() {
   </div>`;
 
   document.getElementById("editBtn")?.addEventListener("click", () => {
-    state.editing = true; state.draft = { delivered: todayRow.delivered, reason: todayRow.reason, comment: todayRow.comment ?? "" }; render();
+    state.editing = true; state.draft = { status: todayRow.status, reason: todayRow.reason, comment: todayRow.comment ?? "" }; render();
   });
-  document.getElementById("yesBtn")?.addEventListener("click", () => { state.draft.delivered = true; state.draft.reason = null; state.error = ""; render(); });
-  document.getElementById("noBtn")?.addEventListener("click", () => { state.draft.delivered = false; state.error = ""; render(); });
+  document.getElementById("yesBtn")?.addEventListener("click", () => { state.draft.status = "yes"; state.draft.reason = null; state.error = ""; render(); });
+  document.getElementById("partialBtn")?.addEventListener("click", () => { state.draft.status = "partial"; state.error = ""; render(); });
+  document.getElementById("noBtn")?.addEventListener("click", () => { state.draft.status = "no"; state.error = ""; render(); });
   app.querySelectorAll("[data-reason]").forEach((b) => b.addEventListener("click", () => { state.draft.reason = b.dataset.reason; render(); }));
   document.getElementById("comment")?.addEventListener("input", (e) => { state.draft.comment = e.target.value; });
   document.getElementById("saveBtn")?.addEventListener("click", saveReport);
@@ -422,11 +430,11 @@ async function renderOperator() {
 
 async function saveReport() {
   const d = state.draft;
-  if (d.delivered === false && !d.reason) { state.error = t("pickReason"); return render(); }
+  if (d.status !== "yes" && !d.reason) { state.error = t("pickReason"); return render(); }
   state.busy = true; state.error = ""; render();
   try {
     const res = await data.submit(state.place, d);
-    state.editing = false; state.draft = { delivered: null, reason: null, comment: "" };
+    state.editing = false; state.draft = { status: null, reason: null, comment: "" };
     toast(res.queued ? t("offline") : t("saved"));
   } catch (e) { state.error = e.message || String(e); }
   state.busy = false; render();
@@ -457,12 +465,13 @@ function renderSetup() {
 async function renderOfficer() {
   let rows;
   try { rows = await data.today(); } catch (e) { app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
-  const yes = rows.filter((r) => r.status === "yes").length, no = rows.filter((r) => r.status === "no").length, silent = rows.filter((r) => r.status === "not_reported").length;
+  const yes = rows.filter((r) => r.status === "yes").length, partial = rows.filter((r) => r.status === "partial").length, no = rows.filter((r) => r.status === "no").length, silent = rows.filter((r) => r.status === "not_reported").length;
   const total = rows.length || 1;
   const blocks = [...new Map(rows.map((r) => [r.block_id, { id: r.block_id, name: r.block, ta: r.blockTa }])).values()];
   const shown = rows.filter((r) => (state.filterBlock === 0 || r.block_id === state.filterBlock) && (state.filterStatus === "all" || r.status === state.filterStatus));
-  const alerts = rows.filter((r) => r.status !== "yes").sort((a, b) => (a.status === "no" ? -1 : 1) - (b.status === "no" ? -1 : 1) || (b.at ?? "").localeCompare(a.at ?? ""));
-  const statusPill = (s) => `<span class="pill ${s === "not_reported" ? "silent" : s}">${esc(s === "yes" ? t("delivered") : s === "no" ? t("notDelivered") : t("notReported"))}</span>`;
+  const rank = { no: 0, partial: 1, not_reported: 2 };
+  const alerts = rows.filter((r) => r.status !== "yes").sort((a, b) => rank[a.status] - rank[b.status] || (b.at ?? "").localeCompare(a.at ?? ""));
+  const statusPill = (s) => `<span class="pill ${s === "not_reported" ? "silent" : s}">${esc(s === "yes" ? t("delivered") : s === "partial" ? t("partialDelivered") : s === "no" ? t("notDelivered") : t("notReported"))}</span>`;
   const dName = state.lang === "ta" ? DEMO.district.ta : DEMO.district.name;
 
   let tableRows = "";
@@ -475,7 +484,7 @@ async function renderOfficer() {
       <td><b>${esc(nm(r))}</b><br><span class="mono" style="font-size:12px;color:var(--muted)">${esc(r.code)}</span></td>
       <td>${statusPill(r.status)}</td>
       <td class="time">${esc(fmtTime(r.at))}</td>
-      <td>${r.status === "no" ? `<b>${esc(reasonLabel(r.reason))}</b>` : ""}${r.comment ? `<div style="color:var(--muted)">${esc(r.comment)}</div>` : ""}</td>
+      <td>${r.status === "no" || r.status === "partial" ? `<b>${esc(reasonLabel(r.reason))}</b>` : ""}${r.comment ? `<div style="color:var(--muted)">${esc(r.comment)}</div>` : ""}</td>
     </tr>`).join("");
   }
 
@@ -485,17 +494,18 @@ async function renderOfficer() {
     <div class="head"><div><h2>${esc(dName)} · ${esc(t("officerTitle"))}</h2><div class="sub">${esc(fmtDate(istToday()))} · ${rows.length} ${esc(t("panchayat"))}</div></div></div>
     <div class="tiles">
       <div class="tile yes"><div class="n">${yes}</div><div class="t">${esc(t("delivered"))}</div></div>
+      <div class="tile partial"><div class="n">${partial}</div><div class="t">${esc(t("partialDelivered"))}</div></div>
       <div class="tile no"><div class="n">${no}</div><div class="t">${esc(t("notDelivered"))}</div></div>
       <div class="tile silent"><div class="n">${silent}</div><div class="t">${esc(t("notReported"))}</div></div>
     </div>
-    <div class="bar"><i class="y" style="width:${yes / total * 100}%"></i><i class="n" style="width:${no / total * 100}%"></i><i class="s" style="width:${silent / total * 100}%"></i></div>
+    <div class="bar"><i class="y" style="width:${yes / total * 100}%"></i><i class="p" style="width:${partial / total * 100}%"></i><i class="n" style="width:${no / total * 100}%"></i><i class="s" style="width:${silent / total * 100}%"></i></div>
     <div class="two">
       <div>
         <div class="section-h"><h3>${esc(t("alerts"))}</h3><span class="label">${alerts.length}</span></div>
         <div class="alerts">${alerts.length ? alerts.map((r) => `
-          <div class="alert ${r.status === "not_reported" ? "silent" : ""}"><span class="stripe"></span>
+          <div class="alert ${r.status === "not_reported" ? "silent" : r.status}"><span class="stripe"></span>
             <div><b>${esc(nm(r))} <span style="font-weight:400;color:var(--muted)">· ${esc(nm({ name: r.block, ta: r.blockTa }))}</span></b>
-              <div class="meta">${r.status === "no" ? esc(reasonLabel(r.reason)) : esc(t("silentNote"))}</div>
+              <div class="meta">${r.status === "not_reported" ? esc(t("silentNote")) : (r.status === "partial" ? esc(t("partialDelivered")) + " · " : "") + esc(reasonLabel(r.reason))}</div>
               ${r.comment ? `<div class="cm">“${esc(r.comment)}”</div>` : ""}</div>
             <div class="time">${esc(fmtTime(r.at))}</div>
           </div>`).join("") : `<div class="card" style="color:var(--muted)">${esc(t("noAlerts"))}</div>`}
@@ -517,6 +527,7 @@ async function renderOfficer() {
         ${blocks.map((b) => `<button data-fb="${b.id}" aria-pressed="${state.filterBlock === b.id}">${esc(nm(b))}</button>`).join("")}
         <span style="width:8px"></span>
         <button data-fs="no" aria-pressed="${state.filterStatus === "no"}">${esc(t("notDelivered"))}</button>
+        <button data-fs="partial" aria-pressed="${state.filterStatus === "partial"}">${esc(t("partialDelivered"))}</button>
         <button data-fs="not_reported" aria-pressed="${state.filterStatus === "not_reported"}">${esc(t("notReported"))}</button>
       </div>
       <div class="tbl-wrap"><table>

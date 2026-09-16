@@ -2,7 +2,7 @@
 
 Made by Catalyx Technology.
 
-A daily Yes/No report from every panchayat tank, with automatic alerts to block and district officers when water is not delivered or when a panchayat goes silent.
+A daily Yes / Partial / No report from every panchayat tank, with automatic alerts to block and district officers when water is not delivered or when a panchayat goes silent.
 
 ## Recommended approach (decided)
 
@@ -24,8 +24,8 @@ A daily Yes/No report from every panchayat tank, with automatic alerts to block 
 
 ## How it works
 
-1. **Operator** (pump operator / panchayat secretary) opens the app on the phone after the tank fills, taps **Yes** or **No**. If No, picks a reason (no power, motor failure, pipe burst, source dry, tanker didn't arrive, operator absent, other), adds an optional comment, taps Save. One report per panchayat per day; can be corrected the same day.
-2. **Database** stores one row per panchayat per day. A trigger fires on every "No".
+1. **Operator** (pump operator / panchayat secretary) opens the app on the phone after the tank fills, taps **Yes** (normal supply), **Partial** (limited supply) or **No** (no supply). For Partial or No, the reason box opens (no power, motor failure, pipe burst, source dry, low pressure, tanker didn't arrive, operator absent, other), adds an optional comment, taps Save. One report per panchayat per day; can be corrected the same day.
+2. **Database** stores one row per panchayat per day. A webhook fires on every "No" or "Partial".
 3. **Notify function** finds the block and district officers for that panchayat and sends email + WhatsApp. Everything sent is logged.
 4. **Noon digest** (pg_cron, 12:00 IST) sends each block officer the list of panchayats that reported No and those that have not reported at all. District officers get the roll-up.
 5. **Officer dashboard** shows today's counts, the alert feed, and a per-block table with filters. Works on phone and desktop.
@@ -34,8 +34,8 @@ A daily Yes/No report from every panchayat tank, with automatic alerts to block 
 
 | Event | Who is alerted |
 |---|---|
-| "No" reported | Block officer (BDO / AE), immediately |
-| "No" for 2 consecutive days | District officer added |
+| "No" or "Partial" reported | Block officer (BDO / AE), immediately |
+| Problem on 2 consecutive days | District officer added |
 | No report by 12:00 | Block officer in noon digest |
 | No report for 3 days | District officer in digest |
 

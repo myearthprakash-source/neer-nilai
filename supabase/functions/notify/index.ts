@@ -37,9 +37,10 @@ Deno.serve(async (req) => {
   }
 });
 
-// ------------------------------------------------------------------ "No" alert
-async function onReport(record: { id: number; panchayat_id: number; delivered: boolean; reason: string | null; comment: string | null; report_date: string }) {
-  if (record.delivered) return { ok: true, skipped: "delivered" };
+// ------------------------------------------------------------------ "No" / "Partial" alert
+async function onReport(record: { id: number; panchayat_id: number; status: "yes" | "partial" | "no"; reason: string | null; comment: string | null; report_date: string }) {
+  if (record.status === "yes") return { ok: true, skipped: "delivered" };
+  const partial = record.status === "partial";
 
   const { data: p } = await supabase
     .from("panchayats")
@@ -51,28 +52,29 @@ async function onReport(record: { id: number; panchayat_id: number; delivered: b
 
   // Escalate to district if yesterday was also "No".
   const y = new Date(record.report_date); y.setDate(y.getDate() - 1);
-  const { data: prev } = await supabase.from("reports").select("delivered")
+  const { data: prev } = await supabase.from("reports").select("status")
     .eq("panchayat_id", p.id).eq("report_date", y.toISOString().slice(0, 10)).maybeSingle();
-  const consecutive = prev && prev.delivered === false;
+  const consecutive = !!prev && prev.status !== "yes";
 
   const block = p.block as any;
   const officers = await officersFor(block.district_id, block.id, consecutive ? ["block", "district", "state"] : ["block", "state"]);
 
-  const subject = `Water NOT delivered: ${p.name} (${block.name})${consecutive ? " — 2nd day" : ""}`;
+  const subject = `${partial ? "Water PARTIALLY supplied" : "Water NOT delivered"}: ${p.name} (${block.name})${consecutive ? " — 2nd day" : ""}`;
   const text = [
+    `Status: ${partial ? "Partial (limited supply)" : "No supply"}`,
     `Panchayat: ${p.name} / ${p.name_ta ?? ""} (${p.code})`,
     `Block: ${block.name}, District: ${block.district?.name}`,
     `Date: ${record.report_date}`,
     `Reason: ${reason?.label_en ?? record.reason ?? "-"}`,
     record.comment ? `Comment: ${record.comment}` : null,
-    consecutive ? `Second consecutive day without water.` : null,
+    consecutive ? `Second consecutive day with a supply problem.` : null,
     APP_URL ? `Dashboard: ${APP_URL}` : null,
   ].filter(Boolean).join("\n");
 
   const results = [];
   for (const o of officers) {
     if (o.alert_email) results.push(await sendEmail(o, subject, text, record.id, "no_delivery"));
-    if (o.alert_whatsapp && o.phone) results.push(await sendWhatsApp(o, [p.name, block.name, reason?.label_en ?? "-", record.report_date], record.id, "no_delivery"));
+    if (o.alert_whatsapp && o.phone) results.push(await sendWhatsApp(o, [p.name, block.name, `${partial ? "Partial: " : ""}${reason?.label_en ?? "-"}`, record.report_date], record.id, "no_delivery"));
   }
   return { ok: true, sent: results };
 }
@@ -89,16 +91,19 @@ async function runDigest() {
     const mine = rows!.filter((r) =>
       o.role === "state" || (o.role === "district" && r.district_id === o.district_id) || (o.role === "block" && r.block_id === o.block_id));
     const no = mine.filter((r) => r.status === "no");
+    const partial = mine.filter((r) => r.status === "partial");
     const silent = mine.filter((r) => r.status === "not_reported");
-    const yes = mine.length - no.length - silent.length;
-    if (no.length === 0 && silent.length === 0) continue;
+    const yes = mine.length - no.length - partial.length - silent.length;
+    if (no.length === 0 && partial.length === 0 && silent.length === 0) continue;
 
-    const subject = `Water status 12:00 — ${no.length} not delivered, ${silent.length} not reported`;
+    const subject = `Water status 12:00 — ${no.length} not delivered, ${partial.length} partial, ${silent.length} not reported`;
     const text = [
-      `Delivered: ${yes}   Not delivered: ${no.length}   Not reported: ${silent.length}   (of ${mine.length})`,
+      `Delivered: ${yes}   Partial: ${partial.length}   Not delivered: ${no.length}   Not reported: ${silent.length}   (of ${mine.length})`,
       "",
       no.length ? "NOT DELIVERED" : null,
       ...no.map((r) => `  ${r.block} / ${r.panchayat} — ${r.reason ?? ""}`),
+      partial.length ? "\nPARTIAL SUPPLY" : null,
+      ...partial.map((r) => `  ${r.block} / ${r.panchayat} — ${r.reason ?? ""}`),
       silent.length ? "\nNOT REPORTED BY NOON" : null,
       ...silent.map((r) => `  ${r.block} / ${r.panchayat} (${r.code})`),
       APP_URL ? `\nDashboard: ${APP_URL}` : null,

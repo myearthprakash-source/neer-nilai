@@ -41,9 +41,10 @@ insert into reasons (code, label_en, label_ta, sort) values
   ('motor',    'Motor / pump failure',    'மோட்டார் பழுது',         2),
   ('pipe',     'Pipeline burst / leak',   'குழாய் உடைப்பு',          3),
   ('source',   'Source dry / low water',  'நீர் ஆதாரம் வறண்டது',    4),
-  ('tanker',   'Tanker did not arrive',   'டேங்கர் லாரி வரவில்லை',   5),
-  ('operator', 'Operator not available',  'ஆபரேட்டர் இல்லை',        6),
-  ('other',    'Other',                   'மற்றவை',                 7)
+  ('pressure', 'Low pressure / short duration', 'அழுத்தம் குறைவு / குறைந்த நேரம்', 5),
+  ('tanker',   'Tanker did not arrive',   'டேங்கர் லாரி வரவில்லை',   6),
+  ('operator', 'Operator not available',  'ஆபரேட்டர் இல்லை',        7),
+  ('other',    'Other',                   'மற்றவை',                 8)
 on conflict (code) do nothing;
 
 -- ---------------------------------------------------------------- officers
@@ -66,7 +67,7 @@ create table if not exists reports (
   id            bigserial primary key,
   panchayat_id  int not null references panchayats(id),
   report_date   date not null,
-  delivered     boolean not null,
+  status        text not null check (status in ('yes','partial','no')),   -- yes = normal, partial = limited, no = none
   reason        text references reasons(code),
   comment       text,
   reported_at   timestamptz not null default now(),
@@ -74,7 +75,7 @@ create table if not exists reports (
   unique (panchayat_id, report_date)
 );
 create index if not exists reports_date_idx on reports(report_date);
-create index if not exists reports_no_idx on reports(report_date) where delivered = false;
+create index if not exists reports_issue_idx on reports(report_date) where status <> 'yes';
 
 create table if not exists notifications (
   id          bigserial primary key,
@@ -110,8 +111,9 @@ language sql security definer stable as $$
 $$;
 
 -- Operator submit: one row per panchayat per IST day; same-day resubmits overwrite.
+-- p_status: 'yes' (normal supply), 'partial' (limited supply), 'no' (no supply).
 create or replace function submit_report(
-  p_code text, p_pin text, p_delivered boolean,
+  p_code text, p_pin text, p_status text,
   p_reason text default null, p_comment text default null, p_device text default null
 ) returns reports
 language plpgsql security definer as $$
@@ -125,16 +127,19 @@ begin
   if v_pid is null then
     raise exception 'invalid code or pin' using errcode = '28000';
   end if;
-  if p_delivered then
+  if p_status not in ('yes','partial','no') then
+    raise exception 'status must be yes, partial or no' using errcode = '23514';
+  end if;
+  if p_status = 'yes' then
     p_reason := null;
   elsif p_reason is null then
-    raise exception 'reason required when not delivered' using errcode = '23514';
+    raise exception 'reason required for partial or no supply' using errcode = '23514';
   end if;
 
-  insert into reports (panchayat_id, report_date, delivered, reason, comment, device_id)
-  values (v_pid, ist_today(), p_delivered, p_reason, nullif(trim(p_comment), ''), p_device)
+  insert into reports (panchayat_id, report_date, status, reason, comment, device_id)
+  values (v_pid, ist_today(), p_status, p_reason, nullif(trim(p_comment), ''), p_device)
   on conflict (panchayat_id, report_date) do update
-    set delivered = excluded.delivered, reason = excluded.reason,
+    set status = excluded.status, reason = excluded.reason,
         comment = excluded.comment, reported_at = now(), device_id = excluded.device_id
   returning * into v_row;
   return v_row;
@@ -142,9 +147,9 @@ end $$;
 
 -- Operator's own recent history (last 14 days) for the strip on the report screen.
 create or replace function operator_history(p_code text, p_pin text)
-returns table (report_date date, delivered boolean, reason text)
+returns table (report_date date, status text, reason text)
 language sql security definer stable as $$
-  select r.report_date, r.delivered, r.reason
+  select r.report_date, r.status, r.reason
   from reports r
   join panchayats p on p.id = r.panchayat_id
   where p.code = upper(trim(p_code)) and p.pin_hash = crypt(p_pin, p.pin_hash)
@@ -153,7 +158,7 @@ language sql security definer stable as $$
 $$;
 
 grant execute on function operator_login(text, text) to anon;
-grant execute on function submit_report(text, text, boolean, text, text, text) to anon;
+grant execute on function submit_report(text, text, text, text, text, text) to anon;
 grant execute on function operator_history(text, text) to anon;
 
 -- ---------------------------------------------------------------- officer views
@@ -163,8 +168,8 @@ select
   d.id as district_id, d.name as district, d.name_ta as district_ta,
   b.id as block_id, b.name as block, b.name_ta as block_ta,
   p.id as panchayat_id, p.code, p.name as panchayat, p.name_ta as panchayat_ta,
-  r.id as report_id, r.delivered, r.reason, r.comment, r.reported_at,
-  case when r.id is null then 'not_reported' when r.delivered then 'yes' else 'no' end as status
+  r.id as report_id, r.reason, r.comment, r.reported_at,
+  coalesce(r.status, 'not_reported') as status
 from panchayats p
 join blocks b on b.id = p.block_id
 join districts d on d.id = b.district_id
