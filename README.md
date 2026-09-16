@@ -52,6 +52,31 @@ A daily Yes / Partial / No report from every panchayat tank, with automatic aler
 2. **Week 3–4**: Whole district. Enable WhatsApp alerts for BDOs.
 3. **Month 2+**: Add districts on request. Supabase Pro when the database passes 400 MB.
 
+## Roles and access
+
+Operators and officers use different pages and never see each other's screens.
+
+| Who | URL | Sign-in |
+|---|---|---|
+| Tank operator | https://myearthprakash-source.github.io/neer-nilai/ | Panchayat code + 4-digit PIN (demo: any code, PIN 1234) |
+| Block / district officer | https://myearthprakash-source.github.io/neer-nilai/officer/ | Official email; live mode sends a magic link, demo uses access code 1234 |
+
+In live mode the database enforces this too: operator functions only accept a valid code + PIN, and officers only see reports inside their block or district (row-level security).
+
+## Mobile app: install and distribution
+
+The site is a Progressive Web App (manifest + service worker + icons), so it installs like a normal app:
+
+1. **Android, no store (recommended for the pilot)**: open the link in Chrome, tap **Install app** in the top bar (or Chrome menu, *Add to Home screen*). It gets an icon, opens full screen, and works offline. Free, no approval, updates itself.
+2. **Android APK / Play Store**: go to https://www.pwabuilder.com, paste the operator URL, choose *Android*, *Generate package*. It produces a signed `.apk` (share directly on WhatsApp for sideloading) and an `.aab` for Play Store. Copy the generated `assetlinks.json` to `docs/.well-known/assetlinks.json` and push, so the app opens without the browser bar. Play Store needs a one-time developer account (about ₹2,000) and a listing review.
+3. **iPhone**: Safari, Share, *Add to Home Screen*. Officers on iPhone use this; operators are almost all on Android.
+
+Build the site after any change to `src/app.html`:
+
+```
+node build.js
+```
+
 ## Repository layout
 
 ```
@@ -65,7 +90,7 @@ supabase/functions/notify/index.ts  Edge function: alerts on "No", noon digest
 1. Create a free Supabase project (Mumbai region). Run `supabase/schema.sql` in the SQL editor.
 2. Deploy the notify function: `supabase functions deploy notify`. Set secrets: `RESEND_API_KEY` (email, free 3,000/month), optionally `WA_TOKEN`, `WA_PHONE_ID` (WhatsApp Cloud API).
 3. Create a Database Webhook in Supabase: table `reports`, events INSERT and UPDATE, target the `notify` function URL.
-4. In `docs/index.html`, fill in `CONFIG.SUPABASE_URL` and `CONFIG.SUPABASE_ANON_KEY`. Serve the `docs/` folder (GitHub Pages or Cloudflare Pages).
+4. In `src/app.html`, fill in `CONFIG.SUPABASE_URL` and `CONFIG.SUPABASE_ANON_KEY`, run `node build.js`, push. GitHub Pages serves `docs/`.
 5. Load districts, blocks, panchayats from the TN Rural Development master list (CSV import in Supabase). Set PINs with `select set_panchayat_pin('VPM-TDV-001','4821');`.
 6. Add officers: create the user by email in Supabase Auth, then insert a row in `officers` with role and district/block.
 

@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+html,body{margin:0;height:100%;background:#1D6FB4}
+body{display:grid;place-items:center}
+svg{width:100%;height:100%;display:block}
+</style></head><body>
+<!-- ?maskable adds safe-zone padding (drop within the centre 80%) -->
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#1D6FB4"/>
+  <g id="g" transform="translate(256 268)">
+    <path d="M0 -150 C 60 -60, 118 0, 118 62 A 118 118 0 0 1 -118 62 C -118 0, -60 -60, 0 -150 Z" fill="#FFFFFF"/>
+    <path d="M-62 70 A 62 62 0 0 0 -8 128" fill="none" stroke="#1D6FB4" stroke-width="14" stroke-linecap="round" opacity=".9"/>
+    <path d="M-40 40 L -8 72 L 52 4" fill="none" stroke="#1D6FB4" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
+<script>
+if (location.search.includes("maskable")) document.getElementById("g").setAttribute("transform", "translate(256 262) scale(.78)");
+</script>
+</body></html>

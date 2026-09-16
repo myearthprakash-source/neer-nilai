@@ -1,6 +1,6 @@
 {
-  "name": "Neer Nilai",
-  "short_name": "Neer Nilai",
+  "name": "Neer Nilai Officer",
+  "short_name": "NN Officer",
   "description": "Panchayat water delivery monitoring",
   "start_url": "./",
   "scope": "./",
@@ -11,19 +11,19 @@
   "lang": "ta",
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "../icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "../icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/icon-maskable-512.png",
+      "src": "../icons/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
