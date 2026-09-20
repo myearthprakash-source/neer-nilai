@@ -1,7 +1,7 @@
 {
   "name": "Neer Nilai",
   "short_name": "Neer Nilai",
-  "description": "Panchayat water delivery monitoring",
+  "description": "GLR-level water supply monitoring for panchayats",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -1,78 +1,80 @@
--- Neer Nilai: panchayat water delivery monitoring
--- Run in the Supabase SQL editor. Safe to re-run.
+-- Neer Nilai: GLR-level water supply monitoring
+-- Hierarchy: district → block → panchayat → habitation → GLR (one habitation can have several GLRs).
+-- Data entry at GLR level; panchayat officer reviews; block/district officers watch the dashboard.
+-- Run in the Supabase SQL editor. Safe to re-run on an empty project.
 
 create extension if not exists pgcrypto;
 create extension if not exists pg_cron;
 create extension if not exists pg_net;
 
 -- ---------------------------------------------------------------- master data
-create table if not exists districts (
-  id       serial primary key,
-  name     text not null,
-  name_ta  text
-);
+create table if not exists districts   (id serial primary key, name text not null, name_ta text);
+create table if not exists blocks      (id serial primary key, district_id int not null references districts(id), name text not null, name_ta text);
+create table if not exists panchayats  (id serial primary key, block_id int not null references blocks(id), name text not null, name_ta text);
+create table if not exists habitations (id serial primary key, panchayat_id int not null references panchayats(id), name text not null, name_ta text);
 
-create table if not exists blocks (
-  id          serial primary key,
-  district_id int not null references districts(id),
-  name        text not null,
-  name_ta     text
+create table if not exists glrs (
+  id             serial primary key,
+  habitation_id  int not null references habitations(id),
+  code           text not null unique,        -- e.g. NLG-UDH-KKL-01, printed on the operator's card
+  name           text not null,
+  name_ta        text,
+  scheme         text,                        -- "Open well → 7.5 HP pump → 15,000 L GLR → gravity"
+  supply_window  text,                        -- "7:30 – 9:30 AM daily"
+  pin_hash       text,                        -- bcrypt of the 4-digit PIN
+  active         boolean not null default true
 );
+create index if not exists glrs_hab_idx on glrs(habitation_id);
+create index if not exists habitations_p_idx on habitations(panchayat_id);
+create index if not exists panchayats_b_idx on panchayats(block_id);
 
-create table if not exists panchayats (
-  id        serial primary key,
-  block_id  int not null references blocks(id),
-  code      text not null unique,          -- e.g. VPM-TDV-001, printed on the operator's card
-  name      text not null,
-  name_ta   text,
-  pin_hash  text,                          -- bcrypt of the 4-digit PIN
-  active    boolean not null default true
-);
-create index if not exists panchayats_block_idx on panchayats(block_id);
-
-create table if not exists reasons (
-  code      text primary key,
-  label_en  text not null,
-  label_ta  text not null,
-  sort      int not null
-);
-insert into reasons (code, label_en, label_ta, sort) values
-  ('power',    'No power supply',         'மின்சாரம் இல்லை',        1),
-  ('motor',    'Motor / pump failure',    'மோட்டார் பழுது',         2),
-  ('pipe',     'Pipeline burst / leak',   'குழாய் உடைப்பு',          3),
-  ('source',   'Source dry / low water',  'நீர் ஆதாரம் வறண்டது',    4),
-  ('pressure', 'Low pressure / short duration', 'அழுத்தம் குறைவு / குறைந்த நேரம்', 5),
-  ('tanker',   'Tanker did not arrive',   'டேங்கர் லாரி வரவில்லை',   6),
-  ('operator', 'Operator not available',  'ஆபரேட்டர் இல்லை',        7),
-  ('other',    'Other',                   'மற்றவை',                 8)
+create table if not exists problems (code text primary key, label_en text not null, label_ta text not null, sort int not null);
+insert into problems (code, label_en, label_ta, sort) values
+  ('source',      'Source insufficient',           'ஆதாரத்தில் தண்ணீர் போதவில்லை', 1),
+  ('power',       'Electricity',                   'மின்சாரம்',                    2),
+  ('pump',        'Pump',                          'பம்ப்',                        3),
+  ('pipe_source', 'Source-to-GLR pipeline',        'ஆதாரம் → GLR குழாய்',          4),
+  ('glr',         'GLR',                           'GLR (தொட்டி)',                 5),
+  ('pipe_dist',   'Distribution pipeline / valve', 'விநியோகக் குழாய் / வால்வு',    6),
+  ('unknown',     'Don''t know',                   'தெரியவில்லை',                  7),
+  ('other',       'Other',                         'மற்றவை',                       8)
 on conflict (code) do nothing;
 
--- ---------------------------------------------------------------- officers
+-- ---------------------------------------------------------------- staff
 -- One row per officer, linked to a Supabase Auth user (email magic link).
+-- role 'panchayat' = reviewer (panchayat secretary / VAO); 'block' / 'district' / 'state' = dashboard.
 create table if not exists officers (
-  id            uuid primary key references auth.users(id) on delete cascade,
-  name          text not null,
-  role          text not null check (role in ('state','district','block')),
-  district_id   int references districts(id),
-  block_id      int references blocks(id),
-  email         text not null,
-  phone         text,                       -- E.164, e.g. +9198xxxxxxxx, for WhatsApp
-  alert_email   boolean not null default true,
+  id             uuid primary key references auth.users(id) on delete cascade,
+  name           text not null,
+  role           text not null check (role in ('state','district','block','panchayat')),
+  district_id    int references districts(id),
+  block_id       int references blocks(id),
+  panchayat_id   int references panchayats(id),
+  email          text not null,
+  phone          text,                        -- E.164 for WhatsApp
+  alert_email    boolean not null default true,
   alert_whatsapp boolean not null default false,
-  alert_digest  boolean not null default true
+  alert_digest   boolean not null default true
 );
 
 -- ---------------------------------------------------------------- reports
 create table if not exists reports (
-  id            bigserial primary key,
-  panchayat_id  int not null references panchayats(id),
-  report_date   date not null,
-  status        text not null check (status in ('yes','partial','no')),   -- yes = normal, partial = limited, no = none
-  reason        text references reasons(code),
-  comment       text,
-  reported_at   timestamptz not null default now(),
-  device_id     text,
-  unique (panchayat_id, report_date)
+  id             bigserial primary key,
+  glr_id         int not null references glrs(id),
+  report_date    date not null,
+  status         text not null check (status in ('yes','partial','no')),        -- normal / less than normal / none
+  source_ok      text check (source_ok  in ('yes','no','unknown')),            -- sufficient water in source?
+  pump_ok        text check (pump_ok    in ('yes','no','unknown')),            -- pump operated normally?
+  glr_filled     text check (glr_filled in ('yes','no','unknown')),            -- GLR adequately filled?
+  problem        text references problems(code),
+  remarks        text,                                                          -- action taken / remarks
+  reported_at    timestamptz not null default now(),
+  device_id      text,
+  review_status  text not null default 'pending' check (review_status in ('pending','confirmed','flagged')),
+  review_note    text,
+  reviewed_by    uuid references officers(id),
+  reviewed_at    timestamptz,
+  unique (glr_id, report_date)
 );
 create index if not exists reports_date_idx on reports(report_date);
 create index if not exists reports_issue_idx on reports(report_date) where status <> 'yes';
@@ -82,7 +84,7 @@ create table if not exists notifications (
   report_id   bigint references reports(id),
   officer_id  uuid references officers(id),
   channel     text not null check (channel in ('email','whatsapp','sms')),
-  kind        text not null,                -- 'no_delivery' | 'digest'
+  kind        text not null,                -- 'issue' | 'digest'
   status      text not null default 'queued',
   detail      text,
   created_at  timestamptz not null default now()
@@ -92,144 +94,168 @@ create table if not exists notifications (
 create or replace function ist_today() returns date
 language sql stable as $$ select (now() at time zone 'Asia/Kolkata')::date $$;
 
-create or replace function set_panchayat_pin(p_code text, p_pin text) returns void
+create or replace function set_glr_pin(p_code text, p_pin text) returns void
 language sql security definer as $$
-  update panchayats set pin_hash = crypt(p_pin, gen_salt('bf')) where code = p_code;
+  update glrs set pin_hash = crypt(p_pin, gen_salt('bf')) where code = p_code;
 $$;
-revoke all on function set_panchayat_pin(text, text) from public, anon;
+revoke all on function set_glr_pin(text, text) from public, anon;
 
--- Operator login: returns the panchayat the app should remember. No auth.users row needed.
+-- Full hierarchy for a GLR (used by login and the dashboard view).
+create or replace view v_glr as
+select g.id as glr_id, g.code, g.name as glr, g.name_ta as glr_ta, g.scheme, g.supply_window, g.active,
+       h.id as habitation_id, h.name as habitation, h.name_ta as habitation_ta,
+       p.id as panchayat_id, p.name as panchayat, p.name_ta as panchayat_ta,
+       b.id as block_id, b.name as block, b.name_ta as block_ta,
+       d.id as district_id, d.name as district, d.name_ta as district_ta
+from glrs g
+join habitations h on h.id = g.habitation_id
+join panchayats p on p.id = h.panchayat_id
+join blocks b on b.id = p.block_id
+join districts d on d.id = b.district_id;
+
+-- Operator login: GLR code + PIN. No auth.users row needed, no SMS.
 create or replace function operator_login(p_code text, p_pin text)
-returns table (id int, code text, name text, name_ta text, block text, block_ta text, district text, district_ta text)
+returns table (id int, code text, name text, name_ta text, scheme text, supply_window text,
+               habitation text, habitation_ta text, panchayat_id int, panchayat text, panchayat_ta text,
+               block_id int, block text, block_ta text, district text, district_ta text)
 language sql security definer stable as $$
-  select p.id, p.code, p.name, p.name_ta, b.name, b.name_ta, d.name, d.name_ta
-  from panchayats p
-  join blocks b on b.id = p.block_id
-  join districts d on d.id = b.district_id
-  where p.code = upper(trim(p_code)) and p.active
-    and p.pin_hash is not null and p.pin_hash = crypt(p_pin, p.pin_hash);
+  select v.glr_id, v.code, v.glr, v.glr_ta, v.scheme, v.supply_window,
+         v.habitation, v.habitation_ta, v.panchayat_id, v.panchayat, v.panchayat_ta,
+         v.block_id, v.block, v.block_ta, v.district, v.district_ta
+  from v_glr v join glrs g on g.id = v.glr_id
+  where g.code = upper(trim(p_code)) and g.active
+    and g.pin_hash is not null and g.pin_hash = crypt(p_pin, g.pin_hash);
 $$;
 
--- Operator submit: one row per panchayat per IST day; same-day resubmits overwrite.
--- p_status: 'yes' (normal supply), 'partial' (limited supply), 'no' (no supply).
+-- Operator submit: one row per GLR per IST day; same-day resubmits overwrite and reset the review.
 create or replace function submit_report(
   p_code text, p_pin text, p_status text,
-  p_reason text default null, p_comment text default null, p_device text default null
+  p_source_ok text default null, p_pump_ok text default null, p_glr_filled text default null,
+  p_problem text default null, p_remarks text default null, p_device text default null
 ) returns reports
 language plpgsql security definer as $$
 declare
-  v_pid int;
+  v_gid int;
   v_row reports;
 begin
-  select p.id into v_pid from panchayats p
-  where p.code = upper(trim(p_code)) and p.active
-    and p.pin_hash is not null and p.pin_hash = crypt(p_pin, p.pin_hash);
-  if v_pid is null then
+  select g.id into v_gid from glrs g
+  where g.code = upper(trim(p_code)) and g.active
+    and g.pin_hash is not null and g.pin_hash = crypt(p_pin, g.pin_hash);
+  if v_gid is null then
     raise exception 'invalid code or pin' using errcode = '28000';
   end if;
   if p_status not in ('yes','partial','no') then
     raise exception 'status must be yes, partial or no' using errcode = '23514';
   end if;
   if p_status = 'yes' then
-    p_reason := null;
-  elsif p_reason is null then
-    raise exception 'reason required for partial or no supply' using errcode = '23514';
+    p_source_ok := null; p_pump_ok := null; p_glr_filled := null; p_problem := null;
+  elsif p_problem is null then
+    raise exception 'problem required for partial or no supply' using errcode = '23514';
   end if;
 
-  insert into reports (panchayat_id, report_date, status, reason, comment, device_id)
-  values (v_pid, ist_today(), p_status, p_reason, nullif(trim(p_comment), ''), p_device)
-  on conflict (panchayat_id, report_date) do update
-    set status = excluded.status, reason = excluded.reason,
-        comment = excluded.comment, reported_at = now(), device_id = excluded.device_id
+  insert into reports (glr_id, report_date, status, source_ok, pump_ok, glr_filled, problem, remarks, device_id)
+  values (v_gid, ist_today(), p_status, p_source_ok, p_pump_ok, p_glr_filled, p_problem, nullif(trim(p_remarks), ''), p_device)
+  on conflict (glr_id, report_date) do update
+    set status = excluded.status, source_ok = excluded.source_ok, pump_ok = excluded.pump_ok, glr_filled = excluded.glr_filled,
+        problem = excluded.problem, remarks = excluded.remarks, reported_at = now(), device_id = excluded.device_id,
+        review_status = 'pending', review_note = null, reviewed_by = null, reviewed_at = null
   returning * into v_row;
   return v_row;
 end $$;
 
--- Operator's own recent history (last 14 days) for the strip on the report screen.
+-- Operator's own last 14 days for the strip on the report screen.
 create or replace function operator_history(p_code text, p_pin text)
-returns table (report_date date, status text, reason text)
+returns table (report_date date, status text, source_ok text, pump_ok text, glr_filled text, problem text, remarks text, reported_at timestamptz)
 language sql security definer stable as $$
-  select r.report_date, r.status, r.reason
-  from reports r
-  join panchayats p on p.id = r.panchayat_id
-  where p.code = upper(trim(p_code)) and p.pin_hash = crypt(p_pin, p.pin_hash)
+  select r.report_date, r.status, r.source_ok, r.pump_ok, r.glr_filled, r.problem, r.remarks, r.reported_at
+  from reports r join glrs g on g.id = r.glr_id
+  where g.code = upper(trim(p_code)) and g.pin_hash = crypt(p_pin, g.pin_hash)
     and r.report_date >= ist_today() - 13
   order by r.report_date;
 $$;
 
 grant execute on function operator_login(text, text) to anon;
-grant execute on function submit_report(text, text, text, text, text, text) to anon;
+grant execute on function submit_report(text, text, text, text, text, text, text, text, text) to anon;
 grant execute on function operator_history(text, text) to anon;
 
--- ---------------------------------------------------------------- officer views
--- Today's status for every panchayat, including the silent ones.
-create or replace view v_today as
-select
-  d.id as district_id, d.name as district, d.name_ta as district_ta,
-  b.id as block_id, b.name as block, b.name_ta as block_ta,
-  p.id as panchayat_id, p.code, p.name as panchayat, p.name_ta as panchayat_ta,
-  r.id as report_id, r.reason, r.comment, r.reported_at,
-  coalesce(r.status, 'not_reported') as status
-from panchayats p
-join blocks b on b.id = p.block_id
-join districts d on d.id = b.district_id
-left join reports r on r.panchayat_id = p.id and r.report_date = ist_today()
-where p.active;
-
--- ---------------------------------------------------------------- row-level security
-alter table reports        enable row level security;
-alter table panchayats     enable row level security;
-alter table blocks         enable row level security;
-alter table districts      enable row level security;
-alter table officers       enable row level security;
-alter table notifications  enable row level security;
-alter table reasons        enable row level security;
-
--- Master data is readable by everyone (the operator app needs it for setup lists).
-drop policy if exists read_districts on districts;
-create policy read_districts on districts for select using (true);
-drop policy if exists read_blocks on blocks;
-create policy read_blocks on blocks for select using (true);
-drop policy if exists read_reasons on reasons;
-create policy read_reasons on reasons for select using (true);
-drop policy if exists read_panchayats on panchayats;
-create policy read_panchayats on panchayats for select using (true);
--- pin_hash must never leave the database:
-revoke select (pin_hash) on panchayats from anon, authenticated;
-
--- Officers see reports inside their jurisdiction.
-create or replace function officer_scope() returns table (role text, district_id int, block_id int)
+-- ---------------------------------------------------------------- officer scope + review
+create or replace function officer_scope() returns table (role text, district_id int, block_id int, panchayat_id int)
 language sql stable security definer as $$
-  select role, district_id, block_id from officers where id = auth.uid()
+  select role, district_id, block_id, panchayat_id from officers where id = auth.uid()
 $$;
 
-drop policy if exists officer_read_reports on reports;
-create policy officer_read_reports on reports for select to authenticated using (
-  exists (
-    select 1 from officer_scope() s
-    join panchayats p on p.id = reports.panchayat_id
-    join blocks b on b.id = p.block_id
+-- Can the signed-in officer see this GLR?
+create or replace function can_see_glr(p_glr_id int) returns boolean
+language sql stable security definer as $$
+  select exists (
+    select 1 from officer_scope() s join v_glr v on v.glr_id = p_glr_id
     where s.role = 'state'
-       or (s.role = 'district' and b.district_id = s.district_id)
-       or (s.role = 'block' and p.block_id = s.block_id)
+       or (s.role = 'district'  and v.district_id  = s.district_id)
+       or (s.role = 'block'     and v.block_id     = s.block_id)
+       or (s.role = 'panchayat' and v.panchayat_id = s.panchayat_id)
   )
-);
+$$;
 
+-- Panchayat officer (or anyone above) confirms or flags a report.
+create or replace function review_report(p_report_id bigint, p_status text, p_note text default null) returns reports
+language plpgsql security definer as $$
+declare v_row reports;
+begin
+  if p_status not in ('confirmed','flagged') then
+    raise exception 'review status must be confirmed or flagged' using errcode = '23514';
+  end if;
+  select * into v_row from reports where id = p_report_id;
+  if v_row.id is null or not can_see_glr(v_row.glr_id) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  update reports set review_status = p_status, review_note = nullif(trim(p_note), ''), reviewed_by = auth.uid(), reviewed_at = now()
+  where id = p_report_id returning * into v_row;
+  return v_row;
+end $$;
+grant execute on function review_report(bigint, text, text) to authenticated;
+
+-- Today's status for every GLR in scope, including the silent ones.
+create or replace view v_today as
+select v.*,
+  r.id as report_id, coalesce(r.status, 'not_reported') as status,
+  r.source_ok, r.pump_ok, r.glr_filled, r.problem, r.remarks, r.reported_at,
+  r.review_status, r.review_note, r.reviewed_at
+from v_glr v
+left join reports r on r.glr_id = v.glr_id and r.report_date = ist_today()
+where v.active and can_see_glr(v.glr_id);
+
+-- ---------------------------------------------------------------- row-level security
+alter table reports enable row level security;
+alter table glrs enable row level security;
+alter table habitations enable row level security;
+alter table panchayats enable row level security;
+alter table blocks enable row level security;
+alter table districts enable row level security;
+alter table officers enable row level security;
+alter table notifications enable row level security;
+alter table problems enable row level security;
+
+drop policy if exists read_districts on districts;     create policy read_districts on districts for select using (true);
+drop policy if exists read_blocks on blocks;           create policy read_blocks on blocks for select using (true);
+drop policy if exists read_panchayats on panchayats;   create policy read_panchayats on panchayats for select using (true);
+drop policy if exists read_habitations on habitations; create policy read_habitations on habitations for select using (true);
+drop policy if exists read_glrs on glrs;               create policy read_glrs on glrs for select using (true);
+drop policy if exists read_problems on problems;       create policy read_problems on problems for select using (true);
+revoke select (pin_hash) on glrs from anon, authenticated;   -- pin_hash never leaves the database
+
+drop policy if exists officer_read_reports on reports;
+create policy officer_read_reports on reports for select to authenticated using (can_see_glr(glr_id));
 drop policy if exists officer_read_self on officers;
 create policy officer_read_self on officers for select to authenticated using (id = auth.uid());
 drop policy if exists officer_update_self on officers;
-create policy officer_update_self on officers for update to authenticated
-  using (id = auth.uid()) with check (id = auth.uid());
-
+create policy officer_update_self on officers for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
 drop policy if exists officer_read_notifications on notifications;
-create policy officer_read_notifications on notifications for select to authenticated
-  using (officer_id = auth.uid());
+create policy officer_read_notifications on notifications for select to authenticated using (officer_id = auth.uid());
 
 -- ---------------------------------------------------------------- alerts
 -- Option A (recommended, no code): Supabase Dashboard → Database → Webhooks →
 --   table reports, INSERT + UPDATE → HTTP POST to the notify edge function.
--- Option B: pg_cron noon digest. Replace <PROJECT_REF> and <SERVICE_ROLE_KEY>.
--- 12:00 IST = 06:30 UTC.
+-- Option B: pg_cron noon digest. Replace <PROJECT_REF> and <SERVICE_ROLE_KEY>. 12:00 IST = 06:30 UTC.
 -- select cron.schedule('neer-nilai-digest', '30 6 * * *', $$
 --   select net.http_post(
 --     url := 'https://<PROJECT_REF>.supabase.co/functions/v1/notify',
@@ -238,20 +264,26 @@ create policy officer_read_notifications on notifications for select to authenti
 --   );
 -- $$);
 
--- ---------------------------------------------------------------- sample data (pilot)
-insert into districts (id, name, name_ta) values (1, 'Villupuram', 'விழுப்புரம்') on conflict do nothing;
-insert into blocks (id, district_id, name, name_ta) values
-  (1, 1, 'Tindivanam', 'திண்டிவனம்'), (2, 1, 'Gingee', 'செஞ்சி') on conflict do nothing;
-insert into panchayats (block_id, code, name, name_ta) values
-  (1, 'VPM-TDV-001', 'Nallur',        'நல்லூர்'),
-  (1, 'VPM-TDV-002', 'Perumbakkam',   'பெரும்பாக்கம்'),
-  (1, 'VPM-TDV-003', 'Kiliyanur',     'கிளியனூர்'),
-  (1, 'VPM-TDV-004', 'Sithamur',      'சித்தாமூர்'),
-  (2, 'VPM-GNG-001', 'Melmalayanur',  'மேல்மலையனூர்'),
-  (2, 'VPM-GNG-002', 'Anandapuram',   'ஆனந்தபுரம்'),
-  (2, 'VPM-GNG-003', 'Sathyamangalam','சத்தியமங்கலம்'),
-  (2, 'VPM-GNG-004', 'Thenpalapattu', 'தென்பாலப்பட்டு')
+-- ---------------------------------------------------------------- sample data (pilot: The Nilgiris)
+insert into districts (id, name, name_ta) values (1, 'The Nilgiris', 'நீலகிரி') on conflict do nothing;
+insert into blocks (id, district_id, name, name_ta) values (1, 1, 'Udhagamandalam', 'உதகமண்டலம்'), (2, 1, 'Coonoor', 'குன்னூர்') on conflict do nothing;
+insert into panchayats (id, block_id, name, name_ta) values (1, 1, 'Kookal', 'கூக்கல்'), (2, 1, 'Emerald', 'எமரால்டு'), (3, 2, 'Hubbathalai', 'ஹுப்பத்தாலை') on conflict do nothing;
+insert into habitations (id, panchayat_id, name, name_ta) values
+  (1, 1, 'Jeevanagar', 'ஜீவநகர்'), (2, 1, 'Kookal Main', 'கூக்கல் மெயின்'),
+  (3, 2, 'Emerald Village', 'எமரால்டு கிராமம்'), (4, 2, 'Emerald Estate', 'எமரால்டு எஸ்டேட்'),
+  (5, 3, 'Hubbathalai', 'ஹுப்பத்தாலை'), (6, 3, 'Ketti Palada', 'கெட்டி பாலாடா')
+on conflict do nothing;
+insert into glrs (habitation_id, code, name, name_ta, scheme, supply_window) values
+  (1, 'NLG-UDH-KKL-01', 'Jeevanagar GLR',      'ஜீவநகர் GLR',           'Open well → 7.5 HP pump → 15,000 L GLR → gravity through GI pipes', '7:30 – 9:30 AM daily'),
+  (2, 'NLG-UDH-KKL-02', 'Kookal Main OHT',     'கூக்கல் மெயின் OHT',     'Bore well → 5 HP pump → 30,000 L OHT → gravity',                    '6:30 – 8:30 AM daily'),
+  (2, 'NLG-UDH-KKL-03', 'Kookal Colony GLR',   'கூக்கல் காலனி GLR',      'Spring → 10,000 L GLR → gravity',                                   '7:00 – 8:00 AM daily'),
+  (3, 'NLG-UDH-EMR-01', 'Emerald Village GLR', 'எமரால்டு கிராம GLR',     'Open well → 5 HP pump → 20,000 L GLR',                              '7:00 – 9:00 AM daily'),
+  (4, 'NLG-UDH-EMR-02', 'Emerald Estate GLR',  'எமரால்டு எஸ்டேட் GLR',   'Stream intake → 10,000 L GLR → gravity',                            '8:00 – 9:00 AM daily'),
+  (5, 'NLG-CNR-HBT-01', 'Hubbathalai OHT',     'ஹுப்பத்தாலை OHT',        'Bore well → 7.5 HP pump → 40,000 L OHT',                            '6:00 – 8:00 AM daily'),
+  (6, 'NLG-CNR-HBT-02', 'Ketti Palada GLR',    'கெட்டி பாலாடா GLR',      'Open well → 3 HP pump → 10,000 L GLR',                              '7:30 – 8:30 AM daily')
 on conflict (code) do nothing;
-select set_panchayat_pin(code, '1234') from panchayats where pin_hash is null;
+select set_glr_pin(code, '1234') from glrs where pin_hash is null;
 select setval('districts_id_seq', (select max(id) from districts));
 select setval('blocks_id_seq', (select max(id) from blocks));
+select setval('panchayats_id_seq', (select max(id) from panchayats));
+select setval('habitations_id_seq', (select max(id) from habitations));

@@ -1,6 +1,7 @@
 // Builds docs/ (GitHub Pages) from src/app.html.
 //   node build.js
-// Outputs: docs/index.html (operator), docs/officer/index.html (officer), docs/sw.js, manifests.
+// Outputs: docs/index.html (GLR operator), docs/review/index.html (panchayat officer),
+//          docs/officer/index.html (block/district), docs/sw.js, manifests.
 const fs = require("fs");
 const path = require("path");
 
@@ -28,10 +29,10 @@ ${src.replace("<title>Neer Nilai</title>", `<title>${title}</title>`)}
 `;
 }
 
-function manifest(name, shortName, startUrl, iconPrefix) {
+function manifest(name, shortName, iconPrefix) {
   return JSON.stringify({
-    name, short_name: shortName, description: "Panchayat water delivery monitoring",
-    start_url: startUrl, scope: startUrl, display: "standalone", orientation: "portrait",
+    name, short_name: shortName, description: "GLR-level water supply monitoring for panchayats",
+    start_url: "./", scope: "./", display: "standalone", orientation: "portrait",
     background_color: "#F3F6F4", theme_color: "#1D6FB4", lang: "ta",
     icons: [
       { src: `${iconPrefix}icons/icon-192.png`, sizes: "192x192", type: "image/png", purpose: "any" },
@@ -42,14 +43,14 @@ function manifest(name, shortName, startUrl, iconPrefix) {
 }
 
 const docs = path.join(root, "docs");
-fs.mkdirSync(path.join(docs, "officer"), { recursive: true });
+for (const sub of ["officer", "review", "icons"]) fs.mkdirSync(path.join(docs, sub), { recursive: true });
 fs.writeFileSync(path.join(docs, "index.html"), page("./", "Neer Nilai"));
+fs.writeFileSync(path.join(docs, "review", "index.html"), page("../", "Neer Nilai Review"));
 fs.writeFileSync(path.join(docs, "officer", "index.html"), page("../", "Neer Nilai Officer"));
-fs.writeFileSync(path.join(docs, "manifest.webmanifest"), manifest("Neer Nilai", "Neer Nilai", "./", "./"));
-fs.writeFileSync(path.join(docs, "officer", "manifest.webmanifest"), manifest("Neer Nilai Officer", "NN Officer", "./", "../"));
+fs.writeFileSync(path.join(docs, "manifest.webmanifest"), manifest("Neer Nilai", "Neer Nilai", "./"));
+fs.writeFileSync(path.join(docs, "review", "manifest.webmanifest"), manifest("Neer Nilai Review", "NN Review", "../"));
+fs.writeFileSync(path.join(docs, "officer", "manifest.webmanifest"), manifest("Neer Nilai Officer", "NN Officer", "../"));
 
 const sw = fs.readFileSync(path.join(root, "src", "sw.js"), "utf8").replace("__VERSION__", version);
 fs.writeFileSync(path.join(docs, "sw.js"), sw);
-
-// Keep the old web/ path out of the way; nothing else to do.
 console.log("built docs/ version", version);

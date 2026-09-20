@@ -1,6 +1,6 @@
 {
-  "name": "Neer Nilai Officer",
-  "short_name": "NN Officer",
+  "name": "Neer Nilai Review",
+  "short_name": "NN Review",
   "description": "GLR-level water supply monitoring for panchayats",
   "start_url": "./",
   "scope": "./",

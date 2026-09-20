@@ -1,8 +1,9 @@
 // Neer Nilai service worker: network first, cache fallback, so the app opens offline
 // and updates as soon as the phone is online. Version is stamped by build.js.
-const CACHE = "neer-nilai-202609161031";
+const CACHE = "neer-nilai-202609201849";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest",
+  "./review/", "./review/index.html", "./review/manifest.webmanifest",
   "./officer/", "./officer/index.html", "./officer/manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
 ];
@@ -25,6 +26,6 @@ self.addEventListener("fetch", (e) => {
     fetch(e.request)
       .then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); return res; })
       .catch(() => caches.match(e.request, { ignoreSearch: true }).then((hit) =>
-        hit || caches.match(url.pathname.includes("/officer") ? "./officer/index.html" : "./index.html"))),
+        hit || caches.match(url.pathname.includes("/officer") ? "./officer/index.html" : url.pathname.includes("/review") ? "./review/index.html" : "./index.html"))),
   );
 });
