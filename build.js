@@ -43,7 +43,8 @@ function manifest(name, shortName, iconPrefix) {
 }
 
 const docs = path.join(root, "docs");
-for (const sub of ["officer", "review", "icons"]) fs.mkdirSync(path.join(docs, sub), { recursive: true });
+for (const sub of ["officer", "review", "cards", "icons"]) fs.mkdirSync(path.join(docs, sub), { recursive: true });
+fs.copyFileSync(path.join(root, "src", "cards.html"), path.join(docs, "cards", "index.html"));
 fs.writeFileSync(path.join(docs, "index.html"), page("./", "Neer Nilai"));
 fs.writeFileSync(path.join(docs, "review", "index.html"), page("../", "Neer Nilai Review"));
 fs.writeFileSync(path.join(docs, "officer", "index.html"), page("../", "Neer Nilai Officer"));

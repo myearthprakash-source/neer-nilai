@@ -20,19 +20,18 @@ One habitation can have several GLRs. Every level is a table row, so adding or r
 
 The three pages never link to each other. In live mode the database enforces the split: operator functions accept only a valid GLR code + PIN, and every officer sees only the GLRs inside their panchayat, block or district (row-level security).
 
-## The daily report (operator)
+## The daily report (operator): two taps, nothing to type
 
-1. Pick the GLR (the phone can hold several; tap **+ Another GLR** to add one). The card shows the scheme flow (for example *Open well → 7.5 HP pump → 15,000 L GLR → gravity*) and the normal supply window.
-2. **Was normal water supply provided today?** Yes (normal) / Partial (less than normal) / No (not supplied).
-3. For Partial or No, the **Problem details** section opens:
-   - Was sufficient water available in the source? Yes / No / Don't know
-   - Did the pump operate normally? Yes / No / Don't know
-   - Was the GLR adequately filled? Yes / No / Don't know
-   - What appears to be the problem? Source insufficient · Electricity · Pump · Source-to-GLR pipeline · GLR · Distribution pipeline / valve · Don't know · Other
-   - Action taken / remarks
-4. Submit. One report per GLR per day; it can be corrected the same day, which resets the review to pending.
+Operators are often not literate or comfortable with phones, so the operator side is built for that:
 
-Tamil is the default language, English is one tap away. Reports queue offline and send when signal returns.
+1. **Setup by QR card.** Block staff print one card per tank from `/cards/` (QR + tank name + PIN). Scanning the QR opens the app already set up. No code, no PIN, no account. A phone can hold several tanks.
+2. **One question, three big colour buttons:** *Did water come today?* Green "water came" saves instantly. Amber "came less" or red "water did not come" go to one more screen.
+3. **Six picture tiles:** no electricity · motor broken · pipe broken · no water in source · tank not filled · don't know. Tap one and the report is saved.
+4. **Done screen** with a big tick and, for a problem, one mic button to leave a 20-second voice note in Tamil instead of typing.
+
+The detailed questions the officer asked for (source sufficient? pump ran? GLR filled? action taken) are answered by the **panchayat officer at review time**, who can judge them and can call the operator. The reviewer can also record the day on behalf of an operator who has no phone.
+
+Tamil is the default language. Reports queue offline and send when signal returns. One report per tank per day; a same-day correction resets the review to pending.
 
 ## Review and alerts
 

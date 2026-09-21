@@ -29,15 +29,17 @@ create index if not exists habitations_p_idx on habitations(panchayat_id);
 create index if not exists panchayats_b_idx on panchayats(block_id);
 
 create table if not exists problems (code text primary key, label_en text not null, label_ta text not null, sort int not null);
+-- Operators see the six pictorial ones (sort 1–6); reviewers can refine to any.
 insert into problems (code, label_en, label_ta, sort) values
-  ('source',      'Source insufficient',           'ஆதாரத்தில் தண்ணீர் போதவில்லை', 1),
-  ('power',       'Electricity',                   'மின்சாரம்',                    2),
-  ('pump',        'Pump',                          'பம்ப்',                        3),
-  ('pipe_source', 'Source-to-GLR pipeline',        'ஆதாரம் → GLR குழாய்',          4),
-  ('glr',         'GLR',                           'GLR (தொட்டி)',                 5),
-  ('pipe_dist',   'Distribution pipeline / valve', 'விநியோகக் குழாய் / வால்வு',    6),
-  ('unknown',     'Don''t know',                   'தெரியவில்லை',                  7),
-  ('other',       'Other',                         'மற்றவை',                       8)
+  ('power',       'No electricity',                'மின்சாரம் இல்லை',              1),
+  ('pump',        'Motor / pump broken',           'மோட்டார் பழுது',                2),
+  ('pipe',        'Pipe broken / leak',            'குழாய் உடைப்பு',                3),
+  ('source',      'No water in source',            'ஆதாரத்தில் தண்ணீர் இல்லை',       4),
+  ('glr',         'Tank not filled',               'தொட்டி நிரம்பவில்லை',           5),
+  ('unknown',     'Don''t know / other',           'தெரியவில்லை / மற்றவை',           6),
+  ('pipe_source', 'Source-to-GLR pipeline',        'ஆதாரம் → GLR குழாய்',          7),
+  ('pipe_dist',   'Distribution pipeline / valve', 'விநியோகக் குழாய் / வால்வு',    8),
+  ('other',       'Other',                         'மற்றவை',                       9)
 on conflict (code) do nothing;
 
 -- ---------------------------------------------------------------- staff
@@ -67,7 +69,9 @@ create table if not exists reports (
   pump_ok        text check (pump_ok    in ('yes','no','unknown')),            -- pump operated normally?
   glr_filled     text check (glr_filled in ('yes','no','unknown')),            -- GLR adequately filled?
   problem        text references problems(code),
-  remarks        text,                                                          -- action taken / remarks
+  remarks        text,                                                          -- action taken / remarks (reviewer)
+  voice_path     text,                                                          -- operator's voice note in the 'voice' storage bucket
+  entered_by     text not null default 'operator' check (entered_by in ('operator','reviewer')),
   reported_at    timestamptz not null default now(),
   device_id      text,
   review_status  text not null default 'pending' check (review_status in ('pending','confirmed','flagged')),
@@ -127,11 +131,9 @@ language sql security definer stable as $$
     and g.pin_hash is not null and g.pin_hash = crypt(p_pin, g.pin_hash);
 $$;
 
--- Operator submit: one row per GLR per IST day; same-day resubmits overwrite and reset the review.
+-- Operator submit: status + one pictorial problem. One row per GLR per IST day; same-day resubmits overwrite and reset the review.
 create or replace function submit_report(
-  p_code text, p_pin text, p_status text,
-  p_source_ok text default null, p_pump_ok text default null, p_glr_filled text default null,
-  p_problem text default null, p_remarks text default null, p_device text default null
+  p_code text, p_pin text, p_status text, p_problem text default null, p_device text default null
 ) returns reports
 language plpgsql security definer as $$
 declare
@@ -148,26 +150,35 @@ begin
     raise exception 'status must be yes, partial or no' using errcode = '23514';
   end if;
   if p_status = 'yes' then
-    p_source_ok := null; p_pump_ok := null; p_glr_filled := null; p_problem := null;
+    p_problem := null;
   elsif p_problem is null then
     raise exception 'problem required for partial or no supply' using errcode = '23514';
   end if;
 
-  insert into reports (glr_id, report_date, status, source_ok, pump_ok, glr_filled, problem, remarks, device_id)
-  values (v_gid, ist_today(), p_status, p_source_ok, p_pump_ok, p_glr_filled, p_problem, nullif(trim(p_remarks), ''), p_device)
+  insert into reports (glr_id, report_date, status, problem, device_id, entered_by)
+  values (v_gid, ist_today(), p_status, p_problem, p_device, 'operator')
   on conflict (glr_id, report_date) do update
-    set status = excluded.status, source_ok = excluded.source_ok, pump_ok = excluded.pump_ok, glr_filled = excluded.glr_filled,
-        problem = excluded.problem, remarks = excluded.remarks, reported_at = now(), device_id = excluded.device_id,
+    set status = excluded.status, problem = excluded.problem, source_ok = null, pump_ok = null, glr_filled = null,
+        reported_at = now(), device_id = excluded.device_id, entered_by = 'operator',
         review_status = 'pending', review_note = null, reviewed_by = null, reviewed_at = null
   returning * into v_row;
   return v_row;
 end $$;
 
+-- Operator attaches a voice note (uploaded to storage bucket 'voice' at <code>/<date>.webm).
+create or replace function attach_voice(p_code text, p_pin text, p_path text) returns void
+language sql security definer as $$
+  update reports r set voice_path = p_path
+  from glrs g
+  where g.id = r.glr_id and r.report_date = ist_today()
+    and g.code = upper(trim(p_code)) and g.pin_hash = crypt(p_pin, g.pin_hash);
+$$;
+
 -- Operator's own last 14 days for the strip on the report screen.
 create or replace function operator_history(p_code text, p_pin text)
-returns table (report_date date, status text, source_ok text, pump_ok text, glr_filled text, problem text, remarks text, reported_at timestamptz)
+returns table (report_date date, status text, problem text, remarks text, voice_path text, reported_at timestamptz)
 language sql security definer stable as $$
-  select r.report_date, r.status, r.source_ok, r.pump_ok, r.glr_filled, r.problem, r.remarks, r.reported_at
+  select r.report_date, r.status, r.problem, r.remarks, r.voice_path, r.reported_at
   from reports r join glrs g on g.id = r.glr_id
   where g.code = upper(trim(p_code)) and g.pin_hash = crypt(p_pin, g.pin_hash)
     and r.report_date >= ist_today() - 13
@@ -175,8 +186,20 @@ language sql security definer stable as $$
 $$;
 
 grant execute on function operator_login(text, text) to anon;
-grant execute on function submit_report(text, text, text, text, text, text, text, text, text) to anon;
+grant execute on function submit_report(text, text, text, text, text) to anon;
+grant execute on function attach_voice(text, text, text) to anon;
 grant execute on function operator_history(text, text) to anon;
+
+-- Voice notes bucket: operators (anon) upload, staff (authenticated) listen via signed URLs.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('voice', 'voice', false, 2097152, array['audio/webm','audio/mp4','audio/ogg','audio/mpeg','audio/wav'])
+on conflict (id) do nothing;
+drop policy if exists voice_upload on storage.objects;
+create policy voice_upload on storage.objects for insert to anon with check (bucket_id = 'voice');
+drop policy if exists voice_replace on storage.objects;
+create policy voice_replace on storage.objects for update to anon using (bucket_id = 'voice');
+drop policy if exists voice_read on storage.objects;
+create policy voice_read on storage.objects for select to authenticated using (bucket_id = 'voice');
 
 -- ---------------------------------------------------------------- officer scope + review
 create or replace function officer_scope() returns table (role text, district_id int, block_id int, panchayat_id int)
@@ -196,8 +219,12 @@ language sql stable security definer as $$
   )
 $$;
 
--- Panchayat officer (or anyone above) confirms or flags a report.
-create or replace function review_report(p_report_id bigint, p_status text, p_note text default null) returns reports
+-- Panchayat officer (or anyone above) confirms or flags a report and fills in the diagnostics,
+-- refined problem and action taken. The operator only gave status + one picture.
+create or replace function review_report(
+  p_report_id bigint, p_status text, p_note text default null,
+  p_source_ok text default null, p_pump_ok text default null, p_glr_filled text default null, p_problem text default null
+) returns reports
 language plpgsql security definer as $$
 declare v_row reports;
 begin
@@ -208,17 +235,37 @@ begin
   if v_row.id is null or not can_see_glr(v_row.glr_id) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
-  update reports set review_status = p_status, review_note = nullif(trim(p_note), ''), reviewed_by = auth.uid(), reviewed_at = now()
+  update reports set review_status = p_status, remarks = nullif(trim(p_note), ''),
+      source_ok = p_source_ok, pump_ok = p_pump_ok, glr_filled = p_glr_filled, problem = coalesce(p_problem, problem),
+      reviewed_by = auth.uid(), reviewed_at = now()
   where id = p_report_id returning * into v_row;
   return v_row;
 end $$;
-grant execute on function review_report(bigint, text, text) to authenticated;
+grant execute on function review_report(bigint, text, text, text, text, text, text) to authenticated;
+
+-- Panchayat officer records a day on behalf of an operator (after a phone call). Counts as confirmed.
+create or replace function reviewer_submit(p_glr_id int, p_status text, p_problem text default null, p_remarks text default null) returns reports
+language plpgsql security definer as $$
+declare v_row reports;
+begin
+  if not can_see_glr(p_glr_id) then raise exception 'not allowed' using errcode = '42501'; end if;
+  if p_status not in ('yes','partial','no') then raise exception 'bad status' using errcode = '23514'; end if;
+  if p_status = 'yes' then p_problem := null; elsif p_problem is null then raise exception 'problem required' using errcode = '23514'; end if;
+  insert into reports (glr_id, report_date, status, problem, remarks, entered_by, review_status, reviewed_by, reviewed_at)
+  values (p_glr_id, ist_today(), p_status, p_problem, nullif(trim(p_remarks), ''), 'reviewer', 'confirmed', auth.uid(), now())
+  on conflict (glr_id, report_date) do update
+    set status = excluded.status, problem = excluded.problem, remarks = excluded.remarks, entered_by = 'reviewer',
+        reported_at = now(), review_status = 'confirmed', reviewed_by = auth.uid(), reviewed_at = now()
+  returning * into v_row;
+  return v_row;
+end $$;
+grant execute on function reviewer_submit(int, text, text, text) to authenticated;
 
 -- Today's status for every GLR in scope, including the silent ones.
 create or replace view v_today as
 select v.*,
   r.id as report_id, coalesce(r.status, 'not_reported') as status,
-  r.source_ok, r.pump_ok, r.glr_filled, r.problem, r.remarks, r.reported_at,
+  r.source_ok, r.pump_ok, r.glr_filled, r.problem, r.remarks, r.voice_path, r.entered_by, r.reported_at,
   r.review_status, r.review_note, r.reviewed_at
 from v_glr v
 left join reports r on r.glr_id = v.glr_id and r.report_date = ist_today()
