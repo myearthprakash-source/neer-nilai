@@ -22,7 +22,7 @@ type Officer = {
   alert_email: boolean; alert_whatsapp: boolean; alert_digest: boolean;
   district_id: number | null; block_id: number | null; panchayat_id: number | null;
 };
-type Glr = { glr_id: number; code: string; glr: string; glr_ta: string | null; habitation: string; panchayat_id: number; panchayat: string; block_id: number; block: string; district_id: number; district: string };
+type Glr = { glr_id: number; code: string; glr: string; glr_ta: string | null; location: string | null; capacity: number | null; habitation: string; panchayat_id: number; panchayat: string; block_id: number; block: string; district_id: number; district: string; operator_name: string | null; operator_phone: string | null };
 type Report = { id: number; glr_id: number; status: "yes" | "partial" | "no"; source_ok: string | null; pump_ok: string | null; glr_filled: string | null; problem: string | null; remarks: string | null; report_date: string };
 
 Deno.serve(async (req) => {
@@ -68,8 +68,9 @@ async function onReport(record: Report) {
   const dl = (v: string | null) => v === "yes" ? "Yes" : v === "no" ? "No" : v === "unknown" ? "Don't know" : "-";
   const text = [
     `Status: ${partial ? "Partial (less than normal)" : "Not supplied"}`,
-    `GLR: ${g.glr} / ${g.glr_ta ?? ""} (${g.code})`,
+    `GLR: ${g.glr} / ${g.glr_ta ?? ""} (${g.code})${g.capacity ? `, ${g.capacity} L` : ""}${g.location ? `, ${g.location}` : ""}`,
     `Habitation: ${g.habitation}, Panchayat: ${g.panchayat}, Block: ${g.block}, District: ${g.district}`,
+    `Operator: ${g.operator_name ?? "-"} ${g.operator_phone ?? ""}`,
     `Date: ${record.report_date}`,
     `Source sufficient: ${dl(record.source_ok)}   Pump normal: ${dl(record.pump_ok)}   GLR filled: ${dl(record.glr_filled)}`,
     `Problem: ${problem?.label_en ?? record.problem ?? "-"}`,

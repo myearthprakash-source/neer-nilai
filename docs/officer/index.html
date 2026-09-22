@@ -45,8 +45,6 @@ button{cursor:pointer}
 h1,h2,h3{margin:0;text-wrap:balance;line-height:1.2}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.qh{font-weight:600;margin-bottom:6px}
-svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:-.12em}
 
 /* top bar */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
@@ -69,6 +67,7 @@ svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-
 .link{border:0;background:none;color:var(--accent);font-weight:600;padding:0;font-size:14px}
 .field{display:flex;flex-direction:column;gap:6px;margin-top:14px}
 textarea,input,select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--surface);font-size:16px}
+input.big{font-size:24px;letter-spacing:.08em;padding:14px;font-family:var(--mono)}
 textarea{min-height:76px;resize:vertical}
 .btn{border:0;border-radius:12px;padding:15px 18px;font-size:18px;font-weight:700;width:100%;background:var(--accent);color:var(--accent-ink)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
@@ -100,15 +99,16 @@ textarea{min-height:76px;resize:vertical}
 .tiles2 button{border:2px solid var(--line);background:var(--surface);border-radius:18px;padding:18px 10px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;font-size:17px;font-weight:700;line-height:1.2;text-align:center;min-height:132px;transition:transform .08s ease}
 .tiles2 button:active{transform:scale(.97)}
 .tiles2 svg{width:52px;height:52px;fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.tiles2 button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .back{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--muted);font-weight:600;font-size:16px;padding:4px 0}
 .done{text-align:center;padding:26px 18px 22px}
 .done .big{width:104px;height:104px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;font-size:56px;font-weight:700;color:#fff}
-.done.yes .big{background:var(--good)} .done.partial .big{background:var(--warn)} .done.no .big{background:var(--bad)}
+.done.yes .big{background:var(--good)} .done.partial .big{background:var(--warn)} .done.no .big{background:var(--bad)} .done.mixed .big{background:var(--accent)}
 .done h2{font-size:24px}
 .done p{margin:6px 0 0;color:var(--muted);font-size:16px}
 .done .what{margin-top:12px;display:inline-flex;align-items:center;gap:10px;background:var(--soft);border-radius:999px;padding:8px 16px;font-weight:600}
 .done .what svg{width:24px;height:24px;fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.done .list{display:flex;flex-direction:column;gap:6px;margin-top:14px;text-align:left}
+.done .list div{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:600;background:var(--soft);border-radius:10px;padding:8px 12px}
 .voice{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:8px}
 .voice button{border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:14px 22px;font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px}
 .voice button.rec{background:var(--bad);border-color:var(--bad);color:#fff;animation:pulse 1s infinite}
@@ -119,7 +119,6 @@ textarea{min-height:76px;resize:vertical}
 .strip div{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
 .strip i{display:block;width:100%;height:12px;border-radius:4px;background:var(--line)}
 .strip i.yes{background:var(--good)} .strip i.partial{background:var(--warn)} .strip i.no{background:var(--bad)}
-.next{border:2px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:14px;padding:14px;font-size:18px;font-weight:700;width:100%}
 .small-links{display:flex;justify-content:center;gap:18px;flex-wrap:wrap}
 
 /* review + officer */
@@ -188,7 +187,10 @@ td.time{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:no
 .rv-actions .flag{border-color:var(--bad);color:var(--bad)}
 .rv-actions .st-yes{border-color:var(--good);color:var(--good)} .rv-actions .st-partial{border-color:var(--warn);color:var(--warn)} .rv-actions .st-no{border-color:var(--bad);color:var(--bad)}
 .rv-actions input{flex:1;min-width:140px;padding:8px 10px;font-size:14px}
+.rv-actions a{border:1.5px solid #25D366;color:#128C7E;border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px;text-decoration:none;background:var(--surface)}
 .play{border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;margin-top:6px}
+.pinbox{margin-top:8px;background:var(--warn-bg);border-radius:10px;padding:10px 12px;font-size:14px}
+.pinbox b{font-family:var(--mono);font-size:22px;letter-spacing:.2em}
 .credit{max-width:960px;margin:0 auto;padding:8px 16px 28px;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.02em}
 .credit b{font-weight:600;color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -215,65 +217,74 @@ td.time{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:no
 const CONFIG = { SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };
 const LIVE = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY && window.supabase);
 const sb = LIVE ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY) : null;
-// Three pages, one file. Role is fixed by the URL:  /  operator (GLR level)   /review/  panchayat officer   /officer/  block + district.
+// Three pages, one file. Role is fixed by the URL:  /  operator   /review/  panchayat officer   /officer/  block + district.
 const ROLE = /\/officer(\/|\.html|$)/i.test(location.pathname) ? "of" : /\/review(\/|\.html|$)/i.test(location.pathname) ? "rv" : "op";
 
 // ---------------------------------------------------------------- i18n
 const T = {
   ta: {
     operatorSub: "நீர் நிலை · தினசரி தண்ணீர் பதிவு", reviewSub: "நீர் நிலை · ஊராட்சி சரிபார்ப்பு", officerSub: "நீர் நிலை · அலுவலர் டாஷ்போர்டு",
-    bigq: "இன்று தண்ணீர் வந்ததா?",
+    loginTitle: "உள்நுழைவு", phone: "உங்கள் கைபேசி எண்", pin: "PIN (4 இலக்கம்)", login: "உள்நுழை",
+    loginHint: "உங்கள் எண் ஊராட்சியில் பதிவு செய்யப்பட்டிருக்க வேண்டும். PIN ஊராட்சி அலுவலர் தருவார்.",
+    badLogin: "எண் அல்லது PIN தவறு. ஊராட்சி அலுவலரை அணுகவும்.", deviceLocked: "இந்த எண் வேறு போனில் பயன்பாட்டில் உள்ளது. ஊராட்சி அலுவலரை அணுகவும்.",
+    opDemoHint: "டெமோ: ஆபரேட்டரை தேர்வு செய்யவும், PIN 1234", logout: "வெளியேறு",
+    bigq: "இன்று தண்ணீர் வந்ததா?", bigqAll: "இன்று எல்லா தொட்டிக்கும் தண்ணீர் வந்ததா?", allTanks: "அனைத்து தொட்டிகள்", tanks: "தொட்டிகள்",
     yes: "தண்ணீர் வந்தது", yesSub: "வழக்கம் போல்", partial: "குறைவாக வந்தது", partialSub: "வழக்கத்தை விட குறைவு", no: "தண்ணீர் வரவில்லை", noSub: "இன்று விநியோகம் இல்லை",
-    whatProblem: "என்ன பிரச்சனை?", tapOne: "ஒன்றைத் தொடவும்", back: "பின்",
-    done: "பதிவு ஆகிவிட்டது. நன்றி!", doneYes: "இன்று தண்ணீர் வந்தது", donePartial: "இன்று குறைவாக வந்தது", doneNo: "இன்று தண்ணீர் வரவில்லை",
-    doneInfo: "ஊராட்சி அலுவலருக்கு தகவல் சென்றுவிட்டது.", change: "மாற்ற வேண்டுமா?", nextGlr: "அடுத்த தொட்டி →",
+    whatProblem: "என்ன பிரச்சனை?", back: "பின்",
+    done: "பதிவு ஆகிவிட்டது. நன்றி!", doneYes: "இன்று தண்ணீர் வந்தது", donePartial: "இன்று குறைவாக வந்தது", doneNo: "இன்று தண்ணீர் வரவில்லை", doneAll: "எல்லா தொட்டிகளும் பதிவு ஆகிவிட்டன",
+    doneInfo: "ஊராட்சி அலுவலருக்கு தகவல் சென்றுவிட்டது.", change: "மாற்ற வேண்டுமா?", changeOne: "ஒரு தொட்டியை மட்டும் மாற்ற மேலே தேர்வு செய்யவும்.",
     voiceAdd: "பேசி குறிப்பு சேர்", voiceStop: "நிறுத்து", voiceHint: "மைக்கை தொட்டு பேசுங்கள் (20 வினாடி)", voiceSaved: "குரல் குறிப்பு சேமிக்கப்பட்டது", voiceNo: "இந்த போனில் மைக் கிடைக்கவில்லை",
-    today: "இன்று", last7: "கடந்த 7 நாட்கள்",
-    setupTitle: "தொட்டியை சேர்க்கவும்", setupHint: "அட்டையில் உள்ள QR-ஐ ஸ்கேன் செய்தால் தானாக சேரும். அல்லது கீழே குறியீடு + PIN.", code: "தொட்டி குறியீடு", pin: "PIN (4 இலக்கம்)", login: "சேர்", badPin: "குறியீடு அல்லது PIN தவறு",
-    demoHint: "டெமோ: பட்டியலில் இருந்து தேர்வு செய்யவும், PIN 1234", addGlr: "+ மற்றொரு தொட்டி", removeGlr: "இந்த தொட்டியை நீக்கு",
-    habitation: "குடியிருப்பு", panchayat: "ஊராட்சி", block: "வட்டாரம்", district: "மாவட்டம்", scheme: "திட்டம்", supplyTime: "வழக்கமான நேரம்",
+    today: "இன்று", last7: "கடந்த 7 நாட்கள்", capacity: "கொள்ளளவு", location: "இடம்",
     reportedAt: "பதிவு நேரம்", offline: "இணையம் இல்லை. இணைப்பு வந்ததும் அனுப்பப்படும்.", saved: "சேமிக்கப்பட்டது",
     demoBanner: "டெமோ முறை: தரவு இந்த போனில் மட்டும். Supabase இணைத்தால் நேரடி முறை.", reset: "டெமோ தரவை மீட்டமை",
     delivered: "வழக்கம்", partialDelivered: "பகுதியளவு", notDelivered: "வரவில்லை", notReported: "பதிவு இல்லை",
-    alerts: "இன்றைய எச்சரிக்கைகள்", noAlerts: "இன்று எச்சரிக்கை எதுவும் இல்லை.", all: "அனைத்தும்", glr: "GLR", status: "நிலை", time: "நேரம்", problemCol: "பிரச்சனை / நடவடிக்கை",
+    alerts: "இன்றைய எச்சரிக்கைகள்", noAlerts: "இன்று எச்சரிக்கை எதுவும் இல்லை.", all: "அனைத்தும்", glr: "தொட்டி", status: "நிலை", time: "நேரம்", problemCol: "பிரச்சனை / நடவடிக்கை", operator: "ஆபரேட்டர்",
     review: "சரிபார்ப்பு", pending: "நிலுவை", confirmed: "உறுதி", flagged: "குறியிடப்பட்டது", confirm: "உறுதி செய்", flag: "தவறு எனக் குறி", notePh: "எடுத்த நடவடிக்கை / குறிப்பு",
     reviewTitle: "ஊராட்சி சரிபார்ப்பு — இன்று", reviewHint: "ஒவ்வொரு தொட்டி பதிவையும் சரிபார்த்து உறுதி செய்யவும். பதிவு இல்லாத தொட்டிக்கு ஆபரேட்டரை அழைத்து நீங்களே பதிவு செய்யலாம்.",
     nothingToReview: "இன்று சரிபார்க்க பதிவுகள் இல்லை.", recordFor: "ஆபரேட்டர் சார்பாக பதிவு:", byReviewer: "ஊராட்சி அலுவலர் பதிவு", voiceNote: "குரல் குறிப்பு", play: "▶ கேள்",
+    operators: "ஆபரேட்டர்கள்", opHint: "எண் + PIN மட்டுமே உள்நுழைவு. PIN-ஐ ஆபரேட்டரிடம் நேரில் அல்லது தொலைபேசியில் சொல்லவும். ஒரு எண்ணுக்கு ஒரு போன் மட்டும்.",
+    setPin: "புதிய PIN", resetDevice: "போனை மீட்டமை", waLink: "WhatsApp-ல் ஆப் இணைப்பு", pinIs: "புதிய PIN", tellOp: "ஆபரேட்டரிடம் நேரில் சொல்லவும். இது மீண்டும் காட்டப்படாது.",
+    deviceBound: "போன் இணைக்கப்பட்டது", noDevice: "இன்னும் உள்நுழையவில்லை", deviceReset: "போன் மீட்டமைக்கப்பட்டது. அடுத்த உள்நுழைவில் புதிய போன் இணையும்.",
     qSource: "ஆதாரத்தில் போதுமான தண்ணீர் இருந்ததா?", qPump: "பம்ப் சரியாக இயங்கியதா?", qGlr: "GLR போதுமான அளவு நிரம்பியதா?", dYes: "ஆம்", dNo: "இல்லை", dUnknown: "தெரியவில்லை",
     silentNote: "மதியம் வரை பதிவு இல்லை", officerTitle: "மாவட்ட நிலை — இன்று",
     settings: "அறிவிப்பு அமைப்புகள்", notifyIn: "பயன்பாட்டில்", notifyEmail: "மின்னஞ்சல்", notifyWa: "வாட்ஸ்அப்", digest: "மதியம் 12:00 சுருக்கம்", alwaysOn: "எப்போதும்", free: "இலவசம்", cheap: "ஒரு செய்திக்கு ≈ ₹0.12",
     officerLogin: "அலுவலர் உள்நுழைவு", reviewLogin: "ஊராட்சி அலுவலர் உள்நுழைவு", email: "அலுவலக மின்னஞ்சல்", accessCode: "அணுகல் குறியீடு", signIn: "உள்நுழை", signOut: "வெளியேறு",
-    magicSent: "உள்நுழைவு இணைப்பு உங்கள் மின்னஞ்சலுக்கு அனுப்பப்பட்டது. அதை திறக்கவும்.", badLogin: "மின்னஞ்சல் அல்லது குறியீடு தவறு",
+    magicSent: "உள்நுழைவு இணைப்பு உங்கள் மின்னஞ்சலுக்கு அனுப்பப்பட்டது. அதை திறக்கவும்.", badStaffLogin: "மின்னஞ்சல் அல்லது குறியீடு தவறு",
     officerDemoHint: "டெமோ: ஏதேனும் மின்னஞ்சல், குறியீடு 1234", install: "ஆப் நிறுவு",
+    waText: "நீர் நிலை ஆப்: {url}\nஉங்கள் கைபேசி எண் மற்றும் PIN உடன் உள்நுழையவும். தினமும் தண்ணீர் வந்ததா என்று ஒரு பொத்தானை தொடவும்.",
   },
   en: {
     operatorSub: "நீர் நிலை · Daily water report", reviewSub: "நீர் நிலை · Panchayat review", officerSub: "நீர் நிலை · Officer dashboard",
-    bigq: "Did water come today?",
+    loginTitle: "Sign in", phone: "Your mobile number", pin: "PIN (4 digits)", login: "Sign in",
+    loginHint: "Your number must be registered with the panchayat. The panchayat officer gives you the PIN.",
+    badLogin: "Wrong number or PIN. Contact the panchayat officer.", deviceLocked: "This number is already in use on another phone. Contact the panchayat officer.",
+    opDemoHint: "Demo: pick an operator, PIN 1234", logout: "Sign out",
+    bigq: "Did water come today?", bigqAll: "Did water come to all tanks today?", allTanks: "All tanks", tanks: "tanks",
     yes: "Water came", yesSub: "Normal supply", partial: "Came less", partialSub: "Less than normal", no: "Water did not come", noSub: "No supply today",
-    whatProblem: "What is the problem?", tapOne: "Tap one", back: "Back",
-    done: "Recorded. Thank you!", doneYes: "Water came today", donePartial: "Less water today", doneNo: "No water today",
-    doneInfo: "The panchayat officer has been informed.", change: "Need to change?", nextGlr: "Next tank →",
+    whatProblem: "What is the problem?", back: "Back",
+    done: "Recorded. Thank you!", doneYes: "Water came today", donePartial: "Less water today", doneNo: "No water today", doneAll: "All tanks recorded",
+    doneInfo: "The panchayat officer has been informed.", change: "Need to change?", changeOne: "To change one tank only, pick it above.",
     voiceAdd: "Add voice note", voiceStop: "Stop", voiceHint: "Tap the mic and speak (20 seconds)", voiceSaved: "Voice note saved", voiceNo: "Microphone not available on this phone",
-    today: "Today", last7: "Last 7 days",
-    setupTitle: "Add your tank", setupHint: "Scanning the QR on the card sets this up automatically. Or enter code + PIN below.", code: "Tank code", pin: "PIN (4 digits)", login: "Add", badPin: "Wrong code or PIN",
-    demoHint: "Demo: pick any tank from the list, PIN is 1234", addGlr: "+ Another tank", removeGlr: "Remove this tank",
-    habitation: "Habitation", panchayat: "Panchayat", block: "Block", district: "District", scheme: "Scheme", supplyTime: "Normal time",
+    today: "Today", last7: "Last 7 days", capacity: "Capacity", location: "Location",
     reportedAt: "Reported at", offline: "You are offline. The report will send when signal returns.", saved: "Saved",
     demoBanner: "Demo mode: data stays on this phone. Connect Supabase for live mode.", reset: "Reset demo data",
     delivered: "Normal", partialDelivered: "Partial", notDelivered: "Not supplied", notReported: "Not reported",
-    alerts: "Alerts today", noAlerts: "No alerts today.", all: "All", glr: "GLR", status: "Status", time: "Time", problemCol: "Problem / action taken",
+    alerts: "Alerts today", noAlerts: "No alerts today.", all: "All", glr: "Tank", status: "Status", time: "Time", problemCol: "Problem / action taken", operator: "Operator",
     review: "Review", pending: "Pending", confirmed: "Confirmed", flagged: "Flagged", confirm: "Confirm", flag: "Flag as incorrect", notePh: "Action taken / remarks",
     reviewTitle: "Panchayat review — today", reviewHint: "Check each tank's report and confirm it. For a tank with no report, call the operator and record it yourself.",
     nothingToReview: "Nothing to review today.", recordFor: "Record on behalf of operator:", byReviewer: "Entered by panchayat officer", voiceNote: "Voice note", play: "▶ Play",
+    operators: "Operators", opHint: "Sign-in is number + PIN only. Tell the operator the PIN in person or by phone. One phone per number.",
+    setPin: "New PIN", resetDevice: "Reset phone", waLink: "Send app link on WhatsApp", pinIs: "New PIN", tellOp: "Tell the operator in person. It will not be shown again.",
+    deviceBound: "Phone linked", noDevice: "Not signed in yet", deviceReset: "Phone reset. The next sign-in will link a new phone.",
     qSource: "Was sufficient water available in the source?", qPump: "Did the pump operate normally?", qGlr: "Was the GLR adequately filled?", dYes: "Yes", dNo: "No", dUnknown: "Don't know",
     silentNote: "No report by noon", officerTitle: "District status — today",
     settings: "Notification settings", notifyIn: "In-app", notifyEmail: "Email", notifyWa: "WhatsApp", digest: "12:00 noon digest", alwaysOn: "Always on", free: "Free", cheap: "≈ ₹0.12 per message",
     officerLogin: "Officer sign in", reviewLogin: "Panchayat officer sign in", email: "Official email", accessCode: "Access code", signIn: "Sign in", signOut: "Sign out",
-    magicSent: "A sign-in link has been sent to your email. Open it to continue.", badLogin: "Wrong email or access code",
+    magicSent: "A sign-in link has been sent to your email. Open it to continue.", badStaffLogin: "Wrong email or access code",
     officerDemoHint: "Demo: any email, access code 1234", install: "Install app",
+    waText: "Neer Nilai app: {url}\nSign in with your mobile number and PIN. Every day, tap one button to say whether water came.",
   }
 };
-// Six pictorial problems for the operator. Reviewers can refine into the full list.
 const ICONS = {
   power: `<svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 10-12h-7l1-8z"/></svg>`,
   pump: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/><path d="M14.5 10.5 9.5 13.5" stroke-width="3"/></svg>`,
@@ -295,37 +306,43 @@ const PROBLEMS = [
 ];
 const DIAG = [["source_ok", "qSource"], ["pump_ok", "qPump"], ["glr_filled", "qGlr"]];
 
-// ---------------------------------------------------------------- demo data: District → Block → Panchayat → Habitation → GLR
+// ---------------------------------------------------------------- demo data: the officer's Kookal sheet (phone numbers are dummies here; real ones go only into the live database)
 const DEMO = {
   district: { id: 1, name: "The Nilgiris", ta: "நீலகிரி" },
-  blocks: [{ id: 1, name: "Udhagamandalam", ta: "உதகமண்டலம்" }, { id: 2, name: "Coonoor", ta: "குன்னூர்" }],
-  panchayats: [
-    { id: 1, b: 1, name: "Kookal", ta: "கூக்கல்" },
-    { id: 2, b: 1, name: "Emerald", ta: "எமரால்டு" },
-    { id: 3, b: 2, name: "Hubbathalai", ta: "ஹுப்பத்தாலை" },
-  ],
+  blocks: [{ id: 1, name: "Udhagai", ta: "உதகை" }],
+  panchayats: [{ id: 1, b: 1, name: "Kookal", ta: "கூக்கல்" }],
   habitations: [
-    { id: 1, p: 1, name: "Jeevanagar", ta: "ஜீவநகர்" },
-    { id: 2, p: 1, name: "Kookal Main", ta: "கூக்கல் மெயின்" },
-    { id: 3, p: 2, name: "Emerald Village", ta: "எமரால்டு கிராமம்" },
-    { id: 4, p: 2, name: "Emerald Estate", ta: "எமரால்டு எஸ்டேட்" },
-    { id: 5, p: 3, name: "Hubbathalai", ta: "ஹுப்பத்தாலை" },
-    { id: 6, p: 3, name: "Ketti Palada", ta: "கெட்டி பாலாடா" },
+    { id: 1, p: 1, name: "Kookal", ta: "கூக்கல்" },
+    { id: 2, p: 1, name: "Uyilatty", ta: "உயிலட்டி" },
+    { id: 3, p: 1, name: "Degili", ta: "தெகிலி" },
+    { id: 4, p: 1, name: "Kurumudi", ta: "குறுமுடி" },
+    { id: 5, p: 1, name: "Nerikambai", ta: "நெரிகம்பை" },
+  ],
+  operators: [
+    { id: 1, name: "Sivakumar", ta: "சிவகுமார்", phone: "9000000001" },
+    { id: 2, name: "Gopal", ta: "கோபால்", phone: "9000000002" },
+    { id: 3, name: "Suresh", ta: "சுரேஷ்", phone: "9000000003" },
+    { id: 4, name: "Kantharaj", ta: "காந்தராஜ்", phone: "9000000004" },
   ],
   glrs: [
-    { id: 1, h: 1, code: "NLG-UDH-KKL-01", name: "Jeevanagar GLR", ta: "ஜீவநகர் தொட்டி", scheme: "Open well → 7.5 HP pump → 15,000 L GLR → gravity through GI pipes", supply: "7:30 – 9:30 AM daily" },
-    { id: 2, h: 2, code: "NLG-UDH-KKL-02", name: "Kookal Main OHT", ta: "கூக்கல் மெயின் தொட்டி", scheme: "Bore well → 5 HP pump → 30,000 L OHT → gravity", supply: "6:30 – 8:30 AM daily" },
-    { id: 3, h: 2, code: "NLG-UDH-KKL-03", name: "Kookal Colony GLR", ta: "கூக்கல் காலனி தொட்டி", scheme: "Spring → 10,000 L GLR → gravity", supply: "7:00 – 8:00 AM daily" },
-    { id: 4, h: 3, code: "NLG-UDH-EMR-01", name: "Emerald Village GLR", ta: "எமரால்டு கிராம தொட்டி", scheme: "Open well → 5 HP pump → 20,000 L GLR", supply: "7:00 – 9:00 AM daily" },
-    { id: 5, h: 4, code: "NLG-UDH-EMR-02", name: "Emerald Estate GLR", ta: "எமரால்டு எஸ்டேட் தொட்டி", scheme: "Stream intake → 10,000 L GLR → gravity", supply: "8:00 – 9:00 AM daily" },
-    { id: 6, h: 5, code: "NLG-CNR-HBT-01", name: "Hubbathalai OHT", ta: "ஹுப்பத்தாலை தொட்டி", scheme: "Bore well → 7.5 HP pump → 40,000 L OHT", supply: "6:00 – 8:00 AM daily" },
-    { id: 7, h: 6, code: "NLG-CNR-HBT-02", name: "Ketti Palada GLR", ta: "கெட்டி பாலாடா தொட்டி", scheme: "Open well → 3 HP pump → 10,000 L GLR", supply: "7:30 – 8:30 AM daily" },
+    { id: 1,  h: 1, op: 1, code: "NLG-UDH-KKL-01", name: "Kookal GLR 1",     ta: "கூக்கல் தொட்டி 1",     location: "Near Hethaiyamman temple", capacity: 30000 },
+    { id: 2,  h: 1, op: 1, code: "NLG-UDH-KKL-02", name: "Kookal GLR 2",     ta: "கூக்கல் தொட்டி 2",     location: "Near Hethaiyamman temple", capacity: 30000 },
+    { id: 3,  h: 2, op: 2, code: "NLG-UDH-KKL-03", name: "Uyilatty GLR 1",   ta: "உயிலட்டி தொட்டி 1",   location: "Near main road", capacity: 30000 },
+    { id: 4,  h: 2, op: 2, code: "NLG-UDH-KKL-04", name: "Uyilatty GLR 2",   ta: "உயிலட்டி தொட்டி 2",   location: "Near main road", capacity: 30000 },
+    { id: 5,  h: 2, op: 2, code: "NLG-UDH-KKL-05", name: "Uyilatty GLR 3",   ta: "உயிலட்டி தொட்டி 3",   location: "Near main road", capacity: 30000 },
+    { id: 6,  h: 3, op: 3, code: "NLG-UDH-KKL-06", name: "Degili GLR 1",     ta: "தெகிலி தொட்டி 1",     location: "Near community hall", capacity: 30000 },
+    { id: 7,  h: 3, op: 3, code: "NLG-UDH-KKL-07", name: "Degili GLR 2",     ta: "தெகிலி தொட்டி 2",     location: "Near community hall", capacity: 30000 },
+    { id: 8,  h: 3, op: 3, code: "NLG-UDH-KKL-08", name: "Degili GLR 3",     ta: "தெகிலி தொட்டி 3",     location: "Near community hall", capacity: 30000 },
+    { id: 9,  h: 4, op: 4, code: "NLG-UDH-KKL-09", name: "Kurumudi GLR 1",   ta: "குறுமுடி தொட்டி 1",   location: "Near community hall", capacity: 30000 },
+    { id: 10, h: 4, op: 4, code: "NLG-UDH-KKL-10", name: "Kurumudi GLR 2",   ta: "குறுமுடி தொட்டி 2",   location: "Near community hall", capacity: 30000 },
+    { id: 11, h: 5, op: 4, code: "NLG-UDH-KKL-11", name: "Nerikambai GLR",   ta: "நெரிகம்பை தொட்டி",    location: "Near Mahendran house", capacity: 15000 },
   ],
 };
 function glrInfo(g) {
-  const h = DEMO.habitations.find((x) => x.id === g.h), p = DEMO.panchayats.find((x) => x.id === h.p), b = DEMO.blocks.find((x) => x.id === p.b);
-  return { id: g.id, code: g.code, name: g.name, ta: g.ta, scheme: g.scheme, supply: g.supply,
-    hab: h.name, habTa: h.ta, panchayat_id: p.id, panchayat: p.name, panchayatTa: p.ta, block_id: b.id, block: b.name, blockTa: b.ta, district: DEMO.district.name, districtTa: DEMO.district.ta };
+  const h = DEMO.habitations.find((x) => x.id === g.h), p = DEMO.panchayats.find((x) => x.id === h.p), b = DEMO.blocks.find((x) => x.id === p.b), o = DEMO.operators.find((x) => x.id === g.op);
+  return { id: g.id, code: g.code, name: g.name, ta: g.ta, location: g.location, capacity: g.capacity,
+    hab: h.name, habTa: h.ta, panchayat_id: p.id, panchayat: p.name, panchayatTa: p.ta, block_id: b.id, block: b.name, blockTa: b.ta, district: DEMO.district.name, districtTa: DEMO.district.ta,
+    operator_id: o?.id, operator: o?.name, operatorTa: o?.ta, operator_phone: o?.phone };
 }
 
 // ---------------------------------------------------------------- state + storage
@@ -333,21 +350,18 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem("nn." + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem("nn." + k, JSON.stringify(v)); } catch {} },
 };
-const RK = "reports_v4";
+const RK = "reports_v5";
 const istToday = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 const dayOffset = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); };
 const nowIso = () => new Date().toISOString();
 
 let state = {
   lang: store.get("lang", "ta"),
-  places: store.get("places", []),          // tanks set up on this phone (via QR card, or code + PIN)
-  active: store.get("active", 0),
-  adding: false, editing: false,
-  step: "home",                             // operator: home | problem | done
-  pick: null,                               // operator: chosen status while on the problem screen
-  recording: false,
+  op: store.get("op", null),                // signed-in operator: {id, name, ta, phone, pin, glrs:[...]}
+  active: store.get("active", "all"),       // "all" or index into op.glrs
+  editing: false, step: "home", pick: null, recording: false,
   officer: store.get("officer_" + ROLE, null),
-  rvDraft: {},                              // review page: per-GLR edits
+  rvDraft: {}, newPins: {},
   filterBlock: 0, filterStatus: "all",
   busy: false, error: "", info: "",
   prefs: store.get("prefs", { email: true, wa: false, digest: true }),
@@ -362,73 +376,80 @@ function seedDemo() {
   const today = istToday(), rows = [];
   const R = (glr_id, date, status, extra, hh, mm, review) => rows.push({ glr_id, date, status, source_ok: null, pump_ok: null, glr_filled: null, problem: null, remarks: "", voice: null, entered_by: "operator", ...extra, at: at(hh, mm),
     review_status: review?.[0] ?? "pending", review_note: review?.[1] ?? "", reviewed_at: review ? at(hh + 1, 0) : null });
-  ["yes", "yes", "no", "partial", "yes", "yes"].forEach((v, i) => R(1, dayOffset(-6 + i), v,
+  // Kurumudi GLR 1 history (Kantharaj), last 6 days.
+  ["yes", "yes", "no", "partial", "yes", "yes"].forEach((v, i) => [9, 10].forEach((g) => R(g, dayOffset(-6 + i), v,
     v === "no" ? { source_ok: "yes", pump_ok: "no", glr_filled: "no", problem: "power", remarks: "EB line fault, restored next day" }
-    : v === "partial" ? { source_ok: "no", pump_ok: "yes", glr_filled: "no", problem: "source" } : {}, 8, 30, ["confirmed", ""]));
-  R(2, today, "yes", {}, 7, 55, ["confirmed", ""]);
-  R(3, today, "no", { problem: "pump" }, 8, 10);
-  R(4, today, "yes", {}, 8, 42);
-  R(5, today, "partial", { source_ok: "no", pump_ok: "unknown", glr_filled: "no", problem: "source", remarks: "Stream flow low, only 40 minutes supply. Verified with ward member." }, 8, 25, ["confirmed", ""]);
-  R(6, today, "no", { source_ok: "yes", pump_ok: "yes", glr_filled: "yes", problem: "pipe", remarks: "பிரதான வால்வு அருகில் குழாய் உடைந்தது, பழுது பார்க்க ஆள் வந்துள்ளார்" }, 9, 5, ["flagged", "GLR was full; check valve operator attendance"]);
-  R(7, today, "yes", {}, 8, 0);
+    : v === "partial" ? { source_ok: "no", pump_ok: "yes", glr_filled: "no", problem: "source" } : {}, 8, 30, ["confirmed", ""])));
+  // Today: Sivakumar and Gopal reported; Suresh reported one of three; Kantharaj not yet (he is the demo sign-in).
+  R(1, today, "yes", {}, 7, 40, ["confirmed", ""]); R(2, today, "yes", {}, 7, 40, ["confirmed", ""]);
+  R(3, today, "yes", {}, 8, 5); R(4, today, "yes", {}, 8, 5);
+  R(5, today, "partial", { source_ok: "no", pump_ok: "yes", glr_filled: "no", problem: "source", remarks: "Main road tank half; source low after dry week" }, 8, 5, ["confirmed", ""]);
+  R(6, today, "no", { problem: "pump" }, 8, 20);
   store.set(RK, rows);
 }
 
 // ---------------------------------------------------------------- data layer (demo | live)
 const data = {
-  async login(code, pin) {
+  async login(phone, pin) {
+    phone = phone.replace(/\D/g, "").slice(-10);
     if (LIVE) {
-      const { data: rows, error } = await sb.rpc("operator_login", { p_code: code, p_pin: pin });
-      if (error || !rows?.length) return null;
-      const r = rows[0];
-      return { id: r.id, code: r.code, pin, name: r.name, ta: r.name_ta, scheme: r.scheme, supply: r.supply_window, hab: r.habitation, habTa: r.habitation_ta,
-        panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta, block_id: r.block_id, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta };
+      const { data: rows, error } = await sb.rpc("operator_login", { p_phone: phone, p_pin: pin, p_device: deviceId() });
+      if (error) return { error: /device/i.test(error.message) ? "deviceLocked" : "badLogin" };
+      if (!rows?.length) return { error: "badLogin" };
+      const r0 = rows[0];
+      return { id: r0.operator_id, name: r0.operator_name, ta: r0.operator_name_ta, phone, pin,
+        glrs: rows.map((r) => ({ id: r.glr_id, code: r.code, name: r.glr, ta: r.glr_ta, location: r.location, capacity: r.capacity, hab: r.habitation, habTa: r.habitation_ta,
+          panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta })) };
     }
-    const g = DEMO.glrs.find((x) => x.code === code.trim().toUpperCase());
-    if (!g || pin !== "1234") return null;
-    return { ...glrInfo(g), pin };
+    const o = DEMO.operators.find((x) => x.phone === phone);
+    const pins = store.get("pins", {});
+    if (!o || pin !== (pins[o.id] ?? "1234")) return { error: "badLogin" };
+    return { id: o.id, name: o.name, ta: o.ta, phone, pin, glrs: DEMO.glrs.filter((g) => g.op === o.id).map(glrInfo) };
   },
-  async history(place) {
+  async history(glr) {
     if (LIVE) {
-      const { data: rows } = await sb.rpc("operator_history", { p_code: place.code, p_pin: place.pin });
-      return (rows ?? []).map((r) => ({ date: r.report_date, status: r.status, problem: r.problem, remarks: r.remarks, at: r.reported_at, voice: r.voice_path }));
+      const { data: rows } = await sb.rpc("operator_history", { p_phone: state.op.phone, p_pin: state.op.pin, p_glr_id: glr.id });
+      return (rows ?? []).map((r) => ({ glr_id: glr.id, date: r.report_date, status: r.status, problem: r.problem, remarks: r.remarks, at: r.reported_at, voice: r.voice_path }));
     }
-    return store.get(RK, []).filter((r) => r.glr_id === place.id);
+    return store.get(RK, []).filter((r) => r.glr_id === glr.id);
   },
-  async submit(place, status, problem) {
+  async submit(glr, status, problem) {
     if (LIVE) {
-      if (!navigator.onLine) { queue(place, { status, problem }); return { queued: true }; }
-      const { error } = await sb.rpc("submit_report", { p_code: place.code, p_pin: place.pin, p_status: status, p_problem: problem, p_device: deviceId() });
+      if (!navigator.onLine) { queue(glr, { status, problem }); return { queued: true }; }
+      const { error } = await sb.rpc("submit_report", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId(), p_glr_id: glr.id, p_status: status, p_problem: problem });
       if (error) throw error;
       return { ok: true };
     }
-    const rows = store.get(RK, []).filter((r) => !(r.glr_id === place.id && r.date === istToday()));
-    rows.push({ glr_id: place.id, date: istToday(), status, problem: status === "yes" ? null : problem, source_ok: null, pump_ok: null, glr_filled: null, remarks: "", voice: null, entered_by: "operator",
+    const rows = store.get(RK, []).filter((r) => !(r.glr_id === glr.id && r.date === istToday()));
+    rows.push({ glr_id: glr.id, date: istToday(), status, problem: status === "yes" ? null : problem, source_ok: null, pump_ok: null, glr_filled: null, remarks: "", voice: null, entered_by: "operator",
       at: nowIso(), review_status: "pending", review_note: "", reviewed_at: null });
     store.set(RK, rows);
     return { ok: true };
   },
-  async attachVoice(place, blob) {
+  async attachVoice(glrs, blob) {
     if (LIVE) {
-      const path = `${place.code}/${istToday()}.webm`;
-      const { error } = await sb.storage.from("voice").upload(path, blob, { upsert: true, contentType: blob.type || "audio/webm" });
-      if (error) throw error;
-      const { error: e2 } = await sb.rpc("attach_voice", { p_code: place.code, p_pin: place.pin, p_path: path });
-      if (e2) throw e2; return;
+      for (const g of glrs) {
+        const path = `${g.code}/${istToday()}.webm`;
+        const { error } = await sb.storage.from("voice").upload(path, blob, { upsert: true, contentType: blob.type || "audio/webm" });
+        if (error) throw error;
+        const { error: e2 } = await sb.rpc("attach_voice", { p_phone: state.op.phone, p_pin: state.op.pin, p_glr_id: g.id, p_path: path });
+        if (e2) throw e2;
+      }
+      return;
     }
     const dataUrl = await new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
     if (dataUrl.length > 1_500_000) throw new Error("too long");
     const rows = store.get(RK, []);
-    const r = rows.find((x) => x.glr_id === place.id && x.date === istToday());
-    if (r) { r.voice = dataUrl; store.set(RK, rows); }
+    for (const g of glrs) { const r = rows.find((x) => x.glr_id === g.id && x.date === istToday()); if (r) r.voice = dataUrl; }
+    store.set(RK, rows);
   },
   async today() {
     if (LIVE) {
       const { data: rows, error } = await sb.from("v_today").select("*");
       if (error) throw error;
-      return rows.map((r) => ({ id: r.glr_id, code: r.code, name: r.glr, ta: r.glr_ta, hab: r.habitation, habTa: r.habitation_ta, panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta,
-        block_id: r.block_id, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta, report_id: r.report_id, status: r.status,
-        source_ok: r.source_ok, pump_ok: r.pump_ok, glr_filled: r.glr_filled, problem: r.problem, remarks: r.remarks, voice: r.voice_path, entered_by: r.entered_by, at: r.reported_at,
+      return rows.map((r) => ({ id: r.glr_id, code: r.code, name: r.glr, ta: r.glr_ta, location: r.location, capacity: r.capacity, hab: r.habitation, habTa: r.habitation_ta, panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta,
+        block_id: r.block_id, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta, operator_id: r.operator_id, operator: r.operator_name, operatorTa: r.operator_name_ta, operator_phone: r.operator_phone,
+        report_id: r.report_id, status: r.status, source_ok: r.source_ok, pump_ok: r.pump_ok, glr_filled: r.glr_filled, problem: r.problem, remarks: r.remarks, voice: r.voice_path, entered_by: r.entered_by, at: r.reported_at,
         review_status: r.review_status ?? "pending", review_note: r.review_note ?? "" }));
     }
     const rows = store.get(RK, []);
@@ -439,7 +460,23 @@ const data = {
         problem: r?.problem ?? null, remarks: r?.remarks ?? "", voice: r?.voice ?? null, entered_by: r?.entered_by ?? null, at: r?.at ?? null, review_status: r?.review_status ?? "pending", review_note: r?.review_note ?? "" };
     });
   },
-  // Reviewer: confirm/flag with diagnostics, action taken, and possibly a refined problem.
+  async operators() {
+    if (LIVE) {
+      const { data: rows, error } = await sb.from("v_operators").select("*");
+      if (error) throw error;
+      return rows.map((r) => ({ id: r.id, name: r.name, ta: r.name_ta, phone: r.phone, glrCount: r.glr_count, bound: !!r.device_id, panchayat_id: r.panchayat_id }));
+    }
+    const dev = store.get("devices", {});
+    return DEMO.operators.map((o) => ({ ...o, glrCount: DEMO.glrs.filter((g) => g.op === o.id).length, bound: !!dev[o.id], panchayat_id: 1 }));
+  },
+  async setPin(opId, pin) {
+    if (LIVE) { const { error } = await sb.rpc("set_operator_pin", { p_operator_id: opId, p_pin: pin }); if (error) throw error; return; }
+    const pins = store.get("pins", {}); pins[opId] = pin; store.set("pins", pins);
+  },
+  async resetDevice(opId) {
+    if (LIVE) { const { error } = await sb.rpc("reset_operator_device", { p_operator_id: opId }); if (error) throw error; return; }
+    const dev = store.get("devices", {}); delete dev[opId]; store.set("devices", dev);
+  },
   async review(row, d) {
     if (LIVE) {
       const { error } = await sb.rpc("review_report", { p_report_id: row.report_id, p_status: d.review_status, p_note: d.remarks, p_source_ok: d.source_ok, p_pump_ok: d.pump_ok, p_glr_filled: d.glr_filled, p_problem: d.problem });
@@ -449,12 +486,8 @@ const data = {
     const r = rows.find((x) => x.glr_id === row.id && x.date === istToday());
     if (r) { Object.assign(r, { review_status: d.review_status, remarks: d.remarks ?? r.remarks, source_ok: d.source_ok, pump_ok: d.pump_ok, glr_filled: d.glr_filled, problem: d.problem ?? r.problem, reviewed_at: nowIso() }); store.set(RK, rows); }
   },
-  // Reviewer records a day on behalf of an operator (after a phone call).
   async recordFor(row, status, problem, remarks) {
-    if (LIVE) {
-      const { error } = await sb.rpc("reviewer_submit", { p_glr_id: row.id, p_status: status, p_problem: problem, p_remarks: remarks });
-      if (error) throw error; return;
-    }
+    if (LIVE) { const { error } = await sb.rpc("reviewer_submit", { p_glr_id: row.id, p_status: status, p_problem: problem, p_remarks: remarks }); if (error) throw error; return; }
     const rows = store.get(RK, []).filter((r) => !(r.glr_id === row.id && r.date === istToday()));
     rows.push({ glr_id: row.id, date: istToday(), status, problem: status === "yes" ? null : problem, source_ok: null, pump_ok: null, glr_filled: null, remarks: remarks ?? "", voice: null, entered_by: "reviewer",
       at: nowIso(), review_status: "confirmed", review_note: "", reviewed_at: nowIso() });
@@ -467,12 +500,12 @@ const data = {
     return d?.signedUrl ?? null;
   },
 };
-function deviceId() { let id = store.get("device", null); if (!id) { id = Math.random().toString(36).slice(2, 10); store.set("device", id); } return id; }
-function queue(place, d) { const q = store.get("queue", []); q.push({ place, d, at: nowIso() }); store.set("queue", q); }
+function deviceId() { let id = store.get("device", null); if (!id) { id = Math.random().toString(36).slice(2, 12); store.set("device", id); } return id; }
+function queue(glr, d) { const q = store.get("queue", []); q.push({ glr, d, at: nowIso() }); store.set("queue", q); }
 async function flushQueue() {
-  const q = store.get("queue", []); if (!q.length || !LIVE || !navigator.onLine) return;
+  const q = store.get("queue", []); if (!q.length || !LIVE || !navigator.onLine || !state.op) return;
   const rest = [];
-  for (const item of q) { try { await data.submit(item.place, item.d.status, item.d.problem); } catch { rest.push(item); } }
+  for (const item of q) { try { await data.submit(item.glr, item.d.status, item.d.problem); } catch { rest.push(item); } }
   store.set("queue", rest);
   if (rest.length < q.length) toast(t("saved"));
 }
@@ -483,6 +516,7 @@ const app = document.getElementById("app");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmtTime = (iso) => iso ? new Date(iso).toLocaleTimeString(state.lang === "ta" ? "ta-IN" : "en-IN", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" }) : "";
 const fmtDate = (ymd) => new Date(ymd + "T00:00:00").toLocaleDateString(state.lang === "ta" ? "ta-IN" : "en-IN", { weekday: "short", day: "numeric", month: "short" });
+const fmtCap = (n) => n ? `${Number(n).toLocaleString("en-IN")} L` : "";
 const problemOf = (code) => PROBLEMS.find((x) => x.code === code);
 const problemLabel = (code) => { const r = problemOf(code); return r ? (state.lang === "ta" ? r.ta : r.en) : ""; };
 const dLabel = (v) => v === "yes" ? t("dYes") : v === "no" ? t("dNo") : v === "unknown" ? t("dUnknown") : "–";
@@ -496,12 +530,6 @@ function diagSummary(r) {
   return parts.length ? `<div class="diagline">${esc(parts.join(" · "))}</div>` : "";
 }
 const voiceBtn = (r, i) => r.voice ? `<button class="play" data-play="${i}">${esc(t("play"))} · ${esc(t("voiceNote"))}</button><span id="audio-${i}"></span>` : "";
-function bindPlay(list) {
-  app.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", async () => {
-    const i = +b.dataset.play, url = await data.voiceUrl(list[i]); if (!url) return;
-    const slot = document.getElementById("audio-" + i); slot.innerHTML = `<audio controls autoplay src="${esc(url)}" style="display:block;width:100%;max-width:320px;margin-top:6px"></audio>`;
-  }));
-}
 
 function render() {
   document.getElementById("langTa").setAttribute("aria-pressed", state.lang === "ta");
@@ -509,127 +537,130 @@ function render() {
   document.getElementById("brandSub").textContent = t(ROLE === "of" ? "officerSub" : ROLE === "rv" ? "reviewSub" : "operatorSub");
   document.getElementById("installBtn").textContent = t("install");
   document.documentElement.lang = state.lang === "ta" ? "ta" : "en";
-  if (ROLE === "op") renderOperator();
+  if (ROLE === "op") state.op ? renderOperator() : renderOperatorLogin();
   else if (!state.officer) renderStaffLogin();
   else if (ROLE === "rv") renderReview();
   else renderOfficer();
 }
 
-// ---------------------------------------------------------------- operator: QR setup, 3 big buttons, 6 picture tiles, done
-function renderSetup() {
-  const opts = DEMO.glrs.filter((g) => !state.places.some((p) => p.id === g.id)).map((g) => { const i = glrInfo(g); return `<option value="${g.code}">${esc(nm(i))} · ${esc(nm2(i.hab, i.habTa))} (${esc(g.code)})</option>`; }).join("");
+// ---------------------------------------------------------------- operator: phone + PIN, 3 big buttons, 6 picture tiles, done
+function renderOperatorLogin() {
+  const opts = DEMO.operators.map((o) => `<option value="${o.phone}">${esc(nm(o))} · ${esc(o.phone)}</option>`).join("");
   app.innerHTML = `<div class="page op">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
     <div class="card">
-      <h2 style="font-size:22px;font-weight:700">${esc(t("setupTitle"))}</h2>
-      <p style="margin:6px 0 0;color:var(--muted);font-size:14px">${esc(t("setupHint"))}</p>
-      <div class="field"><label class="label" for="code">${esc(t("code"))}</label>
-        ${LIVE ? `<input id="code" autocapitalize="characters" placeholder="NLG-UDH-KKL-01">` : `<select id="code">${opts}</select>`}</div>
-      <div class="field"><label class="label" for="pin">${esc(t("pin"))}</label><input id="pin" inputmode="numeric" maxlength="4" placeholder="••••" type="password"></div>
-      ${state.error ? `<div class="err">${esc(state.error)}</div>` : ""}
+      <h2 style="font-size:22px;font-weight:700">${esc(t("loginTitle"))}</h2>
+      <p style="margin:6px 0 0;color:var(--muted);font-size:14px">${esc(t("loginHint"))}</p>
+      <div class="field"><label class="label" for="phone">${esc(t("phone"))}</label>
+        ${LIVE ? `<input id="phone" class="big" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="98765 43210">` : `<select id="phone">${opts}</select>`}</div>
+      <div class="field"><label class="label" for="pin">${esc(t("pin"))}</label><input id="pin" class="big" inputmode="numeric" maxlength="4" placeholder="••••" type="password"></div>
+      ${state.error ? `<div class="err">${esc(t(state.error))}</div>` : ""}
       <div style="margin-top:16px"><button class="btn" id="loginBtn">${esc(t("login"))}</button></div>
-      ${state.places.length ? `<p style="margin:12px 0 0"><button class="link" id="cancelAdd">${esc(t("back"))}</button></p>` : ""}
-      ${LIVE ? "" : `<p style="font-size:13px;color:var(--muted);margin:12px 0 0">${esc(t("demoHint"))}</p>`}
+      ${LIVE ? "" : `<p style="font-size:13px;color:var(--muted);margin:12px 0 0">${esc(t("opDemoHint"))}</p>`}
     </div>
   </div>`;
-  document.getElementById("loginBtn").addEventListener("click", () => addPlace(document.getElementById("code").value, document.getElementById("pin").value));
-  document.getElementById("cancelAdd")?.addEventListener("click", () => { state.adding = false; state.error = ""; render(); });
-}
-async function addPlace(code, pin) {
-  const place = await data.login(code, pin);
-  if (!place) { state.error = t("badPin"); return render(); }
-  state.error = ""; state.places = [...state.places.filter((p) => p.id !== place.id), place]; state.active = state.places.length - 1; state.adding = false; state.step = "home";
-  store.set("places", state.places); store.set("active", state.active); render();
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const res = await data.login(document.getElementById("phone").value, document.getElementById("pin").value);
+    if (res.error) { state.error = res.error; return render(); }
+    if (!LIVE) { const dev = store.get("devices", {}); dev[res.id] = deviceId(); store.set("devices", dev); }
+    state.error = ""; state.op = res; state.active = res.glrs.length > 1 ? "all" : 0; state.step = "home";
+    store.set("op", res); store.set("active", state.active); render();
+  });
 }
 
 async function renderOperator() {
-  if (!state.places.length || state.adding) return renderSetup();
-  if (state.active >= state.places.length) state.active = 0;
-  const place = state.places[state.active];
-  const hist = await data.history(place);
-  const todayRow = hist.find((r) => r.date === istToday());
-  const all = LIVE ? [] : store.get(RK, []);
-  const tabs = state.places.length > 1 || !LIVE ? `<div class="glrs">${state.places.map((p, i) => {
-    const r = all.find((x) => x.glr_id === p.id && x.date === istToday());
-    return `<button data-glr="${i}" aria-pressed="${i === state.active}"><i class="${r ? r.status : ""}"></i>${esc(nm(p))}</button>`;
-  }).join("")}<button data-add="1">${esc(t("addGlr"))}</button></div>` : "";
-  const days = Array.from({ length: 7 }, (_, i) => dayOffset(i - 6));
-  const strip = days.map((day) => { const r = hist.find((x) => x.date === day); const short = new Date(day + "T00:00:00").toLocaleDateString(state.lang === "ta" ? "ta-IN" : "en-IN", { weekday: "narrow" }); return `<div><i class="${r ? r.status : ""}"></i>${esc(short)}</div>`; }).join("");
-  const who = `<div class="card who"><div><h2>${esc(nm(place))}</h2><div class="sub">${esc(nm2(place.hab, place.habTa))} · ${esc(nm2(place.panchayat, place.panchayatTa))}</div></div><div class="d">${esc(fmtDate(istToday()))}</div></div>`;
+  const op = state.op, glrs = op.glrs;
+  if (state.active !== "all" && state.active >= glrs.length) state.active = glrs.length > 1 ? "all" : 0;
+  const allRows = LIVE ? (await Promise.all(glrs.map((g) => data.history(g)))).flat() : store.get(RK, []).filter((r) => glrs.some((g) => g.id === r.glr_id));
+  const todayOf = (g) => allRows.find((r) => r.glr_id === g.id && r.date === istToday());
+  const targets = state.active === "all" ? glrs.filter((g) => state.editing || !todayOf(g)) : [glrs[state.active]];
+  const allDone = glrs.every(todayOf);
+  const focus = state.active === "all" ? null : glrs[state.active];
+
+  const tabs = glrs.length > 1 ? `<div class="glrs">
+    <button data-glr="all" aria-pressed="${state.active === "all"}">${esc(t("allTanks"))} (${glrs.length})</button>
+    ${glrs.map((g, i) => { const r = todayOf(g); return `<button data-glr="${i}" aria-pressed="${i === state.active}"><i class="${r ? r.status : ""}"></i>${esc(nm(g))}</button>`; }).join("")}
+  </div>` : "";
+
+  const who = focus
+    ? `<div class="card who"><div><h2>${esc(nm(focus))}</h2><div class="sub">${esc(nm2(focus.hab, focus.habTa))} · ${esc(fmtCap(focus.capacity))}${focus.location ? ` · ${esc(focus.location)}` : ""}</div></div><div class="d">${esc(fmtDate(istToday()))}</div></div>`
+    : `<div class="card who"><div><h2>${esc(nm(op))}</h2><div class="sub">${glrs.length} ${esc(t("tanks"))} · ${esc(nm2(glrs[0].panchayat, glrs[0].panchayatTa))}</div></div><div class="d">${esc(fmtDate(istToday()))}</div></div>`;
 
   let body;
-  const step = todayRow && !state.editing ? "done" : state.step;
-  if (step === "done" && todayRow) {
-    const pr = problemOf(todayRow.problem);
-    const nextIdx = state.places.findIndex((p, i) => i !== state.active && !all.find((x) => x.glr_id === p.id && x.date === istToday()));
-    body = `<div class="card done ${todayRow.status}">
-        <div class="big">${{ yes: "✓", partial: "◐", no: "✕" }[todayRow.status]}</div>
+  const showDone = !state.editing && (focus ? !!todayOf(focus) : allDone);
+  if (showDone) {
+    const rows = focus ? [todayOf(focus)] : glrs.map(todayOf);
+    const statuses = [...new Set(rows.map((r) => r.status))];
+    const one = statuses.length === 1 ? statuses[0] : "mixed";
+    const pr = focus ? problemOf(rows[0].problem) : null;
+    const issueGlrs = (focus ? [focus] : glrs).filter((g) => todayOf(g)?.status !== "yes");
+    const voiceRow = focus ? rows[0] : rows.find((r) => r.voice);
+    body = `<div class="card done ${one}">
+        <div class="big">${{ yes: "✓", partial: "◐", no: "✕", mixed: "✓" }[one]}</div>
         <h2>${esc(t("done"))}</h2>
-        <p>${esc(t(todayRow.status === "yes" ? "doneYes" : todayRow.status === "partial" ? "donePartial" : "doneNo"))} · ${esc(fmtTime(todayRow.at))}</p>
+        <p>${focus ? `${esc(t(one === "yes" ? "doneYes" : one === "partial" ? "donePartial" : "doneNo"))} · ${esc(fmtTime(rows[0].at))}` : esc(t("doneAll"))}</p>
         ${pr ? `<div class="what">${ICONS[pr.icon] ?? ""}${esc(problemLabel(pr.code))}</div>` : ""}
-        ${todayRow.status !== "yes" ? `<p>${esc(t("doneInfo"))}</p>` : ""}
-        ${todayRow.status !== "yes" ? `<div class="voice">
-          ${todayRow.voice ? `<audio controls src="${esc(todayRow.voice)}"></audio><div class="hint">✓ ${esc(t("voiceSaved"))}</div>` : ""}
-          <button id="voiceBtn" class="${state.recording ? "rec" : ""}">${state.recording ? "■ " + esc(t("voiceStop")) : "🎤 " + esc(t(todayRow.voice ? "change" : "voiceAdd"))}</button>
-          ${!todayRow.voice && !state.recording ? `<div class="hint">${esc(t("voiceHint"))}</div>` : ""}
+        ${!focus ? `<div class="list">${glrs.map((g) => { const r = todayOf(g); return `<div><span>${esc(nm(g))}</span>${statusPill(r.status)}</div>`; }).join("")}</div>` : ""}
+        ${issueGlrs.length ? `<p>${esc(t("doneInfo"))}</p><div class="voice">
+          ${voiceRow?.voice ? `<audio controls src="${esc(voiceRow.voice)}"></audio><div class="hint">✓ ${esc(t("voiceSaved"))}</div>` : ""}
+          <button id="voiceBtn" class="${state.recording ? "rec" : ""}">${state.recording ? "■ " + esc(t("voiceStop")) : "🎤 " + esc(t(voiceRow?.voice ? "change" : "voiceAdd"))}</button>
+          ${!voiceRow?.voice && !state.recording ? `<div class="hint">${esc(t("voiceHint"))}</div>` : ""}
         </div>` : ""}
         <div class="small-links" style="margin-top:18px"><button class="link" id="editBtn">${esc(t("change"))}</button></div>
-      </div>
-      ${nextIdx >= 0 ? `<button class="next" data-glr="${nextIdx}">${esc(t("nextGlr"))}</button>` : ""}`;
-  } else if (step === "problem") {
+      </div>`;
+  } else if (state.step === "problem") {
     body = `<button class="back" id="backBtn">‹ ${esc(t("back"))}</button>
       <div class="bigq">${esc(t("whatProblem"))}</div>
       <div class="tiles2">${PROBLEMS.filter((p) => p.op).map((p) => `<button data-problem="${p.code}">${ICONS[p.icon]}${esc(state.lang === "ta" ? p.ta : p.en)}</button>`).join("")}</div>
       ${state.error ? `<div class="err">${esc(state.error)}</div>` : ""}`;
   } else {
-    body = `<div class="bigq">${esc(t("bigq"))}</div>
+    body = `<div class="bigq">${esc(t(focus || targets.length === 1 ? "bigq" : "bigqAll"))}</div>
       <div class="big3">
         <button class="yes" data-status="yes"><span class="ring">✓</span><span>${esc(t("yes"))}<small>${esc(t("yesSub"))}</small></span></button>
         <button class="partial" data-status="partial"><span class="ring">◐</span><span>${esc(t("partial"))}<small>${esc(t("partialSub"))}</small></span></button>
         <button class="no" data-status="no"><span class="ring">✕</span><span>${esc(t("no"))}<small>${esc(t("noSub"))}</small></span></button>
       </div>
+      ${!focus && targets.length < glrs.length ? `<p style="margin:0;text-align:center;color:var(--muted);font-size:14px">${targets.map((g) => esc(nm(g))).join(" · ")}</p>` : ""}
       ${state.error ? `<div class="err">${esc(state.error)}</div>` : ""}
       ${!navigator.onLine ? `<div class="err" style="color:var(--warn)">${esc(t("offline"))}</div>` : ""}
       ${state.editing ? `<div class="small-links"><button class="link" id="cancelEdit">${esc(t("back"))}</button></div>` : ""}`;
   }
 
+  let strip = "";
+  if (focus) {
+    const days = Array.from({ length: 7 }, (_, i) => dayOffset(i - 6));
+    strip = `<div class="card"><span class="label">${esc(t("last7"))}</span><div class="strip">${days.map((day) => { const r = allRows.find((x) => x.glr_id === focus.id && x.date === day); const short = new Date(day + "T00:00:00").toLocaleDateString(state.lang === "ta" ? "ta-IN" : "en-IN", { weekday: "narrow" }); return `<div><i class="${r ? r.status : ""}"></i>${esc(short)}</div>`; }).join("")}</div></div>`;
+  }
+
   app.innerHTML = `<div class="page op">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
-    ${tabs}${who}${body}
-    <div class="card"><span class="label">${esc(t("last7"))}</span><div class="strip">${strip}</div></div>
-    <div class="small-links"><button class="link" id="removeGlr" style="color:var(--muted)">${esc(t("removeGlr"))}</button></div>
+    ${tabs}${who}${body}${strip}
+    <div class="small-links"><span style="color:var(--muted);font-size:13px">${esc(nm(op))} · ${esc(op.phone)}</span><button class="link" id="logout" style="color:var(--muted)">${esc(t("logout"))}</button></div>
   </div>`;
 
-  app.querySelectorAll("[data-glr]").forEach((b) => b.addEventListener("click", () => { state.active = +b.dataset.glr; store.set("active", state.active); state.editing = false; state.step = "home"; state.pick = null; render(); }));
-  app.querySelector("[data-add]")?.addEventListener("click", () => { state.adding = true; state.error = ""; render(); });
-  app.querySelectorAll("[data-status]").forEach((b) => b.addEventListener("click", async () => {
-    const s = b.dataset.status;
-    if (s === "yes") return save(place, "yes", null);
-    state.pick = s; state.step = "problem"; state.error = ""; render();
-  }));
-  app.querySelectorAll("[data-problem]").forEach((b) => b.addEventListener("click", () => save(place, state.pick, b.dataset.problem)));
+  app.querySelectorAll("[data-glr]").forEach((b) => b.addEventListener("click", () => { state.active = b.dataset.glr === "all" ? "all" : +b.dataset.glr; store.set("active", state.active); state.editing = false; state.step = "home"; state.pick = null; render(); }));
+  app.querySelectorAll("[data-status]").forEach((b) => b.addEventListener("click", () => { const s = b.dataset.status; if (s === "yes") return save(targets, "yes", null); state.pick = s; state.step = "problem"; state.error = ""; render(); }));
+  app.querySelectorAll("[data-problem]").forEach((b) => b.addEventListener("click", () => save(targets, state.pick, b.dataset.problem)));
   document.getElementById("backBtn")?.addEventListener("click", () => { state.step = "home"; state.pick = null; render(); });
   document.getElementById("cancelEdit")?.addEventListener("click", () => { state.editing = false; state.step = "home"; render(); });
   document.getElementById("editBtn")?.addEventListener("click", () => { state.editing = true; state.step = "home"; state.pick = null; render(); });
-  document.getElementById("voiceBtn")?.addEventListener("click", () => state.recording ? stopVoice() : startVoice(place));
-  document.getElementById("removeGlr")?.addEventListener("click", () => {
-    state.places = state.places.filter((_, i) => i !== state.active); state.active = 0; store.set("places", state.places); store.set("active", 0); state.editing = false; state.step = "home"; render();
-  });
+  document.getElementById("voiceBtn")?.addEventListener("click", () => { const gs = (focus ? [focus] : glrs).filter((g) => todayOf(g)?.status !== "yes"); state.recording ? stopVoice() : startVoice(gs); });
+  document.getElementById("logout")?.addEventListener("click", () => { state.op = null; store.set("op", null); state.editing = false; state.step = "home"; render(); });
 }
-async function save(place, status, problem) {
-  if (state.busy) return;
+async function save(glrs, status, problem) {
+  if (state.busy || !glrs.length) return;
   state.busy = true; state.error = "";
   try {
-    const res = await data.submit(place, status, problem);
-    state.editing = false; state.step = "done"; state.pick = null;
-    toast(res.queued ? t("offline") : t("saved"));
+    let queued = false;
+    for (const g of glrs) { const res = await data.submit(g, status, problem); queued = queued || !!res.queued; }
+    state.editing = false; state.step = "home"; state.pick = null;
+    toast(queued ? t("offline") : t("saved"));
   } catch (e) { state.error = e.message || String(e); }
   state.busy = false; render();
 }
 
-// Voice note: one tap to start, auto-stops at 20 s.
 let rec = null, chunks = [], recTimer = null;
-async function startVoice(place) {
+async function startVoice(glrs) {
   if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { toast(t("voiceNo")); return; }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -637,7 +668,7 @@ async function startVoice(place) {
     rec.ondataavailable = (e) => chunks.push(e.data);
     rec.onstop = async () => {
       stream.getTracks().forEach((tr) => tr.stop()); clearTimeout(recTimer); state.recording = false;
-      try { await data.attachVoice(place, new Blob(chunks, { type: rec.mimeType || "audio/webm" })); toast(t("voiceSaved")); } catch (e) { toast(e.message); }
+      try { await data.attachVoice(glrs, new Blob(chunks, { type: rec.mimeType || "audio/webm" })); toast(t("voiceSaved")); } catch (e) { toast(e.message); }
       render();
     };
     rec.start(); state.recording = true; render();
@@ -668,25 +699,33 @@ function renderStaffLogin() {
       state.error = error ? error.message : ""; state.info = error ? "" : t("magicSent"); return render();
     }
     const code = document.getElementById("offCode").value;
-    if (!email.includes("@") || code !== "1234") { state.error = t("badLogin"); return render(); }
+    if (!email.includes("@") || code !== "1234") { state.error = t("badStaffLogin"); return render(); }
     state.officer = ROLE === "rv" ? { email, panchayat_id: 1 } : { email }; store.set("officer_" + ROLE, state.officer); render();
   });
 }
 function signOutBtn() { return `<div class="sub">${esc(state.officer?.email ?? "")} · <button class="link" id="signOut">${esc(t("signOut"))}</button></div>`; }
 function bindSignOut() { document.getElementById("signOut")?.addEventListener("click", async () => { if (LIVE) await sb.auth.signOut(); state.officer = null; store.set("officer_" + ROLE, null); render(); }); }
-function bindReset() { document.getElementById("resetDemo")?.addEventListener("click", () => { try { localStorage.removeItem("nn." + RK); } catch {} seedDemo(); state.rvDraft = {}; render(); }); }
+function bindReset() { document.getElementById("resetDemo")?.addEventListener("click", () => { try { localStorage.removeItem("nn." + RK); localStorage.removeItem("nn.pins"); localStorage.removeItem("nn.devices"); } catch {} seedDemo(); state.rvDraft = {}; state.newPins = {}; render(); }); }
+function bindPlay(list) {
+  app.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", async () => {
+    const i = +b.dataset.play, url = await data.voiceUrl(list[i]); if (!url) return;
+    document.getElementById("audio-" + i).innerHTML = `<audio controls autoplay src="${esc(url)}" style="display:block;width:100%;max-width:320px;margin-top:6px"></audio>`;
+  }));
+}
 
-// ---------------------------------------------------------------- panchayat review: diagnostics + action taken live here
+// ---------------------------------------------------------------- panchayat review: confirm/flag, diagnostics, record on behalf, operators
 async function renderReview() {
-  let rows;
-  try { rows = await data.today(); } catch (e) { app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  let rows, ops;
+  try { rows = await data.today(); ops = await data.operators(); } catch (e) { app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
   const pid = state.officer.panchayat_id;
   const mine = LIVE ? rows : rows.filter((r) => r.panchayat_id === pid);
+  const myOps = LIVE ? ops : ops.filter((o) => o.panchayat_id === pid);
   const pname = mine[0] ? nm2(mine[0].panchayat, mine[0].panchayatTa) : "";
   const rank = { no: 0, partial: 1, not_reported: 2, yes: 3 };
   const list = [...mine].sort((a, b) => rank[a.status] - rank[b.status] || (a.review_status === "pending" ? -1 : 1));
   const pending = mine.filter((r) => r.status !== "not_reported" && r.review_status === "pending").length;
   const draft = (r) => state.rvDraft[r.id] ?? (state.rvDraft[r.id] = { status: null, problem: r.problem, source_ok: r.source_ok, pump_ok: r.pump_ok, glr_filled: r.glr_filled, remarks: r.remarks ?? "" });
+  const appUrl = location.origin + location.pathname.replace(/review\/?(index\.html)?$/, "");
 
   app.innerHTML = `<div class="page wide">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
@@ -698,12 +737,13 @@ async function renderReview() {
       const silent = r.status === "not_reported";
       const draftIssue = d.status === "partial" || d.status === "no";
       return `<div class="rv-item">
-        <div class="rv-top"><div><b>${esc(nm(r))}</b> <span class="sub">· ${esc(nm2(r.hab, r.habTa))}</span><div class="sub mono">${esc(r.code)}${r.at ? ` · ${esc(fmtTime(r.at))}` : ""}${r.entered_by === "reviewer" ? ` · ${esc(t("byReviewer"))}` : ""}</div></div>
+        <div class="rv-top"><div><b>${esc(nm(r))}</b> <span class="sub">· ${esc(nm2(r.hab, r.habTa))} · ${esc(fmtCap(r.capacity))}</span>
+            <div class="sub">${esc(nm2(r.operator, r.operatorTa))} · ${esc(r.operator_phone ?? "")}${r.at ? ` · ${esc(fmtTime(r.at))}` : ""}${r.entered_by === "reviewer" ? ` · ${esc(t("byReviewer"))}` : ""}</div></div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${statusPill(r.status)}${!silent ? reviewPill(r.review_status) : ""}</div></div>
         ${silent ? `
           <div class="rv-body" style="color:var(--muted)">${esc(t("silentNote"))}</div>
           <div class="rv-body" style="margin-top:8px"><b>${esc(t("recordFor"))}</b></div>
-          <div class="rv-actions">${["yes", "partial", "no"].map((s) => `<button class="st-${s}" data-rf="${i}" data-s="${s}" aria-pressed="${d.status === s}" style="${d.status === s ? "background:var(--soft)" : ""}">${esc(statusLabel(s))}</button>`).join("")}</div>
+          <div class="rv-actions">${["yes", "partial", "no"].map((s) => `<button class="st-${s}" data-rf="${i}" data-s="${s}" style="${d.status === s ? "background:var(--soft)" : ""}">${esc(statusLabel(s))}</button>`).join("")}</div>
           ${draftIssue ? `<div class="rv-diag"><div class="chips">${PROBLEMS.map((p) => `<button data-rfp="${i}" data-p="${p.code}" aria-pressed="${d.problem === p.code}">${esc(state.lang === "ta" ? p.ta : p.en)}</button>`).join("")}</div>
             <input id="rfnote-${i}" placeholder="${esc(t("notePh"))}" value="${esc(d.remarks)}"></div>` : ""}
           ${d.status ? `<div class="rv-actions"><button class="ok" data-rfsave="${i}" ${draftIssue && !d.problem ? "disabled" : ""}>${esc(t("confirm"))}</button></div>` : ""}`
@@ -721,6 +761,18 @@ async function renderReview() {
           </div>`}
       </div>`; }).join("") : `<div class="card" style="color:var(--muted)">${esc(t("nothingToReview"))}</div>`}
     </div>
+
+    <div class="section-h" style="margin-top:8px"><h3>${esc(t("operators"))}</h3><span class="label">${myOps.length}</span></div>
+    <p style="margin:-4px 0 0;color:var(--muted);font-size:14px">${esc(t("opHint"))}</p>
+    <div class="rv">${myOps.map((o) => `<div class="rv-item">
+        <div class="rv-top"><div><b>${esc(nm(o))}</b> <span class="sub">· ${esc(o.phone)}</span><div class="sub">${o.glrCount} ${esc(t("tanks"))} · ${esc(o.bound ? t("deviceBound") : t("noDevice"))}</div></div></div>
+        ${state.newPins[o.id] ? `<div class="pinbox">${esc(t("pinIs"))}: <b>${esc(state.newPins[o.id])}</b><br>${esc(t("tellOp"))}</div>` : ""}
+        <div class="rv-actions">
+          <button data-setpin="${o.id}">${esc(t("setPin"))}</button>
+          <button data-resetdev="${o.id}" ${o.bound ? "" : "disabled"}>${esc(t("resetDevice"))}</button>
+          <a target="_blank" rel="noopener" href="https://wa.me/91${esc(o.phone)}?text=${encodeURIComponent(t("waText").replace("{url}", appUrl))}">${esc(t("waLink"))}</a>
+        </div>
+      </div>`).join("")}</div>
     ${LIVE ? "" : `<div style="text-align:center"><button class="link" id="resetDemo">${esc(t("reset"))}</button></div>`}
   </div>`;
   bindSignOut(); bindReset(); bindPlay(list);
@@ -737,6 +789,15 @@ async function renderReview() {
   app.querySelectorAll("[data-rfsave]").forEach((b) => b.addEventListener("click", async () => {
     keepNotes(); const r = list[+b.dataset.rfsave], d = draft(r);
     try { await data.recordFor(r, d.status, d.problem, d.remarks); toast(t("saved")); delete state.rvDraft[r.id]; } catch (e) { toast(e.message); }
+    render();
+  }));
+  app.querySelectorAll("[data-setpin]").forEach((b) => b.addEventListener("click", async () => {
+    const id = +b.dataset.setpin, pin = String(Math.floor(1000 + Math.random() * 9000));
+    try { await data.setPin(id, pin); state.newPins[id] = pin; } catch (e) { toast(e.message); }
+    render();
+  }));
+  app.querySelectorAll("[data-resetdev]").forEach((b) => b.addEventListener("click", async () => {
+    try { await data.resetDevice(+b.dataset.resetdev); toast(t("deviceReset")); } catch (e) { toast(e.message); }
     render();
   }));
 }
@@ -760,7 +821,7 @@ async function renderOfficer() {
     const bad = items.filter((x) => x.status === "no").length, part = items.filter((x) => x.status === "partial").length;
     tableRows += `<tr class="grp"><td colspan="5">${esc(nm2(g.panchayat, g.panchayatTa))} <span style="color:var(--muted);font-weight:400">· ${esc(nm2(g.block, g.blockTa))} · ${items.length} ${esc(t("glr"))}${bad ? ` · <span style="color:var(--bad)">${bad} ${esc(t("notDelivered").toLowerCase())}</span>` : ""}${part ? ` · <span style="color:var(--warn)">${part} ${esc(t("partialDelivered").toLowerCase())}</span>` : ""}</span></td></tr>`;
     tableRows += items.map((r) => `<tr>
-      <td><b>${esc(nm(r))}</b><br><span style="color:var(--muted);font-size:13px">${esc(nm2(r.hab, r.habTa))}</span><br><span class="mono" style="font-size:12px;color:var(--muted)">${esc(r.code)}</span></td>
+      <td><b>${esc(nm(r))}</b><br><span style="color:var(--muted);font-size:13px">${esc(nm2(r.hab, r.habTa))} · ${esc(fmtCap(r.capacity))}</span><br><span style="color:var(--muted);font-size:13px">${esc(nm2(r.operator, r.operatorTa))}</span></td>
       <td>${statusPill(r.status)}</td>
       <td class="time">${esc(fmtTime(r.at))}</td>
       <td>${r.status === "no" || r.status === "partial" ? `<b>${esc(problemLabel(r.problem))}</b>` : ""}${r.remarks ? `<div style="color:var(--muted)">${esc(r.remarks)}</div>` : ""}${diagSummary(r)}${voiceBtn(r, "t" + r.id)}</td>
@@ -784,8 +845,8 @@ async function renderOfficer() {
         <div class="section-h"><h3>${esc(t("alerts"))}</h3><span class="label">${alerts.length}</span></div>
         <div class="alerts">${alerts.length ? alerts.map((r, i) => `
           <div class="alert ${r.status === "not_reported" ? "silent" : r.status}"><span class="stripe"></span>
-            <div><b>${esc(nm(r))} <span style="font-weight:400;color:var(--muted)">· ${esc(nm2(r.panchayat, r.panchayatTa))} · ${esc(nm2(r.block, r.blockTa))}</span></b>
-              <div class="meta">${r.status === "not_reported" ? esc(t("silentNote")) : `${r.status === "partial" ? esc(t("partialDelivered")) + " · " : ""}${esc(problemLabel(r.problem))}`}${r.status !== "not_reported" ? ` · ${reviewPill(r.review_status)}` : ""}</div>
+            <div><b>${esc(nm(r))} <span style="font-weight:400;color:var(--muted)">· ${esc(nm2(r.hab, r.habTa))} · ${esc(nm2(r.panchayat, r.panchayatTa))}</span></b>
+              <div class="meta">${r.status === "not_reported" ? esc(t("silentNote")) : `${r.status === "partial" ? esc(t("partialDelivered")) + " · " : ""}${esc(problemLabel(r.problem))}`}${r.status !== "not_reported" ? ` · ${reviewPill(r.review_status)}` : ""} · ${esc(nm2(r.operator, r.operatorTa))}</div>
               ${r.remarks ? `<div class="cm">“${esc(r.remarks)}”</div>` : ""}${diagSummary(r)}${voiceBtn(r, i)}</div>
             <div class="time">${esc(fmtTime(r.at))}</div>
           </div>`).join("") : `<div class="card" style="color:var(--muted)">${esc(t("noAlerts"))}</div>`}
@@ -811,14 +872,13 @@ async function renderOfficer() {
         <button data-fs="not_reported" aria-pressed="${state.filterStatus === "not_reported"}">${esc(t("notReported"))}</button>
       </div>
       <div class="tbl-wrap"><table>
-        <thead><tr><th>${esc(t("glr"))}</th><th>${esc(t("status"))}</th><th>${esc(t("time"))}</th><th>${esc(t("problemCol"))}</th><th>${esc(t("review"))}</th></tr></thead>
+        <thead><tr><th>${esc(t("glr"))} / ${esc(t("operator"))}</th><th>${esc(t("status"))}</th><th>${esc(t("time"))}</th><th>${esc(t("problemCol"))}</th><th>${esc(t("review"))}</th></tr></thead>
         <tbody>${tableRows || `<tr><td colspan="5" style="color:var(--muted)">—</td></tr>`}</tbody>
       </table></div>
     </div>
     ${LIVE ? "" : `<div style="text-align:center"><button class="link" id="resetDemo">${esc(t("reset"))}</button></div>`}
   </div>`;
   bindSignOut(); bindReset();
-  // voice buttons in alerts (index) and table ("t" + glr id)
   app.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", async () => {
     const key = b.dataset.play, row = key.startsWith("t") ? rows.find((r) => String(r.id) === key.slice(1)) : alerts[+key];
     const url = row && await data.voiceUrl(row); if (!url) return;
@@ -846,7 +906,6 @@ if (LIVE && ROLE !== "op") {
   });
 }
 
-// Install prompt (Android Chrome shows "Install app" once the site has a manifest + service worker).
 let installEvt = null;
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; document.getElementById("installBtn").hidden = false; });
 document.getElementById("installBtn").addEventListener("click", async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; document.getElementById("installBtn").hidden = true; });
@@ -857,12 +916,7 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
 
 if (!LIVE) seedDemo();
 flushQueue();
-// QR card: https://…/neer-nilai/?g=NLG-UDH-KKL-01&k=1234 sets the tank up with no typing.
-const qp = new URLSearchParams(location.search);
-if (ROLE === "op" && qp.get("g") && qp.get("k")) {
-  history.replaceState(null, "", location.pathname);
-  addPlace(qp.get("g"), qp.get("k"));
-} else render();
+render();
 </script>
 
 </head>

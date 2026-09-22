@@ -1,6 +1,6 @@
 // Neer Nilai service worker: network first, cache fallback, so the app opens offline
 // and updates as soon as the phone is online. Version is stamped by build.js.
-const CACHE = "neer-nilai-202609211621";
+const CACHE = "neer-nilai-202609221845";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest",
   "./review/", "./review/index.html", "./review/manifest.webmanifest",
