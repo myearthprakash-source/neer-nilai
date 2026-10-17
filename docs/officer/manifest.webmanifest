@@ -1,12 +1,12 @@
 {
   "name": "Neer Nilai Officer",
   "short_name": "NN Officer",
-  "description": "GLR-level water supply monitoring for panchayats",
+  "description": "Daily water supply monitoring for panchayat tanks (GLR and OHT)",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F3F6F4",
+  "background_color": "#F5F7F8",
   "theme_color": "#1D6FB4",
   "lang": "ta",
   "icons": [

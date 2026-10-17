@@ -1,6 +1,8 @@
--- Neer Nilai: GLR-level water supply monitoring
--- Hierarchy: district → block → panchayat → habitation → GLR (a habitation can have several GLRs).
--- Identity: each GLR has a registered pump operator (name + mobile number, from the block's list).
+-- Neer Nilai: tank-level water supply monitoring
+-- Hierarchy: district → block → panchayat → habitation → tank (a habitation can have several tanks).
+-- A tank is a GLR (ground level reservoir) or an OHT (overhead tank); both live in table glrs, told apart by `kind`.
+-- A habitation supplied by another body (e.g. Singara by TNEB) has no tanks and carries a supply_note instead.
+-- Identity: each tank has a registered pump operator (name + mobile number, from the block's list).
 --   Operator signs in with mobile number + 4-digit PIN given by the panchayat officer. One phone per operator.
 --   Panchayat officer reviews; block/district officers watch the dashboard.
 -- Run in the Supabase SQL editor. Safe to re-run on an empty project.
@@ -13,7 +15,9 @@ create extension if not exists pg_net;
 create table if not exists districts   (id serial primary key, name text not null, name_ta text);
 create table if not exists blocks      (id serial primary key, district_id int not null references districts(id), name text not null, name_ta text);
 create table if not exists panchayats  (id serial primary key, block_id int not null references blocks(id), name text not null, name_ta text);
-create table if not exists habitations (id serial primary key, panchayat_id int not null references panchayats(id), name text not null, name_ta text);
+create table if not exists habitations (id serial primary key, panchayat_id int not null references panchayats(id), name text not null, name_ta text,
+                                        supply_note text);   -- e.g. 'TNEB': water from another body, nothing to report
+alter table habitations add column if not exists supply_note text;
 
 -- Pump operators: the people who use the app. Phone number is the identity.
 create table if not exists operators (
@@ -32,6 +36,7 @@ create table if not exists glrs (
   id             serial primary key,
   habitation_id  int not null references habitations(id),
   operator_id    int references operators(id),
+  kind           text not null default 'GLR' check (kind in ('GLR','OHT')),
   code           text not null unique,        -- e.g. NLG-UDH-KKL-01
   name           text not null,
   name_ta        text,
@@ -41,6 +46,7 @@ create table if not exists glrs (
   supply_window  text,
   active         boolean not null default true
 );
+alter table glrs add column if not exists kind text not null default 'GLR' check (kind in ('GLR','OHT'));
 create index if not exists glrs_hab_idx on glrs(habitation_id);
 create index if not exists glrs_op_idx on glrs(operator_id);
 create index if not exists habitations_p_idx on habitations(panchayat_id);
@@ -54,10 +60,10 @@ insert into problems (code, label_en, label_ta, sort) values
   ('source',      'No water in source',            'ஆதாரத்தில் தண்ணீர் இல்லை',       4),
   ('glr',         'Tank not filled',               'தொட்டி நிரம்பவில்லை',           5),
   ('unknown',     'Don''t know / other',           'தெரியவில்லை / மற்றவை',           6),
-  ('pipe_source', 'Source-to-GLR pipeline',        'ஆதாரம் → GLR குழாய்',          7),
+  ('pipe_source', 'Source-to-tank pipeline',       'ஆதாரம் → தொட்டி குழாய்',       7),
   ('pipe_dist',   'Distribution pipeline / valve', 'விநியோகக் குழாய் / வால்வு',    8),
   ('other',       'Other',                         'மற்றவை',                       9)
-on conflict (code) do nothing;
+on conflict (code) do update set label_en = excluded.label_en, label_ta = excluded.label_ta, sort = excluded.sort;
 
 -- ---------------------------------------------------------------- staff
 create table if not exists officers (
@@ -114,8 +120,11 @@ create table if not exists notifications (
 create or replace function ist_today() returns date
 language sql stable as $$ select (now() at time zone 'Asia/Kolkata')::date $$;
 
-create or replace view v_glr as
-select g.id as glr_id, g.code, g.name as glr, g.name_ta as glr_ta, g.location, g.capacity_l as capacity, g.scheme, g.supply_window, g.active,
+-- Dropped first so a re-run can add columns (kind) without "cannot change name of view column".
+drop view if exists v_today;
+drop view if exists v_glr;
+create view v_glr as
+select g.id as glr_id, g.kind, g.code, g.name as glr, g.name_ta as glr_ta, g.location, g.capacity_l as capacity, g.scheme, g.supply_window, g.active,
        h.id as habitation_id, h.name as habitation, h.name_ta as habitation_ta,
        p.id as panchayat_id, p.name as panchayat, p.name_ta as panchayat_ta,
        b.id as block_id, b.name as block, b.name_ta as block_ta,
@@ -143,10 +152,11 @@ begin
   return v.id;
 end $$;
 
--- Sign-in: returns one row per GLR the operator looks after.
-create or replace function operator_login(p_phone text, p_pin text, p_device text)
+-- Sign-in: returns one row per tank (GLR or OHT) the operator looks after.
+drop function if exists operator_login(text, text, text);   -- return type gained `kind`
+create function operator_login(p_phone text, p_pin text, p_device text)
 returns table (operator_id int, operator_name text, operator_name_ta text,
-               glr_id int, code text, glr text, glr_ta text, location text, capacity int,
+               glr_id int, kind text, code text, glr text, glr_ta text, location text, capacity int,
                habitation text, habitation_ta text, panchayat_id int, panchayat text, panchayat_ta text,
                block text, block_ta text, district text, district_ta text)
 language plpgsql security definer as $$
@@ -154,7 +164,7 @@ declare v_oid int;
 begin
   v_oid := operator_check(p_phone, p_pin, p_device);
   return query
-    select v.operator_id, v.operator_name, v.operator_name_ta, v.glr_id, v.code, v.glr, v.glr_ta, v.location, v.capacity,
+    select v.operator_id, v.operator_name, v.operator_name_ta, v.glr_id, v.kind, v.code, v.glr, v.glr_ta, v.location, v.capacity,
            v.habitation, v.habitation_ta, v.panchayat_id, v.panchayat, v.panchayat_ta, v.block, v.block_ta, v.district, v.district_ta
     from v_glr v where v.operator_id = v_oid and v.active order by v.code;
 end $$;
@@ -288,8 +298,8 @@ begin
 end $$;
 grant execute on function reviewer_submit(int, text, text, text) to authenticated;
 
--- Today's status for every GLR in scope, including silent ones.
-create or replace view v_today as
+-- Today's status for every tank in scope, including silent ones.
+create view v_today as
 select v.*,
   r.id as report_id, coalesce(r.status, 'not_reported') as status,
   r.problem, r.source_ok, r.pump_ok, r.glr_filled, r.remarks, r.voice_path, r.entered_by, r.reported_at,
@@ -338,32 +348,62 @@ create policy officer_read_notifications on notifications for select to authenti
 --     body := '{"type":"digest"}'::jsonb);
 -- $$);
 
--- ---------------------------------------------------------------- pilot data: Kookal village panchayat (from the block's GLR sheet)
--- Replace the 90000000xx phone numbers with the real ones from the sheet before running in the live project.
+-- ---------------------------------------------------------------- pilot data: Kookal (Udhagai block) and Masinagudi (Gudalur block), from the block sheets
+-- Phone numbers here are 90000000xx placeholders (this file is public). Put the real ones in with
+-- supabase/private/operator-phones.sql (git-ignored) after running this file in the live project.
 insert into districts (id, name, name_ta) values (1, 'The Nilgiris', 'நீலகிரி') on conflict do nothing;
-insert into blocks (id, district_id, name, name_ta) values (1, 1, 'Udhagai', 'உதகை') on conflict do nothing;
-insert into panchayats (id, block_id, name, name_ta) values (1, 1, 'Kookal', 'கூக்கல்') on conflict do nothing;
-insert into habitations (id, panchayat_id, name, name_ta) values
-  (1, 1, 'Kookal', 'கூக்கல்'), (2, 1, 'Uyilatty', 'உயிலட்டி'), (3, 1, 'Degili', 'தெகிலி'), (4, 1, 'Kurumudi', 'குறுமுடி'), (5, 1, 'Nerikambai', 'நெரிகம்பை')
+insert into blocks (id, district_id, name, name_ta) values (1, 1, 'Udhagai', 'உதகை'), (2, 1, 'Gudalur', 'கூடலூர்') on conflict do nothing;
+insert into panchayats (id, block_id, name, name_ta) values (1, 1, 'Kookal', 'கூக்கல்'), (2, 2, 'Masinagudi', 'மசினகுடி') on conflict do nothing;
+insert into habitations (id, panchayat_id, name, name_ta, supply_note) values
+  (1, 1, 'Kookal', 'கூக்கல்', null), (2, 1, 'Uyilatty', 'உயிலட்டி', null), (3, 1, 'Degili', 'தெகிலி', null), (4, 1, 'Kurumudi', 'குறுமுடி', null), (5, 1, 'Nerikambai', 'நெரிகம்பை', null),
+  (6, 2, 'Achakarai', 'அச்சக்கரை', null), (7, 2, 'Masinagudi', 'மசினகுடி', null), (8, 2, 'Boothanatham', 'பூதநத்தம்', null), (9, 2, 'Moyar', 'மாயார்', null),
+  (10, 2, 'Singara', 'சிங்காரா', 'TNEB'), (11, 2, 'Theppakadu', 'தெப்பக்காடு', null)
 on conflict do nothing;
 insert into operators (id, panchayat_id, name, name_ta, phone) values
   (1, 1, 'Sivakumar', 'சிவகுமார்', '9000000001'),
   (2, 1, 'Gopal',     'கோபால்',    '9000000002'),
   (3, 1, 'Suresh',    'சுரேஷ்',    '9000000003'),
-  (4, 1, 'Kantharaj', 'காந்தராஜ்',  '9000000004')
+  (4, 1, 'Kantharaj', 'காந்தராஜ்',  '9000000004'),
+  (5, 2, 'Ramesh',          'ரமேஷ்',            '9000000005'),
+  (6, 2, 'Sidick Shameer',  'சித்திக் ஷமீர்',    '9000000006'),
+  (7, 2, 'Manigandan',      'மணிகண்டன்',        '9000000007'),
+  (8, 2, 'Ragavendran',     'ராகவேந்திரன்',     '9000000008'),
+  (9, 2, 'Maran / Badichi', 'மாறன் / பாடிச்சி',  '9000000009')   -- two people, one phone on the sheet: one account
 on conflict do nothing;
-insert into glrs (habitation_id, operator_id, code, name, name_ta, location, capacity_l) values
-  (1, 1, 'NLG-UDH-KKL-01', 'Kookal GLR 1',   'கூக்கல் தொட்டி 1',   'Near Hethaiyamman temple', 30000),
-  (1, 1, 'NLG-UDH-KKL-02', 'Kookal GLR 2',   'கூக்கல் தொட்டி 2',   'Near Hethaiyamman temple', 30000),
-  (2, 2, 'NLG-UDH-KKL-03', 'Uyilatty GLR 1', 'உயிலட்டி தொட்டி 1', 'Near main road', 30000),
-  (2, 2, 'NLG-UDH-KKL-04', 'Uyilatty GLR 2', 'உயிலட்டி தொட்டி 2', 'Near main road', 30000),
-  (2, 2, 'NLG-UDH-KKL-05', 'Uyilatty GLR 3', 'உயிலட்டி தொட்டி 3', 'Near main road', 30000),
-  (3, 3, 'NLG-UDH-KKL-06', 'Degili GLR 1',   'தெகிலி தொட்டி 1',   'Near community hall', 30000),
-  (3, 3, 'NLG-UDH-KKL-07', 'Degili GLR 2',   'தெகிலி தொட்டி 2',   'Near community hall', 30000),
-  (3, 3, 'NLG-UDH-KKL-08', 'Degili GLR 3',   'தெகிலி தொட்டி 3',   'Near community hall', 30000),
-  (4, 4, 'NLG-UDH-KKL-09', 'Kurumudi GLR 1', 'குறுமுடி தொட்டி 1', 'Near community hall', 30000),
-  (4, 4, 'NLG-UDH-KKL-10', 'Kurumudi GLR 2', 'குறுமுடி தொட்டி 2', 'Near community hall', 30000),
-  (5, 4, 'NLG-UDH-KKL-11', 'Nerikambai GLR', 'நெரிகம்பை தொட்டி',  'Near Mahendran house', 15000)
+insert into glrs (habitation_id, operator_id, kind, code, name, name_ta, location, capacity_l) values
+  (1, 1, 'GLR', 'NLG-UDH-KKL-01', 'Kookal 1',   'கூக்கல் 1',   'Near Hethaiyamman temple', 30000),
+  (1, 1, 'GLR', 'NLG-UDH-KKL-02', 'Kookal 2',   'கூக்கல் 2',   'Near Hethaiyamman temple', 30000),
+  (2, 2, 'GLR', 'NLG-UDH-KKL-03', 'Uyilatty 1', 'உயிலட்டி 1', 'Near main road', 30000),
+  (2, 2, 'GLR', 'NLG-UDH-KKL-04', 'Uyilatty 2', 'உயிலட்டி 2', 'Near main road', 30000),
+  (2, 2, 'GLR', 'NLG-UDH-KKL-05', 'Uyilatty 3', 'உயிலட்டி 3', 'Near main road', 30000),
+  (3, 3, 'GLR', 'NLG-UDH-KKL-06', 'Degili 1',   'தெகிலி 1',   'Near community hall', 30000),
+  (3, 3, 'GLR', 'NLG-UDH-KKL-07', 'Degili 2',   'தெகிலி 2',   'Near community hall', 30000),
+  (3, 3, 'GLR', 'NLG-UDH-KKL-08', 'Degili 3',   'தெகிலி 3',   'Near community hall', 30000),
+  (4, 4, 'GLR', 'NLG-UDH-KKL-09', 'Kurumudi 1', 'குறுமுடி 1', 'Near community hall', 30000),
+  (4, 4, 'GLR', 'NLG-UDH-KKL-10', 'Kurumudi 2', 'குறுமுடி 2', 'Near community hall', 30000),
+  (5, 4, 'GLR', 'NLG-UDH-KKL-11', 'Nerikambai', 'நெரிகம்பை',  'Near Mahendran house', 15000),
+  -- Masinagudi: 9 GLR + 12 OHT. Location keeps the sheet's wording; name is the short label operators see.
+  (6,  5, 'GLR', 'NLG-GDL-MSG-01', 'Achakarai',          'அச்சக்கரை',           null, 30000),
+  (6,  5, 'GLR', 'NLG-GDL-MSG-02', 'ST Colony',          'ST காலனி',             'Achakkarai ST Colony', 20000),
+  (7,  6, 'GLR', 'NLG-GDL-MSG-03', 'Water Board',        'குடிநீர் வாரியம்',      'Masinagudi Water Board', 60000),
+  (7,  6, 'GLR', 'NLG-GDL-MSG-04', 'Group House',        'தொகுப்பு வீடுகள்',      'Group House Masinagudi', 30000),
+  (7,  6, 'GLR', 'NLG-GDL-MSG-05', 'ST Colony',          'ST காலனி',             'ST colony Masinagudi', 30000),
+  (7,  6, 'GLR', 'NLG-GDL-MSG-06', 'Vinayagar Kovil St', 'விநாயகர் கோவில் தெரு',  'Masinagudi Vinayagar kovil Street', 30000),
+  (7,  6, 'OHT', 'NLG-GDL-MSG-07', 'Water Board',        'குடிநீர் வாரியம்',      'Masinagudi water Board', 40000),
+  (7,  6, 'OHT', 'NLG-GDL-MSG-08', 'Sivakumar Colony 1', 'சிவகுமார் காலனி 1',     'Sivakumar Colony', 60000),
+  (7,  6, 'OHT', 'NLG-GDL-MSG-09', 'Sivakumar Colony 2', 'சிவகுமார் காலனி 2',     'Masinagudi Sivakumar Colony', 60000),
+  (7,  6, 'OHT', 'NLG-GDL-MSG-10', 'Indra Colony',       'இந்திரா காலனி',         'Indra Colony Masinagudi', 60000),
+  (7,  6, 'OHT', 'NLG-GDL-MSG-11', 'Moyar Road',         'மாயார் சாலை',          'Moyar Road, Masinagudi', 60000),
+  (7,  6, 'OHT', 'NLG-GDL-MSG-12', 'Police Station',     'காவல் நிலையம்',         'Near Police Station', 30000),
+  (7,  6, 'OHT', 'NLG-GDL-MSG-13', 'Govt School',        'அரசுப் பள்ளி',          'Government School', 30000),
+  (7,  6, 'OHT', 'NLG-GDL-MSG-14', 'PMAY Houses',        'PMAY வீடுகள்',          'PMAY House', 60000),
+  (8,  7, 'GLR', 'NLG-GDL-MSG-15', 'Sivan Temple',       'சிவன் கோவில்',          null, 30000),
+  (8,  7, 'GLR', 'NLG-GDL-MSG-16', 'Keel Boothanatham',  'கீழ் பூதநத்தம்',         null, 30000),
+  (8,  7, 'OHT', 'NLG-GDL-MSG-17', 'Mel Boothanatham',   'மேல் பூதநத்தம்',         null, 30000),
+  (8,  7, 'OHT', 'NLG-GDL-MSG-18', 'Kel Boothanatham',   'கீழ் பூதநத்தம்',         null, 20000),
+  (9,  8, 'OHT', 'NLG-GDL-MSG-19', 'Selvappa Colony',    'செல்வப்பா காலனி',        'Selvappa Colony Moyar', 30000),
+  (9,  8, 'OHT', 'NLG-GDL-MSG-20', 'Undi Moyar',         'உண்டி மாயார்',          null, 60000),
+  (11, 9, 'GLR', 'NLG-GDL-MSG-21', 'Yanaipadi',          'யானைப்பாடி',            null, 30000)
 on conflict (code) do nothing;
 select setval('districts_id_seq', (select max(id) from districts));
 select setval('blocks_id_seq', (select max(id) from blocks));

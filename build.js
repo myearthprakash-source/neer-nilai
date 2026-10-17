@@ -1,6 +1,6 @@
 // Builds docs/ (GitHub Pages) from src/app.html.
 //   node build.js
-// Outputs: docs/index.html (GLR operator), docs/review/index.html (panchayat officer),
+// Outputs: docs/index.html (tank operator), docs/review/index.html (panchayat officer),
 //          docs/officer/index.html (block/district), docs/sw.js, manifests.
 const fs = require("fs");
 const path = require("path");
@@ -16,6 +16,7 @@ function page(prefix, title) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1D6FB4">
+<meta name="color-scheme" content="light">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -31,9 +32,9 @@ ${src.replace("<title>Neer Nilai</title>", `<title>${title}</title>`)}
 
 function manifest(name, shortName, iconPrefix) {
   return JSON.stringify({
-    name, short_name: shortName, description: "GLR-level water supply monitoring for panchayats",
+    name, short_name: shortName, description: "Daily water supply monitoring for panchayat tanks (GLR and OHT)",
     start_url: "./", scope: "./", display: "standalone", orientation: "portrait",
-    background_color: "#F3F6F4", theme_color: "#1D6FB4", lang: "ta",
+    background_color: "#F5F7F8", theme_color: "#1D6FB4", lang: "ta",
     icons: [
       { src: `${iconPrefix}icons/icon-192.png`, sizes: "192x192", type: "image/png", purpose: "any" },
       { src: `${iconPrefix}icons/icon-512.png`, sizes: "512x512", type: "image/png", purpose: "any" },
