@@ -236,10 +236,11 @@ const sb = LIVE ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPAB
 const T = {
   ta: {
     operatorSub: "நீர் நிலை · தினசரி தண்ணீர் பதிவு", reviewSub: "நீர் நிலை · ஊராட்சி சரிபார்ப்பு", officerSub: "நீர் நிலை · அலுவலர் டாஷ்போர்டு",
-    loginTitle: "உள்நுழைவு", phone: "உங்கள் கைபேசி எண்", pin: "PIN (4 இலக்கம்)", login: "உள்நுழை",
-    loginHint: "உங்கள் எண் ஊராட்சியில் பதிவு செய்யப்பட்டிருக்க வேண்டும். PIN ஊராட்சி அலுவலர் தருவார்.",
-    badLogin: "எண் அல்லது PIN தவறு. ஊராட்சி அலுவலரை அணுகவும்.", deviceLocked: "இந்த எண் வேறு போனில் பயன்பாட்டில் உள்ளது. ஊராட்சி அலுவலரை அணுகவும்.",
-    opDemoHint: "டெமோ: ஆபரேட்டரை தேர்வு செய்யவும், PIN 1234", logout: "வெளியேறு",
+    loginTitle: "உள்நுழைவு", phone: "உங்கள் கைபேசி எண்", pin: "எண்ணின் கடைசி 4 இலக்கம்", login: "உள்நுழை",
+    loginHint: "பதிவு செய்யப்பட்ட கைபேசி எண்ணையும் அதன் கடைசி 4 இலக்கத்தையும் உள்ளிடவும்.",
+    badLogin: "எண் பதிவு செய்யப்படவில்லை அல்லது இலக்கம் தவறு.", deviceLocked: "இந்த எண் வேறு போனில் பயன்பாட்டில் உள்ளது. ஊராட்சி அலுவலரை அணுகவும்.",
+    staffDevice: "இந்த எண் ஏற்கனவே இரண்டு கருவிகளில் உள்நுழைந்துள்ளது. மேல் அலுவலரிடம் மீட்டமைக்கச் சொல்லவும்.",
+    opDemoHint: "டெமோ: ஒருவரை தேர்வு செய்து, எண்ணின் கடைசி 4 இலக்கத்தை உள்ளிடவும்", logout: "வெளியேறு",
     bigq: "இன்று தண்ணீர் வந்ததா?", bigqAll: "இன்று எல்லா தொட்டிக்கும் தண்ணீர் வந்ததா?", allTanks: "அனைத்து தொட்டிகள்", tanks: "தொட்டிகள்",
     yes: "தண்ணீர் வந்தது", yesSub: "வழக்கம் போல்", partial: "குறைவாக வந்தது", partialSub: "வழக்கத்தை விட குறைவு", no: "தண்ணீர் வரவில்லை", noSub: "இன்று விநியோகம் இல்லை",
     whatProblem: "என்ன பிரச்சனை?", back: "பின்",
@@ -254,12 +255,13 @@ const T = {
     review: "சரிபார்ப்பு", pending: "நிலுவை", confirmed: "உறுதி", flagged: "குறியிடப்பட்டது", confirm: "உறுதி செய்", flag: "தவறு எனக் குறி", notePh: "எடுத்த நடவடிக்கை / குறிப்பு",
     reviewTitle: "ஊராட்சி சரிபார்ப்பு — இன்று", reviewHint: "ஒவ்வொரு தொட்டி பதிவையும் சரிபார்த்து உறுதி செய்யவும். பதிவு இல்லாத தொட்டிக்கு ஆபரேட்டரை அழைத்து நீங்களே பதிவு செய்யலாம்.",
     nothingToReview: "இன்று சரிபார்க்க பதிவுகள் இல்லை.", recordFor: "ஆபரேட்டர் சார்பாக பதிவு:", byReviewer: "ஊராட்சி அலுவலர் பதிவு", voiceNote: "குரல் குறிப்பு", play: "▶ கேள்",
-    operators: "ஆபரேட்டர்கள்", opHint: "ஆபரேட்டர் WhatsApp இணைப்பைத் தொட்டு உள்நுழைவார் — தட்டச்சு தேவையில்லை. இணைப்பு ஒரு முறை, ஒரு போனில் மட்டும் செயல்படும். WhatsApp இல்லாதவருக்கு PIN.",
+    operators: "ஆபரேட்டர்கள்", opHint: "ஆபரேட்டர் தன் கைபேசி எண் + அதன் கடைசி 4 இலக்கத்துடன் உள்நுழைவார். ஒரு எண்ணுக்கு ஒரு போன் மட்டும்; போன் மாறினால் 'போனை மீட்டமை'.",
     setPin: "புதிய PIN", resetDevice: "போனை மீட்டமை", waLink: "WhatsApp-ல் ஆப் இணைப்பு", pinIs: "புதிய PIN", tellOp: "ஆபரேட்டரிடம் நேரில் சொல்லவும். இது மீண்டும் காட்டப்படாது.",
     deviceBound: "போன் இணைக்கப்பட்டது", noDevice: "இன்னும் உள்நுழையவில்லை", deviceReset: "போன் மீட்டமைக்கப்பட்டது. அடுத்த உள்நுழைவில் புதிய போன் இணையும்.",
     qSource: "ஆதாரத்தில் போதுமான தண்ணீர் இருந்ததா?", qPump: "பம்ப் சரியாக இயங்கியதா?", qGlr: "தொட்டி போதுமான அளவு நிரம்பியதா?", dYes: "ஆம்", dNo: "இல்லை", dUnknown: "தெரியவில்லை",
     pickOne: "ஒரு தொட்டி மட்டும் வேறா? அதைத் தொடவும்", changeTank: "ஒரு தொட்டியை மாற்ற கீழே தொடவும்", panchayat: "ஊராட்சி",
     call: "அழை", allNormal: "அனைத்தும் வழக்கம்", oneByOne: "ஒவ்வொன்றாக பதிவு", saving: "சேமிக்கிறது…",
+    staffTitle: "அலுவலர்கள்", staffHint: "ஒவ்வொருவரும் அதிகபட்சம் 2 கருவிகளில் உள்நுழையலாம். போன் மாறினால் 'கருவிகளை மீட்டமை'.", devices: "கருவி", resetDevices: "கருவிகளை மீட்டமை", devicesReset: "மீட்டமைக்கப்பட்டது",
     pinLocked: "பல முறை தவறான PIN. 15 நிமிடம் கழித்து முயற்சிக்கவும் அல்லது ஊராட்சி அலுவலரிடம் புதிய PIN கேட்கவும்.",
     notRegistered: "இந்த மின்னஞ்சல் அலுவலராக பதிவு செய்யப்படவில்லை. நிர்வாகியை அணுகவும்.",
     extSupply: "{who} மூலம் தண்ணீர் — இந்த ஆப்பில் பதிவு இல்லை",
@@ -267,8 +269,8 @@ const T = {
     settings: "அறிவிப்பு அமைப்புகள்", notifyIn: "பயன்பாட்டில்", notifyEmail: "மின்னஞ்சல்", notifyWa: "வாட்ஸ்அப்", digest: "மதியம் 12:00 சுருக்கம்", alwaysOn: "எப்போதும்", free: "இலவசம்", cheap: "ஒரு செய்திக்கு ≈ ₹0.12",
     officerLogin: "அலுவலர் உள்நுழைவு", reviewLogin: "ஊராட்சி அலுவலர் உள்நுழைவு", email: "அலுவலக மின்னஞ்சல்", accessCode: "அணுகல் குறியீடு", signIn: "உள்நுழை", signOut: "வெளியேறு",
     magicSent: "உள்நுழைவு இணைப்பு உங்கள் மின்னஞ்சலுக்கு அனுப்பப்பட்டது. அதை திறக்கவும்.", badStaffLogin: "மின்னஞ்சல் அல்லது குறியீடு தவறு",
-    officerDemoHint: "டெமோ: ஏதேனும் மின்னஞ்சல், குறியீடு 1234", install: "ஆப் நிறுவு",
-    waText: "நீர் நிலை ஆப்\nஇந்த இணைப்பைத் தொடவும். உங்கள் போனில் ஆப் திறக்கும் — கடவுச்சொல் தேவையில்லை.\n{url}\nதினமும் தண்ணீர் வந்ததா என்று ஒரு பொத்தானை தொடவும். இந்த இணைப்பு உங்கள் போனுக்கு மட்டும்; யாருடனும் பகிர வேண்டாம்.",
+    officerDemoHint: "டெமோ: ஒருவரை தேர்வு செய்து, எண்ணின் கடைசி 4 இலக்கத்தை உள்ளிடவும்", install: "ஆப் நிறுவு",
+    waText: "நீர் நிலை ஆப்\nஇந்த இணைப்பைத் தொடவும்: {url}\nகேட்டால், உங்கள் கைபேசி எண்ணையும் அதன் கடைசி 4 இலக்கத்தையும் உள்ளிடவும். தினமும் தண்ணீர் வந்ததா என்று ஒரு பொத்தானை தொடவும்.",
     waOpenTitle: "WhatsApp இணைப்பைத் தொடவும்", waOpenHint: "ஊராட்சி அலுவலர் உங்கள் WhatsApp-க்கு ஒரு இணைப்பு அனுப்புவார். அதைத் தொட்டால் ஆப் திறக்கும். எதுவும் தட்டச்சு செய்ய வேண்டாம்.",
     pinTitle: "எண் மற்றும் PIN மூலம் உள்நுழை", noWhatsapp: "WhatsApp இல்லையா? எண் மற்றும் PIN மூலம் உள்நுழை", opening: "திறக்கிறது…",
     linkBad: "இந்த இணைப்பு ஏற்கனவே பயன்படுத்தப்பட்டது அல்லது காலாவதியானது. ஊராட்சி அலுவலரிடம் புதிய இணைப்பு கேட்கவும்.",
@@ -276,10 +278,11 @@ const T = {
   },
   en: {
     operatorSub: "நீர் நிலை · Daily water report", reviewSub: "நீர் நிலை · Panchayat review", officerSub: "நீர் நிலை · Officer dashboard",
-    loginTitle: "Sign in", phone: "Your mobile number", pin: "PIN (4 digits)", login: "Sign in",
-    loginHint: "Your number must be registered with the panchayat. The panchayat officer gives you the PIN.",
-    badLogin: "Wrong number or PIN. Contact the panchayat officer.", deviceLocked: "This number is already in use on another phone. Contact the panchayat officer.",
-    opDemoHint: "Demo: pick an operator, PIN 1234", logout: "Sign out",
+    loginTitle: "Sign in", phone: "Your mobile number", pin: "Last 4 digits of the number", login: "Sign in",
+    loginHint: "Enter your registered mobile number and its last 4 digits.",
+    badLogin: "Number not registered, or wrong digits.", deviceLocked: "This number is already in use on another phone. Contact the panchayat officer.",
+    staffDevice: "This number is already signed in on two devices. Ask your senior officer to reset it.",
+    opDemoHint: "Demo: pick a person, then type the last 4 digits of the number", logout: "Sign out",
     bigq: "Did water come today?", bigqAll: "Did water come to all tanks today?", allTanks: "All tanks", tanks: "tanks",
     yes: "Water came", yesSub: "Normal supply", partial: "Came less", partialSub: "Less than normal", no: "Water did not come", noSub: "No supply today",
     whatProblem: "What is the problem?", back: "Back",
@@ -294,12 +297,13 @@ const T = {
     review: "Review", pending: "Pending", confirmed: "Confirmed", flagged: "Flagged", confirm: "Confirm", flag: "Flag as incorrect", notePh: "Action taken / remarks",
     reviewTitle: "Panchayat review — today", reviewHint: "Check each tank's report and confirm it. For a tank with no report, call the operator and record it yourself.",
     nothingToReview: "Nothing to review today.", recordFor: "Record on behalf of operator:", byReviewer: "Entered by panchayat officer", voiceNote: "Voice note", play: "▶ Play",
-    operators: "Operators", opHint: "Operators sign in by tapping their WhatsApp link — nothing to type. A link works once, on one phone. PIN is the fallback for someone without WhatsApp.",
+    operators: "Operators", opHint: "Operators sign in with their mobile number and its last 4 digits. One phone per number; if they change phones, tap Reset phone.",
     setPin: "New PIN", resetDevice: "Reset phone", waLink: "Send app link on WhatsApp", pinIs: "New PIN", tellOp: "Tell the operator in person. It will not be shown again.",
     deviceBound: "Phone linked", noDevice: "Not signed in yet", deviceReset: "Phone reset. The next sign-in will link a new phone.",
     qSource: "Was sufficient water available in the source?", qPump: "Did the pump operate normally?", qGlr: "Was the tank adequately filled?", dYes: "Yes", dNo: "No", dUnknown: "Don't know",
     pickOne: "Only one tank different? Tap it", changeTank: "To change one tank, tap it below", panchayat: "Panchayat",
     call: "Call", allNormal: "All normal", oneByOne: "Tank by tank", saving: "Saving…",
+    staffTitle: "Staff", staffHint: "Each person can be signed in on up to 2 devices. If someone changes phones, tap Reset devices.", devices: "devices", resetDevices: "Reset devices", devicesReset: "Devices reset",
     pinLocked: "Too many wrong PINs. Try again in 15 minutes, or ask the panchayat officer for a new PIN.",
     notRegistered: "This email is not registered as an officer. Contact the administrator.",
     extSupply: "water supplied by {who} — not reported in this app",
@@ -307,8 +311,8 @@ const T = {
     settings: "Notification settings", notifyIn: "In-app", notifyEmail: "Email", notifyWa: "WhatsApp", digest: "12:00 noon digest", alwaysOn: "Always on", free: "Free", cheap: "≈ ₹0.12 per message",
     officerLogin: "Officer sign in", reviewLogin: "Panchayat officer sign in", email: "Official email", accessCode: "Access code", signIn: "Sign in", signOut: "Sign out",
     magicSent: "A sign-in link has been sent to your email. Open it to continue.", badStaffLogin: "Wrong email or access code",
-    officerDemoHint: "Demo: any email, access code 1234", install: "Install app",
-    waText: "Neer Nilai app\nTap this link and the app opens on your phone — no password needed.\n{url}\nEvery day, tap one button to say whether water came. This link is only for your phone; do not share it.",
+    officerDemoHint: "Demo: pick a person, then type the last 4 digits of the number", install: "Install app",
+    waText: "Neer Nilai app\nTap this link: {url}\nIf asked, enter your mobile number and its last 4 digits. Every day, tap one button to say whether water came.",
     waOpenTitle: "Tap the WhatsApp link", waOpenHint: "Your panchayat officer will send you a link on WhatsApp. Tap it and the app opens. Nothing to type.",
     pinTitle: "Sign in with number and PIN", noWhatsapp: "No WhatsApp? Sign in with number and PIN", opening: "Opening…",
     linkBad: "This link was already used or has expired. Ask the panchayat officer for a new link.",
@@ -372,6 +376,13 @@ const DEMO = {
     { id: 7, p: 2, name: "Manigandan", ta: "மணிகண்டன்", phone: "9000000007" },
     { id: 8, p: 2, name: "Ragavendran", ta: "ராகவேந்திரன்", phone: "9000000008" },
     { id: 9, p: 2, name: "Maran / Badichi", ta: "மாறன் / பாடிச்சி", phone: "9000000009" },
+  ],
+  // Demo staff (sign in with the number + its last 4 digits). Live staff are in the database, not here.
+  staff: [
+    { phone: "9000000102", name: "VP Masinagudi (demo)", ta: "மசினகுடி ஊராட்சி அலுவலர் (டெமோ)", role: "panchayat", p: 2 },
+    { phone: "9000000101", name: "VP Kookal (demo)", ta: "கூக்கல் ஊராட்சி அலுவலர் (டெமோ)", role: "panchayat", p: 1 },
+    { phone: "9000000100", name: "District officer (demo)", ta: "மாவட்ட அலுவலர் (டெமோ)", role: "district" },
+    { phone: "9000000103", name: "BDO Gudalur (demo)", ta: "கூடலூர் வட்டார அலுவலர் (டெமோ)", role: "block" },
   ],
   glrs: [
     { id: 1,  h: 1, op: 1, kind: "GLR", code: "NLG-UDH-KKL-01", name: "Kookal 1",     ta: "கூக்கல் 1",     location: "Near Hethaiyamman temple", capacity: 30000 },
@@ -492,7 +503,7 @@ const data = {
     }
     const o = DEMO.operators.find((x) => x.phone === phone);
     const pins = store.get("pins", {});
-    if (!o || pin !== (pins[o.id] ?? "1234")) return { error: "badLogin" };
+    if (!o || pin !== (pins[o.id] ?? phone.slice(-4))) return { error: "badLogin" };   // last 4 digits, unless a personal PIN was set
     return demoOp(o);
   },
   // The usual way in: the one-time link the panchayat officer sent on WhatsApp. Nothing to type.
@@ -506,6 +517,14 @@ const data = {
     }
     const o = DEMO.operators.find((x) => `demo-${x.id}` === code);
     return o ? demoOp(o) : { error: "linkBad" };
+  },
+  // Staff a senior officer looks after (for "Reset devices" when someone changes phones).
+  async staffList() {
+    if (LIVE) { const { data: rows, error } = await sb.from("v_staff").select("*").order("role").order("name"); if (error) throw error; return rows.map((r) => ({ phone: r.phone, name: r.name, role: r.role, devices: r.devices })); }
+    return DEMO.staff.map((s) => ({ ...s, devices: s.role === "district" ? 2 : 1 }));
+  },
+  async resetStaff(phone) {
+    if (LIVE) { const { error } = await sb.rpc("reset_staff_devices", { p_phone: phone }); if (error) throw error; }
   },
   async createLink(opId) {
     if (LIVE) { const { data: code, error } = await sb.rpc("create_operator_link", { p_operator_id: opId }); if (error) throw error; return code; }
@@ -703,27 +722,20 @@ function render() {
 // ---------------------------------------------------------------- operator: phone + PIN, 3 big buttons, 6 picture tiles, done
 function renderOperatorLogin() {
   const opts = DEMO.panchayats.map((p) => `<optgroup label="${esc(nm(p))}">${DEMO.operators.filter((o) => o.p === p.id).map((o) => `<option value="${o.phone}" ${o.id === 6 ? "selected" : ""}>${esc(nm(o))} · ${esc(o.phone)}</option>`).join("")}</optgroup>`).join("");
-  // The usual way in is the WhatsApp link (nothing to type). Number + PIN is the fallback, one tap away.
-  const showPin = state.pinForm || !LIVE;
+  // Mobile number + its last 4 digits. Signed in once, the phone stays signed in.
   app.innerHTML = `<div class="page op">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
-    <div class="card wa-card">
-      <div class="wa-ico"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.8 7L4 20l1.1-4A8 8 0 1 1 20 12z"/><path d="M9 9.5c.3 1.6 1.9 3.9 4.3 4.9l1.2-1.1 1.6.8-.3 1.3c-3 .5-7.3-3.5-7.6-6.6l1.3-.4.7 1.6z" fill="currentColor" stroke="none"/></svg></div>
-      <h2>${esc(t("waOpenTitle"))}</h2>
-      <p>${esc(t("waOpenHint"))}</p>
-      ${state.error && !showPin ? `<div class="err">${esc(t(state.error))}</div>` : ""}
-    </div>
-    ${showPin ? `<div class="card">
-      <h2 style="font-size:20px;font-weight:700">${esc(t(LIVE ? "pinTitle" : "loginTitle"))}</h2>
+    <div class="card">
+      <h2 style="font-size:22px;font-weight:700">${esc(t("loginTitle"))}</h2>
+      <p style="margin:6px 0 0;color:var(--muted);font-size:15px">${esc(t("loginHint"))}</p>
       <div class="field"><label class="label" for="phone">${esc(t("phone"))}</label>
         ${LIVE ? `<input id="phone" class="big" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="98765 43210">` : `<select id="phone">${opts}</select>`}</div>
-      <div class="field"><label class="label" for="pin">${esc(t("pin"))}</label><input id="pin" class="big" inputmode="numeric" maxlength="4" placeholder="••••" type="password"></div>
+      <div class="field"><label class="label" for="pin">${esc(t("pin"))}</label><input id="pin" class="big" inputmode="numeric" maxlength="4" placeholder="••••"></div>
       ${state.error ? `<div class="err">${esc(t(state.error))}</div>` : ""}
       <div style="margin-top:16px"><button class="btn" id="loginBtn">${esc(t("login"))}</button></div>
       ${LIVE ? "" : `<p style="font-size:13px;color:var(--muted);margin:12px 0 0">${esc(t("opDemoHint"))}</p>`}
-    </div>` : `<div class="small-links"><button class="link" id="pinLink" style="color:var(--muted)">${esc(t("noWhatsapp"))}</button></div>`}
+    </div>
   </div>`;
-  document.getElementById("pinLink")?.addEventListener("click", () => { state.pinForm = true; state.error = ""; render(); });
   document.getElementById("loginBtn")?.addEventListener("click", async () => {
     const res = await data.login(document.getElementById("phone").value, document.getElementById("pin").value);
     if (res.error) { state.error = res.error; return render(); }
@@ -852,37 +864,50 @@ async function startVoice(glrs) {
 function stopVoice() { if (rec && rec.state === "recording") rec.stop(); }
 
 // ---------------------------------------------------------------- staff sign-in (panchayat reviewer, block/district officer)
+// Staff sign in like operators: mobile number + its last 4 digits. Live: the staff-login edge function checks them
+// and hands back a one-time token that becomes a normal Supabase session. No email, no SMS.
 function renderStaffLogin() {
+  const demoStaff = DEMO.staff.filter((s) => ROLE === "rv" ? s.role === "panchayat" : s.role !== "panchayat");
   app.innerHTML = `<div class="page">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
     <div class="card">
       <h2 style="font-size:20px;font-weight:700">${esc(t(ROLE === "rv" ? "reviewLogin" : "officerLogin"))}</h2>
-      ${!LIVE && ROLE === "rv" ? `<div class="field"><label class="label" for="offPan">${esc(t("panchayat"))}</label><select id="offPan">${[...DEMO.panchayats].reverse().map((p) => `<option value="${p.id}">${esc(nm(p))} · ${esc(nm(DEMO.blocks.find((b) => b.id === p.b)))}</option>`).join("")}</select></div>` : ""}
-      <div class="field"><label class="label" for="offEmail">${esc(t("email"))}</label><input id="offEmail" type="email" autocomplete="email" placeholder="${ROLE === "rv" ? "vp.panchayat@tn.gov.in" : "bdo.block@tn.gov.in"}"></div>
-      ${LIVE ? "" : `<div class="field"><label class="label" for="offCode">${esc(t("accessCode"))}</label><input id="offCode" inputmode="numeric" maxlength="4" type="password" placeholder="••••"></div>`}
-      ${state.error ? `<div class="err">${esc(state.error)}</div>` : ""}
-      ${state.info ? `<div class="info">${esc(state.info)}</div>` : ""}
-      <div style="margin-top:16px"><button class="btn" id="offLogin">${esc(t("signIn"))}</button></div>
+      <p style="margin:6px 0 0;color:var(--muted);font-size:15px">${esc(t("loginHint"))}</p>
+      <div class="field"><label class="label" for="offPhone">${esc(t("phone"))}</label>
+        ${LIVE ? `<input id="offPhone" class="big" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="98765 43210">`
+          : `<select id="offPhone">${demoStaff.map((s) => `<option value="${s.phone}">${esc(nm(s))} · ${esc(s.phone)}</option>`).join("")}</select>`}</div>
+      <div class="field"><label class="label" for="offPin">${esc(t("pin"))}</label><input id="offPin" class="big" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+      ${state.error ? `<div class="err">${esc(t(state.error))}</div>` : ""}
+      <div style="margin-top:16px"><button class="btn" id="offLogin" ${state.busy ? "disabled" : ""}>${esc(t(state.busy ? "opening" : "signIn"))}</button></div>
       ${LIVE ? "" : `<p style="font-size:13px;color:var(--muted);margin:12px 0 0">${esc(t("officerDemoHint"))}</p>`}
     </div>
   </div>`;
   document.getElementById("offLogin").addEventListener("click", async () => {
-    const email = document.getElementById("offEmail").value.trim();
-    state.error = ""; state.info = "";
-    if (LIVE) {
-      const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href } });
-      state.error = error ? error.message : ""; state.info = error ? "" : t("magicSent"); return render();
+    const phone = document.getElementById("offPhone").value.replace(/\D/g, "").slice(-10), pin = document.getElementById("offPin").value.trim();
+    state.error = "";
+    if (!LIVE) {
+      const s = DEMO.staff.find((x) => x.phone === phone);
+      if (!s || pin !== phone.slice(-4)) { state.error = "badLogin"; return render(); }
+      state.officer = { name: s.name, phone, role: s.role, panchayat_id: s.p ?? null }; store.set("staff_" + ROLE, state.officer); return render();
     }
-    const code = document.getElementById("offCode").value;
-    if (!email.includes("@") || code !== "1234") { state.error = t("badStaffLogin"); return render(); }
-    state.officer = ROLE === "rv" ? { email, panchayat_id: +document.getElementById("offPan").value } : { email }; store.set("staff_" + ROLE, state.officer); render();
+    state.busy = true; render();
+    try {
+      const { data: r, error } = await sb.functions.invoke("staff-login", { body: { phone, pin, device: deviceId() } });
+      if (error || !r?.token_hash) state.error = r?.err === "device" ? "staffDevice" : r?.err === "locked" ? "pinLocked" : navigator.onLine ? "badLogin" : "offline";
+      else {
+        const { error: e2 } = await sb.auth.verifyOtp({ token_hash: r.token_hash, type: "magiclink" });
+        if (e2) state.error = "badLogin";   // on success onAuthStateChange loads the officer record and renders the page
+      }
+    } catch { state.error = "badLogin"; }
+    state.busy = false;
+    if (state.error) render();
   });
 }
 function renderNotRegistered() {
   app.innerHTML = `<div class="page"><div class="card"><p style="margin:0 0 10px">${esc(t("notRegistered"))}</p>${signOutBtn()}</div></div>`;
   bindSignOut();
 }
-function signOutBtn() { return `<div class="sub">${esc(state.officer?.email ?? "")} · <button class="link" id="signOut">${esc(t("signOut"))}</button></div>`; }
+function signOutBtn() { const o = state.officer ?? {}; return `<div class="sub">${esc(o.name || o.phone || o.email || "")} · <button class="link" id="signOut">${esc(t("signOut"))}</button></div>`; }
 function bindSignOut() { document.getElementById("signOut")?.addEventListener("click", async () => { if (LIVE) await sb.auth.signOut(); state.officer = null; store.set("staff_" + ROLE, null); render(); }); }
 function bindReset() { document.getElementById("resetDemo")?.addEventListener("click", () => { try { localStorage.removeItem("nn." + RK); localStorage.removeItem("nn.pins"); localStorage.removeItem("nn.devices"); } catch {} seedDemo(); state.rvDraft = {}; state.newPins = {}; render(); }); }
 function bindPlay(list) {
@@ -1027,8 +1052,8 @@ async function renderReview() {
 
 // ---------------------------------------------------------------- block / district officer
 async function renderOfficer() {
-  let rows, ext;
-  try { rows = await data.today(); ext = await data.external(); } catch (e) { app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  let rows, ext, staff;
+  try { rows = await data.today(); ext = await data.external(); staff = await data.staffList().catch(() => []); } catch (e) { app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
   const cnt = (s) => rows.filter((r) => r.status === s).length;
   const yes = cnt("yes"), partial = cnt("partial"), no = cnt("no"), silent = cnt("not_reported"), total = rows.length || 1;
   const blocks = [...new Map(rows.map((r) => [r.block_id, { id: r.block_id, name: r.block, ta: r.blockTa }])).values()];
@@ -1092,6 +1117,10 @@ async function renderOfficer() {
           <div class="row"><div><div class="h">${esc(t("notifyWa"))}</div><div class="s">${esc(t("cheap"))}</div></div><button class="switch" data-pref="wa" role="switch" aria-checked="${prefs.wa}" aria-label="WhatsApp"></button></div>
           <div class="row"><div><div class="h">${esc(t("digest"))}</div><div class="s">${esc(t("free"))}</div></div><button class="switch" data-pref="digest" role="switch" aria-checked="${prefs.digest}" aria-label="Digest"></button></div>
         </div>
+        ${staff.length ? `<div class="section-h" style="margin-top:16px"><h3>${esc(t("staffTitle"))}</h3><span class="label">${staff.length}</span></div>
+        <p style="margin:-4px 0 8px;color:var(--muted);font-size:13px">${esc(t("staffHint"))}</p>
+        <div class="card settings">${staff.map((s) => `<div class="row"><div><div class="h">${esc(nm(s))}</div><div class="s">${esc(s.phone)} · ${s.devices}/2 ${esc(t("devices"))}</div></div>
+          <button class="link" data-resetstaff="${esc(s.phone)}" ${s.devices ? "" : "disabled"} style="${s.devices ? "" : "color:var(--muted)"}">${esc(t("resetDevices"))}</button></div>`).join("")}</div>` : ""}
       </div>
     </div>
     <div class="card">
@@ -1119,6 +1148,10 @@ async function renderOfficer() {
   app.querySelectorAll("[data-fb]").forEach((b) => b.addEventListener("click", () => { state.filterBlock = +b.dataset.fb; render(); }));
   app.querySelectorAll("[data-fs]").forEach((b) => b.addEventListener("click", () => { state.filterStatus = state.filterStatus === b.dataset.fs ? "all" : b.dataset.fs; render(); }));
   app.querySelectorAll("[data-pref]").forEach((b) => b.addEventListener("click", () => { state.prefs[b.dataset.pref] = !state.prefs[b.dataset.pref]; store.set("prefs", state.prefs); render(); }));
+  app.querySelectorAll("[data-resetstaff]").forEach((b) => b.addEventListener("click", async () => {
+    try { await data.resetStaff(b.dataset.resetstaff); toast(t("devicesReset")); } catch (e) { toast(e.message); }
+    render();
+  }));
 }
 
 // ---------------------------------------------------------------- shell
@@ -1134,8 +1167,8 @@ if (LIVE && ROLE !== "op") {
   async function applySession(session) {
     let next = null;
     if (session?.user) {
-      const { data: me } = await sb.from("officers").select("panchayat_id, role").eq("id", session.user.id).maybeSingle();
-      next = { email: session.user.email, panchayat_id: me?.panchayat_id ?? null, role: me?.role };
+      const { data: me } = await sb.from("officers").select("panchayat_id, role, name, phone").eq("id", session.user.id).maybeSingle();
+      next = { email: session.user.email, name: me?.name, phone: me?.phone, panchayat_id: me?.panchayat_id ?? null, role: me?.role };
     }
     if (JSON.stringify(next) !== JSON.stringify(state.officer)) { state.officer = next; store.set("staff_" + ROLE, next); render(); }   // also picks up a role granted after the first sign-in
   }
