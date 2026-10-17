@@ -27,12 +27,14 @@ create table if not exists operators (
   pin_hash         text,                                                      -- bcrypt of the 4-digit PIN, set by panchayat officer
   pin_fails        int not null default 0,                                    -- wrong PINs since the last good one
   pin_locked_until timestamptz,                                               -- set after 5 wrong PINs
-  device_id        text,                                                      -- bound on first sign-in; reset by panchayat officer
+  device_id        text,                                                      -- (older versions: plain device id; no longer used)
+  device_hash      text,                                                      -- sha256 of the bound phone's secret; reset by panchayat officer
   device_bound_at  timestamptz,
   active           boolean not null default true
 );
 alter table operators add column if not exists pin_fails int not null default 0;
 alter table operators add column if not exists pin_locked_until timestamptz;
+alter table operators add column if not exists device_hash text;
 
 create table if not exists glrs (
   id             serial primary key,
@@ -93,6 +95,17 @@ create table if not exists officer_invites (
   panchayat_id   int references panchayats(id)
 );
 
+-- One-time WhatsApp links: the panchayat officer sends one to the operator's registered number; opening it signs the
+-- operator in on that phone with no typing. Only a hash of the code is stored; a code works once, for 7 days.
+create table if not exists operator_links (
+  code_hash      text primary key,
+  operator_id    int not null references operators(id) on delete cascade,
+  created_by     uuid references officers(id),
+  created_at     timestamptz not null default now(),
+  expires_at     timestamptz not null default now() + interval '7 days',
+  used_at        timestamptz
+);
+
 -- ---------------------------------------------------------------- reports
 create table if not exists reports (
   id             bigserial primary key,
@@ -113,8 +126,14 @@ create table if not exists reports (
   review_note    text,
   reviewed_by    uuid references officers(id),
   reviewed_at    timestamptz,
+  lat            double precision,             -- where the phone was when the operator reported (null: no permission / no fix)
+  lng            double precision,
+  loc_accuracy   real,                         -- metres
   unique (glr_id, report_date)
 );
+alter table reports add column if not exists lat double precision;
+alter table reports add column if not exists lng double precision;
+alter table reports add column if not exists loc_accuracy real;
 create index if not exists reports_date_idx on reports(report_date);
 create index if not exists reports_issue_idx on reports(report_date) where status <> 'yes';
 
@@ -157,28 +176,66 @@ drop function if exists operator_login(text, text, text);
 drop function if exists submit_report(text, text, text, int, text, text);
 drop function if exists attach_voice(text, text, int, text);
 drop function if exists operator_history(text, text, int);
+drop function if exists submit_reports(text, text, text, int[], text, text);   -- gained location parameters
 
--- Phone + PIN + phone binding. Returns the operator id, or 0 = wrong number/PIN, -1 = locked, -2 = number bound to another phone.
--- 5 wrong PINs lock the number for 15 minutes; after that each further wrong PIN locks it again, until a correct PIN
--- or a new PIN from the panchayat officer. That makes guessing 10,000 PINs take months instead of minutes.
+-- The operator's phone is the key. Each install makes a long random secret (p_device); the server keeps only its hash.
+-- Returns the operator id, or 0 = not recognised / wrong PIN, -1 = locked, -2 = number bound to another phone.
+--   1. The bound phone is recognised by its secret alone: no PIN, nothing to type, ever.
+--   2. Otherwise a PIN is needed (fallback for an operator without WhatsApp); a correct PIN binds this phone if none is bound.
+--   5 wrong PINs lock the number for 15 minutes, then one try per 15 minutes until a correct PIN or a new PIN.
+--   A lock never blocks the already-bound phone, so guessing cannot shut the real operator out.
 create or replace function operator_auth(p_phone text, p_pin text, p_device text) returns int
 language plpgsql security definer set search_path = public, extensions, pg_temp as $$
-declare v operators;
+declare v operators; h text;
 begin
   select * into v from operators where phone = p_phone and active;
-  if v.id is null then return 0; end if;
+  if v.id is null or coalesce(length(p_device), 0) < 20 then return 0; end if;
+  h := encode(digest(p_device, 'sha256'), 'hex');
+  if v.device_hash = h then
+    if v.pin_fails > 0 then update operators set pin_fails = 0, pin_locked_until = null where id = v.id; end if;
+    return v.id;
+  end if;
   if v.pin_locked_until > now() then return -1; end if;
-  if v.pin_hash is null or v.pin_hash <> crypt(coalesce(p_pin, ''), v.pin_hash) then
-    update operators set pin_fails = pin_fails + 1,
-        pin_locked_until = case when pin_fails + 1 >= 5 then now() + interval '15 minutes' end
-    where id = v.id;
+  if v.pin_hash is null or p_pin is null or v.pin_hash <> crypt(p_pin, v.pin_hash) then
+    if p_pin is not null then
+      update operators set pin_fails = pin_fails + 1,
+          pin_locked_until = case when pin_fails + 1 >= 5 then now() + interval '15 minutes' end
+      where id = v.id;
+    end if;
     return 0;
   end if;
-  if v.device_id is not null and v.device_id <> p_device then return -2; end if;
-  update operators set pin_fails = 0, pin_locked_until = null,
-      device_id = coalesce(device_id, p_device), device_bound_at = coalesce(device_bound_at, now())
-  where id = v.id;
+  if v.device_hash is not null then return -2; end if;
+  update operators set pin_fails = 0, pin_locked_until = null, device_hash = h, device_bound_at = now() where id = v.id;
   return v.id;
+end $$;
+
+-- Opening a WhatsApp link: a new link binds this phone (replacing any earlier one) and returns the operator's tanks.
+-- A used or expired link still opens the app on the phone it bound (operators tap the same message every day),
+-- and nowhere else. err = 'link' otherwise.
+create or replace function operator_join(p_code text, p_device text)
+returns table (err text, operator_phone text, operator_id int, operator_name text, operator_name_ta text,
+               glr_id int, kind text, code text, glr text, glr_ta text, location text, capacity int,
+               habitation text, habitation_ta text, panchayat_id int, panchayat text, panchayat_ta text,
+               block text, block_ta text, district text, district_ta text)
+language plpgsql security definer set search_path = public, extensions, pg_temp as $$
+declare v_link operator_links; v_phone text; h text;
+begin
+  if coalesce(length(p_device), 0) < 20 then err := 'link'; return next; return; end if;
+  h := encode(digest(p_device, 'sha256'), 'hex');
+  select * into v_link from operator_links l where l.code_hash = encode(digest(coalesce(p_code, ''), 'sha256'), 'hex');
+  if v_link.operator_id is null then err := 'link'; return next; return; end if;
+  if v_link.used_at is null and v_link.expires_at > now() then
+    update operator_links set used_at = now() where code_hash = v_link.code_hash;
+    update operators o set device_hash = h, device_bound_at = now(), pin_fails = 0, pin_locked_until = null
+    where o.id = v_link.operator_id and o.active returning o.phone into v_phone;
+  else
+    select o.phone into v_phone from operators o where o.id = v_link.operator_id and o.active and o.device_hash = h;
+  end if;
+  if v_phone is null then err := 'link'; return next; return; end if;
+  return query
+    select null::text, v_phone, v.operator_id, v.operator_name, v.operator_name_ta, v.glr_id, v.kind, v.code, v.glr, v.glr_ta, v.location, v.capacity,
+           v.habitation, v.habitation_ta, v.panchayat_id, v.panchayat, v.panchayat_ta, v.block, v.block_ta, v.district, v.district_ta
+    from v_glr v where v.operator_id = v_link.operator_id and v.active order by v.code;
 end $$;
 
 create or replace function auth_code(p int) returns text
@@ -204,7 +261,9 @@ end $$;
 -- Daily report: one status (+ one pictorial problem) for one or more tanks, in a single call, so an operator with
 -- 12 tanks on a slow village network waits for one round trip. Same-day resubmit overwrites and resets the review.
 -- Returns 'ok', or 'bad' / 'locked' / 'device'; raises only for a malformed request.
-create or replace function submit_reports(p_phone text, p_pin text, p_device text, p_glr_ids int[], p_status text, p_problem text default null)
+-- p_lat / p_lng / p_acc: where the phone was (null when the operator denied location or there was no fix).
+create or replace function submit_reports(p_phone text, p_pin text, p_device text, p_glr_ids int[], p_status text, p_problem text default null,
+                               p_lat double precision default null, p_lng double precision default null, p_acc real default null)
 returns text
 language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 declare v_oid int;
@@ -218,11 +277,14 @@ begin
   if p_status not in ('yes','partial','no') then raise exception 'bad status' using errcode = '23514'; end if;
   if p_status = 'yes' then p_problem := null; elsif p_problem is null then raise exception 'problem required' using errcode = '23514'; end if;
 
-  insert into reports (glr_id, report_date, status, problem, operator_id, device_id, entered_by)
-  select distinct t.id, ist_today(), p_status, p_problem, v_oid, p_device, 'operator' from unnest(p_glr_ids) t(id)
+  if p_lat is not null and (p_lat not between -90 and 90 or p_lng not between -180 and 180) then p_lat := null; p_lng := null; p_acc := null; end if;
+  insert into reports (glr_id, report_date, status, problem, operator_id, device_id, entered_by, lat, lng, loc_accuracy)
+  select distinct t.id, ist_today(), p_status, p_problem, v_oid, left(encode(digest(p_device, 'sha256'), 'hex'), 12), 'operator', p_lat, p_lng, p_acc
+  from unnest(p_glr_ids) t(id)
   on conflict (glr_id, report_date) do update
     set status = excluded.status, problem = excluded.problem, source_ok = null, pump_ok = null, glr_filled = null,
         operator_id = excluded.operator_id, device_id = excluded.device_id, entered_by = 'operator', reported_at = now(),
+        lat = excluded.lat, lng = excluded.lng, loc_accuracy = excluded.loc_accuracy,
         review_status = 'pending', review_note = null, reviewed_by = null, reviewed_at = null;
   return 'ok';
 end $$;
@@ -232,6 +294,18 @@ create function submit_report(p_phone text, p_pin text, p_device text, p_glr_id 
 returns text
 language sql security definer set search_path = public, extensions, pg_temp as $$
   select submit_reports(p_phone, p_pin, p_device, array[p_glr_id], p_status, p_problem) $$;
+
+-- Panchayat officer: a fresh one-time link for an operator (earlier unused links stop working).
+create or replace function create_operator_link(p_operator_id int) returns text
+language plpgsql security definer set search_path = public, extensions, pg_temp as $$
+declare v_code text;
+begin
+  if not can_see_panchayat((select panchayat_id from operators where id = p_operator_id)) then raise exception 'not allowed' using errcode = '42501'; end if;
+  v_code := translate(encode(gen_random_bytes(12), 'base64'), '+/=', '-_');   -- 96 bits, URL-safe
+  delete from operator_links where operator_id = p_operator_id and used_at is null;
+  insert into operator_links (code_hash, operator_id, created_by) values (encode(digest(v_code, 'sha256'), 'hex'), p_operator_id, auth.uid());
+  return v_code;
+end $$;
 
 create or replace function attach_voice(p_phone text, p_pin text, p_device text, p_glr_id int, p_path text) returns text
 language plpgsql security definer set search_path = public, extensions, pg_temp as $$
@@ -258,7 +332,10 @@ end $$;
 
 revoke execute on function operator_auth(text, text, text) from public, anon, authenticated;
 grant execute on function operator_login(text, text, text) to anon, authenticated;
-grant execute on function submit_reports(text, text, text, int[], text, text) to anon, authenticated;
+grant execute on function submit_reports(text, text, text, int[], text, text, double precision, double precision, real) to anon, authenticated;
+grant execute on function operator_join(text, text) to anon, authenticated;
+revoke execute on function create_operator_link(int) from public, anon;
+grant execute on function create_operator_link(int) to authenticated;
 grant execute on function submit_report(text, text, text, int, text, text) to anon, authenticated;
 grant execute on function attach_voice(text, text, text, int, text) to anon, authenticated;
 grant execute on function operator_history_all(text, text, text) to anon, authenticated;
@@ -286,10 +363,12 @@ $$;
 create or replace function can_see_glr(p_glr_id int) returns boolean
 language sql stable security definer set search_path = public, pg_temp as $$ select can_see_panchayat((select panchayat_id from v_glr where glr_id = p_glr_id)) $$;
 
--- Operators visible to the signed-in officer (no pin_hash).
-create or replace view v_operators as
-select o.id, o.panchayat_id, o.name, o.name_ta, o.phone, o.device_id, o.device_bound_at, o.active,
-       (select count(*) from glrs g where g.operator_id = o.id and g.active) as glr_count
+-- Operators visible to the signed-in officer (no PIN or phone secret, only whether a phone is linked).
+drop view if exists v_operators;
+create view v_operators as
+select o.id, o.panchayat_id, o.name, o.name_ta, o.phone, (o.device_hash is not null) as bound, o.device_bound_at, o.active,
+       (select count(*) from glrs g where g.operator_id = o.id and g.active) as glr_count,
+       (select max(l.created_at) from operator_links l where l.operator_id = o.id) as last_link_at
 from operators o where o.active and can_see_panchayat(o.panchayat_id);
 
 -- Panchayat officer sets / resets an operator's PIN (also clears a lockout) and phone binding.
@@ -304,7 +383,7 @@ create or replace function reset_operator_device(p_operator_id int) returns void
 language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not can_see_panchayat((select panchayat_id from operators where id = p_operator_id)) then raise exception 'not allowed' using errcode = '42501'; end if;
-  update operators set device_id = null, device_bound_at = null where id = p_operator_id;
+  update operators set device_id = null, device_hash = null, device_bound_at = null where id = p_operator_id;
 end $$;
 grant execute on function set_operator_pin(int, text) to authenticated;
 grant execute on function reset_operator_device(int) to authenticated;
@@ -351,7 +430,7 @@ create view v_today as
 select v.*,
   r.id as report_id, coalesce(r.status, 'not_reported') as status,
   r.problem, r.source_ok, r.pump_ok, r.glr_filled, r.remarks, r.voice_path, r.entered_by, r.reported_at,
-  r.review_status, r.review_note, r.reviewed_at
+  r.review_status, r.review_note, r.reviewed_at, r.lat, r.lng, r.loc_accuracy
 from v_glr v
 left join reports r on r.glr_id = v.glr_id and r.report_date = ist_today()
 where v.active and can_see_panchayat(v.panchayat_id);
@@ -394,6 +473,7 @@ alter table blocks enable row level security;
 alter table districts enable row level security;
 alter table officers enable row level security;
 alter table officer_invites enable row level security;
+alter table operator_links enable row level security;
 alter table notifications enable row level security;
 alter table problems enable row level security;
 
@@ -419,6 +499,7 @@ revoke all on v_glr from anon, authenticated;                 -- has every opera
 revoke all on v_today, v_operators from anon;                 -- staff only (they filter by the signed-in officer anyway)
 revoke all on operators from anon, authenticated;             -- pin_hash, phone numbers
 revoke all on officer_invites from anon, authenticated;
+revoke all on operator_links from anon, authenticated;             -- code hashes; links are made and used only through the functions
 revoke insert, update, delete on officers from authenticated;
 grant update (alert_email, alert_whatsapp, alert_digest) on officers to authenticated;   -- only their own alert settings, never role or scope
 

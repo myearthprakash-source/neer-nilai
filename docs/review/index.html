@@ -84,6 +84,15 @@ textarea{min-height:76px;resize:vertical}
 .tankgrid i.yes{background:var(--good);border-color:var(--good)} .tankgrid i.partial{background:var(--warn);border-color:var(--warn)} .tankgrid i.no{background:var(--bad);border-color:var(--bad)}
 .tankgrid button.yes{border-color:#BFE3CF} .tankgrid button.partial{border-color:#EED6A6} .tankgrid button.no{border-color:#F0BDB2}
 .busy{opacity:.45;pointer-events:none;transition:opacity .15s}
+.wa-card{text-align:center;padding:26px 20px 22px}
+.wa-card h2{font-size:22px;font-weight:700;margin-top:4px}
+.wa-card p{margin:8px 0 0;color:var(--muted);font-size:16px}
+.wa-ico{width:76px;height:76px;border-radius:50%;background:#E3F6EA;color:#128C7E;display:grid;place-items:center;margin:0 auto 12px}
+.wa-ico svg{width:42px;height:42px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.rv-actions .wa{border:1.5px solid #25D366;color:#0B6B57;background:#E9F8EF;border-radius:10px;padding:8px 14px;font-weight:700;font-size:14px}
+.locline{font-size:12px;color:var(--muted);margin-top:4px}
+.locline a{color:var(--accent);font-weight:600;text-decoration:none}
+.locline.none{color:var(--warn)}
 .counts{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:12px}
 .counts .pill{font-size:14px;padding:4px 12px}
 .ext{font-size:13px;color:var(--muted);background:var(--soft);border-radius:10px;padding:8px 12px}
@@ -245,7 +254,7 @@ const T = {
     review: "சரிபார்ப்பு", pending: "நிலுவை", confirmed: "உறுதி", flagged: "குறியிடப்பட்டது", confirm: "உறுதி செய்", flag: "தவறு எனக் குறி", notePh: "எடுத்த நடவடிக்கை / குறிப்பு",
     reviewTitle: "ஊராட்சி சரிபார்ப்பு — இன்று", reviewHint: "ஒவ்வொரு தொட்டி பதிவையும் சரிபார்த்து உறுதி செய்யவும். பதிவு இல்லாத தொட்டிக்கு ஆபரேட்டரை அழைத்து நீங்களே பதிவு செய்யலாம்.",
     nothingToReview: "இன்று சரிபார்க்க பதிவுகள் இல்லை.", recordFor: "ஆபரேட்டர் சார்பாக பதிவு:", byReviewer: "ஊராட்சி அலுவலர் பதிவு", voiceNote: "குரல் குறிப்பு", play: "▶ கேள்",
-    operators: "ஆபரேட்டர்கள்", opHint: "எண் + PIN மட்டுமே உள்நுழைவு. PIN-ஐ ஆபரேட்டரிடம் நேரில் அல்லது தொலைபேசியில் சொல்லவும். ஒரு எண்ணுக்கு ஒரு போன் மட்டும்.",
+    operators: "ஆபரேட்டர்கள்", opHint: "ஆபரேட்டர் WhatsApp இணைப்பைத் தொட்டு உள்நுழைவார் — தட்டச்சு தேவையில்லை. இணைப்பு ஒரு முறை, ஒரு போனில் மட்டும் செயல்படும். WhatsApp இல்லாதவருக்கு PIN.",
     setPin: "புதிய PIN", resetDevice: "போனை மீட்டமை", waLink: "WhatsApp-ல் ஆப் இணைப்பு", pinIs: "புதிய PIN", tellOp: "ஆபரேட்டரிடம் நேரில் சொல்லவும். இது மீண்டும் காட்டப்படாது.",
     deviceBound: "போன் இணைக்கப்பட்டது", noDevice: "இன்னும் உள்நுழையவில்லை", deviceReset: "போன் மீட்டமைக்கப்பட்டது. அடுத்த உள்நுழைவில் புதிய போன் இணையும்.",
     qSource: "ஆதாரத்தில் போதுமான தண்ணீர் இருந்ததா?", qPump: "பம்ப் சரியாக இயங்கியதா?", qGlr: "தொட்டி போதுமான அளவு நிரம்பியதா?", dYes: "ஆம்", dNo: "இல்லை", dUnknown: "தெரியவில்லை",
@@ -259,7 +268,11 @@ const T = {
     officerLogin: "அலுவலர் உள்நுழைவு", reviewLogin: "ஊராட்சி அலுவலர் உள்நுழைவு", email: "அலுவலக மின்னஞ்சல்", accessCode: "அணுகல் குறியீடு", signIn: "உள்நுழை", signOut: "வெளியேறு",
     magicSent: "உள்நுழைவு இணைப்பு உங்கள் மின்னஞ்சலுக்கு அனுப்பப்பட்டது. அதை திறக்கவும்.", badStaffLogin: "மின்னஞ்சல் அல்லது குறியீடு தவறு",
     officerDemoHint: "டெமோ: ஏதேனும் மின்னஞ்சல், குறியீடு 1234", install: "ஆப் நிறுவு",
-    waText: "நீர் நிலை ஆப்: {url}\nஉங்கள் கைபேசி எண் மற்றும் PIN உடன் உள்நுழையவும். தினமும் தண்ணீர் வந்ததா என்று ஒரு பொத்தானை தொடவும்.",
+    waText: "நீர் நிலை ஆப்\nஇந்த இணைப்பைத் தொடவும். உங்கள் போனில் ஆப் திறக்கும் — கடவுச்சொல் தேவையில்லை.\n{url}\nதினமும் தண்ணீர் வந்ததா என்று ஒரு பொத்தானை தொடவும். இந்த இணைப்பு உங்கள் போனுக்கு மட்டும்; யாருடனும் பகிர வேண்டாம்.",
+    waOpenTitle: "WhatsApp இணைப்பைத் தொடவும்", waOpenHint: "ஊராட்சி அலுவலர் உங்கள் WhatsApp-க்கு ஒரு இணைப்பு அனுப்புவார். அதைத் தொட்டால் ஆப் திறக்கும். எதுவும் தட்டச்சு செய்ய வேண்டாம்.",
+    pinTitle: "எண் மற்றும் PIN மூலம் உள்நுழை", noWhatsapp: "WhatsApp இல்லையா? எண் மற்றும் PIN மூலம் உள்நுழை", opening: "திறக்கிறது…",
+    linkBad: "இந்த இணைப்பு ஏற்கனவே பயன்படுத்தப்பட்டது அல்லது காலாவதியானது. ஊராட்சி அலுவலரிடம் புதிய இணைப்பு கேட்கவும்.",
+    mapLink: "இடம்", noLocation: "இடம் பதிவாகவில்லை", linkSent: "இணைப்பு அனுப்பப்பட்டது",
   },
   en: {
     operatorSub: "நீர் நிலை · Daily water report", reviewSub: "நீர் நிலை · Panchayat review", officerSub: "நீர் நிலை · Officer dashboard",
@@ -281,7 +294,7 @@ const T = {
     review: "Review", pending: "Pending", confirmed: "Confirmed", flagged: "Flagged", confirm: "Confirm", flag: "Flag as incorrect", notePh: "Action taken / remarks",
     reviewTitle: "Panchayat review — today", reviewHint: "Check each tank's report and confirm it. For a tank with no report, call the operator and record it yourself.",
     nothingToReview: "Nothing to review today.", recordFor: "Record on behalf of operator:", byReviewer: "Entered by panchayat officer", voiceNote: "Voice note", play: "▶ Play",
-    operators: "Operators", opHint: "Sign-in is number + PIN only. Tell the operator the PIN in person or by phone. One phone per number.",
+    operators: "Operators", opHint: "Operators sign in by tapping their WhatsApp link — nothing to type. A link works once, on one phone. PIN is the fallback for someone without WhatsApp.",
     setPin: "New PIN", resetDevice: "Reset phone", waLink: "Send app link on WhatsApp", pinIs: "New PIN", tellOp: "Tell the operator in person. It will not be shown again.",
     deviceBound: "Phone linked", noDevice: "Not signed in yet", deviceReset: "Phone reset. The next sign-in will link a new phone.",
     qSource: "Was sufficient water available in the source?", qPump: "Did the pump operate normally?", qGlr: "Was the tank adequately filled?", dYes: "Yes", dNo: "No", dUnknown: "Don't know",
@@ -295,7 +308,11 @@ const T = {
     officerLogin: "Officer sign in", reviewLogin: "Panchayat officer sign in", email: "Official email", accessCode: "Access code", signIn: "Sign in", signOut: "Sign out",
     magicSent: "A sign-in link has been sent to your email. Open it to continue.", badStaffLogin: "Wrong email or access code",
     officerDemoHint: "Demo: any email, access code 1234", install: "Install app",
-    waText: "Neer Nilai app: {url}\nSign in with your mobile number and PIN. Every day, tap one button to say whether water came.",
+    waText: "Neer Nilai app\nTap this link and the app opens on your phone — no password needed.\n{url}\nEvery day, tap one button to say whether water came. This link is only for your phone; do not share it.",
+    waOpenTitle: "Tap the WhatsApp link", waOpenHint: "Your panchayat officer will send you a link on WhatsApp. Tap it and the app opens. Nothing to type.",
+    pinTitle: "Sign in with number and PIN", noWhatsapp: "No WhatsApp? Sign in with number and PIN", opening: "Opening…",
+    linkBad: "This link was already used or has expired. Ask the panchayat officer for a new link.",
+    mapLink: "Location", noLocation: "No location recorded", linkSent: "Link sent",
   }
 };
 const ICONS = {
@@ -406,7 +423,7 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(SP + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(SP + k, JSON.stringify(v)); } catch {} },
 };
-const RK = "reports_v6";
+const RK = "reports_v7";
 const istToday = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 const dayOffset = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); };
 const nowIso = () => new Date().toISOString();
@@ -436,11 +453,13 @@ function seedDemo() {
   ["yes", "yes", "no", "partial", "yes", "yes"].forEach((v, i) => [9, 10].forEach((g) => R(g, dayOffset(-6 + i), v,
     v === "no" ? { source_ok: "yes", pump_ok: "no", glr_filled: "no", problem: "power", remarks: "EB line fault, restored next day" }
     : v === "partial" ? { source_ok: "no", pump_ok: "yes", glr_filled: "no", problem: "source" } : {}, 8, 30, ["confirmed", ""])));
+  // Location stamps (approximate, demo only): around Kookal and Masinagudi. Ragavendran's have none, as if he refused location.
+  const at2 = (lat, lng, acc) => ({ lat, lng, acc });
   // Today: Sivakumar and Gopal reported; Suresh reported one of three; Kantharaj not yet.
-  R(1, today, "yes", {}, 7, 40, ["confirmed", ""]); R(2, today, "yes", {}, 7, 40, ["confirmed", ""]);
-  R(3, today, "yes", {}, 8, 5); R(4, today, "yes", {}, 8, 5);
-  R(5, today, "partial", { source_ok: "no", pump_ok: "yes", glr_filled: "no", problem: "source", remarks: "Main road tank half; source low after dry week" }, 8, 5, ["confirmed", ""]);
-  R(6, today, "no", { problem: "pump" }, 8, 20);
+  R(1, today, "yes", at2(11.4903, 76.6012, 9), 7, 40, ["confirmed", ""]); R(2, today, "yes", at2(11.4903, 76.6012, 9), 7, 40, ["confirmed", ""]);
+  R(3, today, "yes", at2(11.4861, 76.6107, 14), 8, 5); R(4, today, "yes", at2(11.4861, 76.6107, 14), 8, 5);
+  R(5, today, "partial", { source_ok: "no", pump_ok: "yes", glr_filled: "no", problem: "source", remarks: "Main road tank half; source low after dry week", ...at2(11.4861, 76.6107, 14) }, 8, 5, ["confirmed", ""]);
+  R(6, today, "no", { problem: "pump", ...at2(11.4952, 76.5934, 22) }, 8, 20);
   // Masinagudi: Sidick Shameer's 12 tanks (4 GLR + 8 OHT), last 6 days; Moyar Road OHT ran short twice.
   for (let i = 0; i < 6; i++) for (let g = 14; g <= 25; g++) {
     const short = g === 22 && (i === 1 || i === 4);
@@ -448,14 +467,20 @@ function seedDemo() {
   }
   // Today: Ramesh all fine; Manigandan's Kel Boothanatham OHT has no water (motor); Ragavendran short at Undi Moyar.
   // Sidick Shameer (the demo sign-in) and Maran / Badichi have not reported yet.
-  R(12, today, "yes", {}, 6, 50, ["confirmed", ""]); R(13, today, "yes", {}, 6, 50, ["confirmed", ""]);
-  [26, 27, 28].forEach((g) => R(g, today, "yes", {}, 7, 15)); R(29, today, "no", { problem: "pump" }, 7, 15);
+  R(12, today, "yes", at2(11.5791, 76.6236, 11), 6, 50, ["confirmed", ""]); R(13, today, "yes", at2(11.5791, 76.6236, 11), 6, 50, ["confirmed", ""]);
+  [26, 27, 28].forEach((g) => R(g, today, "yes", at2(11.5598, 76.6312, 8), 7, 15)); R(29, today, "no", { problem: "pump", ...at2(11.5598, 76.6312, 8) }, 7, 15);
   R(30, today, "yes", {}, 7, 35); R(31, today, "partial", { problem: "pipe" }, 7, 35);
   store.set(RK, rows);
 }
 
 // ---------------------------------------------------------------- data layer (demo | live)
+// Operator as the app keeps it. No PIN is kept: once signed in, this phone's secret is the key.
+const opFromRows = (rows, phone) => { const r0 = rows[0]; return { id: r0.operator_id, name: r0.operator_name, ta: r0.operator_name_ta, phone, pin: null,
+  glrs: rows.map((r) => ({ id: r.glr_id, kind: r.kind ?? "GLR", code: r.code, name: r.glr, ta: r.glr_ta, location: r.location, capacity: r.capacity, hab: r.habitation, habTa: r.habitation_ta,
+    panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta })) }; };
+const demoOp = (o) => ({ id: o.id, name: o.name, ta: o.ta, phone: o.phone, pin: null, glrs: DEMO.glrs.filter((g) => g.op === o.id).map(glrInfo) });
 const data = {
+  // Fallback sign-in: number + PIN (for an operator without WhatsApp). Binds this phone.
   async login(phone, pin) {
     phone = phone.replace(/\D/g, "").slice(-10);
     if (LIVE) {
@@ -463,36 +488,51 @@ const data = {
       if (error) return { error: navigator.onLine ? "badLogin" : "offline" };
       const r0 = rows?.[0];
       if (!r0 || r0.err) return { error: AUTH_KEY[r0?.err] ?? "badLogin" };
-      return { id: r0.operator_id, name: r0.operator_name, ta: r0.operator_name_ta, phone, pin,
-        glrs: rows.map((r) => ({ id: r.glr_id, kind: r.kind ?? "GLR", code: r.code, name: r.glr, ta: r.glr_ta, location: r.location, capacity: r.capacity, hab: r.habitation, habTa: r.habitation_ta,
-          panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta })) };
+      return opFromRows(rows, phone);
     }
     const o = DEMO.operators.find((x) => x.phone === phone);
     const pins = store.get("pins", {});
     if (!o || pin !== (pins[o.id] ?? "1234")) return { error: "badLogin" };
-    return { id: o.id, name: o.name, ta: o.ta, phone, pin, glrs: DEMO.glrs.filter((g) => g.op === o.id).map(glrInfo) };
+    return demoOp(o);
+  },
+  // The usual way in: the one-time link the panchayat officer sent on WhatsApp. Nothing to type.
+  async join(code) {
+    if (LIVE) {
+      const { data: rows, error } = await sb.rpc("operator_join", { p_code: code, p_device: deviceId() });
+      if (error) return { error: navigator.onLine ? "linkBad" : "offline" };
+      const r0 = rows?.[0];
+      if (!r0 || r0.err) return { error: "linkBad" };
+      return opFromRows(rows, r0.operator_phone);
+    }
+    const o = DEMO.operators.find((x) => `demo-${x.id}` === code);
+    return o ? demoOp(o) : { error: "linkBad" };
+  },
+  async createLink(opId) {
+    if (LIVE) { const { data: code, error } = await sb.rpc("create_operator_link", { p_operator_id: opId }); if (error) throw error; return code; }
+    return `demo-${opId}`;
   },
   // Last 14 days for all of the operator's tanks in one call.
   async historyAll(glrs) {
     if (LIVE) {
-      const { data: rows } = await sb.rpc("operator_history_all", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId() });
+      const { data: rows } = await sb.rpc("operator_history_all", { p_phone: state.op.phone, p_pin: state.op.pin ?? null, p_device: deviceId() });
       return (rows ?? []).map((r) => ({ glr_id: r.glr_id, date: r.report_date, status: r.status, problem: r.problem, remarks: r.remarks, at: r.reported_at, voice: r.voice_path }));
     }
     return store.get(RK, []).filter((r) => glrs.some((g) => g.id === r.glr_id));
   },
   // One status for one or more tanks, in a single request.
-  async submit(glrs, status, problem) {
+  async submit(glrs, status, problem, loc) {
     const ids = glrs.map((g) => g.id);
     if (LIVE) {
-      if (!navigator.onLine) { queue(ids, { status, problem }); return { queued: true }; }
-      const { data: res, error } = await sb.rpc("submit_reports", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId(), p_glr_ids: ids, p_status: status, p_problem: problem });
+      if (!navigator.onLine) { queue(ids, { status, problem, loc }); return { queued: true }; }
+      const { data: res, error } = await sb.rpc("submit_reports", { p_phone: state.op.phone, p_pin: state.op.pin ?? null, p_device: deviceId(), p_glr_ids: ids, p_status: status, p_problem: problem,
+        p_lat: loc?.lat ?? null, p_lng: loc?.lng ?? null, p_acc: loc?.acc ?? null });
       if (error) throw error;
       if (res !== "ok") throw authError(res);
       return { ok: true };
     }
     const rows = store.get(RK, []).filter((r) => !(ids.includes(r.glr_id) && r.date === istToday()));
     for (const id of ids) rows.push({ glr_id: id, date: istToday(), status, problem: status === "yes" ? null : problem, source_ok: null, pump_ok: null, glr_filled: null, remarks: "", voice: null, entered_by: "operator",
-      at: nowIso(), review_status: "pending", review_note: "", reviewed_at: null });
+      at: nowIso(), review_status: "pending", review_note: "", reviewed_at: null, lat: loc?.lat ?? null, lng: loc?.lng ?? null, acc: loc?.acc ?? null });
     store.set(RK, rows);
     return { ok: true };
   },
@@ -502,7 +542,7 @@ const data = {
         const path = `${g.code}/${istToday()}.webm`;
         const { error } = await sb.storage.from("voice").upload(path, blob, { upsert: true, contentType: blob.type || "audio/webm" });
         if (error) throw error;
-        const { data: res, error: e2 } = await sb.rpc("attach_voice", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId(), p_glr_id: g.id, p_path: path });
+        const { data: res, error: e2 } = await sb.rpc("attach_voice", { p_phone: state.op.phone, p_pin: state.op.pin ?? null, p_device: deviceId(), p_glr_id: g.id, p_path: path });
         if (e2) throw e2;
         if (res !== "ok") throw authError(res);
       }
@@ -521,14 +561,15 @@ const data = {
       return rows.map((r) => ({ id: r.glr_id, kind: r.kind ?? "GLR", code: r.code, name: r.glr, ta: r.glr_ta, location: r.location, capacity: r.capacity, hab: r.habitation, habTa: r.habitation_ta, panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta,
         block_id: r.block_id, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta, operator_id: r.operator_id, operator: r.operator_name, operatorTa: r.operator_name_ta, operator_phone: r.operator_phone,
         report_id: r.report_id, status: r.status, source_ok: r.source_ok, pump_ok: r.pump_ok, glr_filled: r.glr_filled, problem: r.problem, remarks: r.remarks, voice: r.voice_path, entered_by: r.entered_by, at: r.reported_at,
-        review_status: r.review_status ?? "pending", review_note: r.review_note ?? "" }));
+        review_status: r.review_status ?? "pending", review_note: r.review_note ?? "", lat: r.lat, lng: r.lng, acc: r.loc_accuracy }));
     }
     const rows = store.get(RK, []);
     return DEMO.glrs.map((g) => {
       const info = glrInfo(g);
       const r = rows.find((x) => x.glr_id === g.id && x.date === istToday());
       return { ...info, report_id: r ? g.id : null, status: r ? r.status : "not_reported", source_ok: r?.source_ok ?? null, pump_ok: r?.pump_ok ?? null, glr_filled: r?.glr_filled ?? null,
-        problem: r?.problem ?? null, remarks: r?.remarks ?? "", voice: r?.voice ?? null, entered_by: r?.entered_by ?? null, at: r?.at ?? null, review_status: r?.review_status ?? "pending", review_note: r?.review_note ?? "" };
+        problem: r?.problem ?? null, remarks: r?.remarks ?? "", voice: r?.voice ?? null, entered_by: r?.entered_by ?? null, at: r?.at ?? null, review_status: r?.review_status ?? "pending", review_note: r?.review_note ?? "",
+        lat: r?.lat ?? null, lng: r?.lng ?? null, acc: r?.acc ?? null };
     });
   },
   // Habitations with no tanks of their own (water from TNEB etc.): shown as a note so nobody chases a missing report.
@@ -543,7 +584,7 @@ const data = {
     if (LIVE) {
       const { data: rows, error } = await sb.from("v_operators").select("*");
       if (error) throw error;
-      return rows.map((r) => ({ id: r.id, name: r.name, ta: r.name_ta, phone: r.phone, glrCount: r.glr_count, bound: !!r.device_id, panchayat_id: r.panchayat_id }));
+      return rows.map((r) => ({ id: r.id, name: r.name, ta: r.name_ta, phone: r.phone, glrCount: r.glr_count, bound: !!r.bound, panchayat_id: r.panchayat_id, lastLink: r.last_link_at }));
     }
     const dev = store.get("devices", {});
     return DEMO.operators.map((o) => ({ ...o, glrCount: DEMO.glrs.filter((g) => g.op === o.id).length, bound: !!dev[o.id], panchayat_id: o.p }));
@@ -582,12 +623,39 @@ const data = {
 // Operator functions answer a wrong PIN, a lockout or another phone with a code instead of an error.
 const AUTH_KEY = { bad: "badLogin", locked: "pinLocked", device: "deviceLocked" };
 const authError = (code) => Object.assign(new Error(t(AUTH_KEY[code] ?? "badLogin")), { authKey: AUTH_KEY[code] ?? "badLogin" });
-function deviceId() { let id = store.get("device", null); if (!id) { id = Math.random().toString(36).slice(2, 12); store.set("device", id); } return id; }
+// This phone's secret: 32 random bytes made once on the phone. Once linked, it is the operator's key (the server keeps only a hash).
+function deviceId() {
+  let id = store.get("device", null);
+  if (!id || id.length < 40) {
+    const b = new Uint8Array(32); crypto.getRandomValues(b);
+    id = btoa(String.fromCharCode(...b)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    store.set("device", id);
+  }
+  return id;
+}
+// Where the phone is when the operator answers (anti-cheat stamp). Never makes the operator wait long:
+// asked once right after sign-in (so the "allow location?" question comes then, not mid-report), and a report waits
+// at most 4 s, then uses a fix from the last 10 minutes or goes without one (the officer sees "No location recorded").
+let lastFix = null;
+function here(maxWait = 8000) {
+  return new Promise((res) => {
+    if (!navigator.geolocation) return res(null);
+    const timer = setTimeout(() => res(null), maxWait);
+    navigator.geolocation.getCurrentPosition(
+      (p) => { lastFix = { lat: p.coords.latitude, lng: p.coords.longitude, acc: Math.round(p.coords.accuracy), t: Date.now() }; clearTimeout(timer); res(lastFix); },
+      () => { clearTimeout(timer); res(null); },
+      { enableHighAccuracy: true, timeout: maxWait, maximumAge: 300000 });
+  });
+}
+async function stamp() {
+  const v = (await here(4000)) ?? (lastFix && Date.now() - lastFix.t < 600000 ? lastFix : null);
+  return v && { lat: v.lat, lng: v.lng, acc: v.acc };
+}
 function queue(ids, d) { const q = store.get("queue", []); q.push({ ids, d, at: nowIso() }); store.set("queue", q); }
 async function flushQueue() {
   const q = store.get("queue", []); if (!q.length || !LIVE || !navigator.onLine || !state.op) return;
   const rest = [];
-  for (const item of q) { try { await data.submit(item.ids ? item.ids.map((id) => ({ id })) : [item.glr], item.d.status, item.d.problem); } catch { rest.push(item); } }
+  for (const item of q) { try { await data.submit(item.ids ? item.ids.map((id) => ({ id })) : [item.glr], item.d.status, item.d.problem, item.d.loc); } catch { rest.push(item); } }
   store.set("queue", rest);
   if (rest.length < q.length) toast(t("saved"));
 }
@@ -612,6 +680,10 @@ function diagSummary(r) {
   return parts.length ? `<div class="diagline">${esc(parts.join(" · "))}</div>` : "";
 }
 const voiceBtn = (r, i) => r.voice ? `<button class="play" data-play="${i}">${esc(t("play"))} · ${esc(t("voiceNote"))}</button><span id="audio-${i}"></span>` : "";
+// Anti-cheat stamp for officers: where the operator's phone was when they reported.
+const locLine = (r) => r.entered_by !== "operator" || r.status === "not_reported" ? ""
+  : r.lat != null ? `<div class="locline">📍 <a target="_blank" rel="noopener" href="https://maps.google.com/?q=${encodeURIComponent(`${r.lat},${r.lng}`)}">${esc(t("mapLink"))}</a>${r.acc ? ` · ±${esc(r.acc)} m` : ""}</div>`
+  : `<div class="locline none">${esc(t("noLocation"))}</div>`;
 const kindCount = (rows) => { const o = rows.filter((r) => r.kind === "OHT").length, g = rows.length - o; return [g ? `${g} GLR` : "", o ? `${o} OHT` : ""].filter(Boolean).join(" · "); };
 const extLine = (list) => list.length ? `<div class="ext">${list.map((h) => `<b>${esc(nm(h))}</b>: ${esc(t("extSupply").replace("{who}", nm2(h.ext, h.extTa)))}`).join("<br>")}</div>` : "";
 
@@ -631,25 +703,33 @@ function render() {
 // ---------------------------------------------------------------- operator: phone + PIN, 3 big buttons, 6 picture tiles, done
 function renderOperatorLogin() {
   const opts = DEMO.panchayats.map((p) => `<optgroup label="${esc(nm(p))}">${DEMO.operators.filter((o) => o.p === p.id).map((o) => `<option value="${o.phone}" ${o.id === 6 ? "selected" : ""}>${esc(nm(o))} · ${esc(o.phone)}</option>`).join("")}</optgroup>`).join("");
+  // The usual way in is the WhatsApp link (nothing to type). Number + PIN is the fallback, one tap away.
+  const showPin = state.pinForm || !LIVE;
   app.innerHTML = `<div class="page op">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
-    <div class="card">
-      <h2 style="font-size:22px;font-weight:700">${esc(t("loginTitle"))}</h2>
-      <p style="margin:6px 0 0;color:var(--muted);font-size:14px">${esc(t("loginHint"))}</p>
+    <div class="card wa-card">
+      <div class="wa-ico"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.8 7L4 20l1.1-4A8 8 0 1 1 20 12z"/><path d="M9 9.5c.3 1.6 1.9 3.9 4.3 4.9l1.2-1.1 1.6.8-.3 1.3c-3 .5-7.3-3.5-7.6-6.6l1.3-.4.7 1.6z" fill="currentColor" stroke="none"/></svg></div>
+      <h2>${esc(t("waOpenTitle"))}</h2>
+      <p>${esc(t("waOpenHint"))}</p>
+      ${state.error && !showPin ? `<div class="err">${esc(t(state.error))}</div>` : ""}
+    </div>
+    ${showPin ? `<div class="card">
+      <h2 style="font-size:20px;font-weight:700">${esc(t(LIVE ? "pinTitle" : "loginTitle"))}</h2>
       <div class="field"><label class="label" for="phone">${esc(t("phone"))}</label>
         ${LIVE ? `<input id="phone" class="big" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="98765 43210">` : `<select id="phone">${opts}</select>`}</div>
       <div class="field"><label class="label" for="pin">${esc(t("pin"))}</label><input id="pin" class="big" inputmode="numeric" maxlength="4" placeholder="••••" type="password"></div>
       ${state.error ? `<div class="err">${esc(t(state.error))}</div>` : ""}
       <div style="margin-top:16px"><button class="btn" id="loginBtn">${esc(t("login"))}</button></div>
       ${LIVE ? "" : `<p style="font-size:13px;color:var(--muted);margin:12px 0 0">${esc(t("opDemoHint"))}</p>`}
-    </div>
+    </div>` : `<div class="small-links"><button class="link" id="pinLink" style="color:var(--muted)">${esc(t("noWhatsapp"))}</button></div>`}
   </div>`;
-  document.getElementById("loginBtn").addEventListener("click", async () => {
+  document.getElementById("pinLink")?.addEventListener("click", () => { state.pinForm = true; state.error = ""; render(); });
+  document.getElementById("loginBtn")?.addEventListener("click", async () => {
     const res = await data.login(document.getElementById("phone").value, document.getElementById("pin").value);
     if (res.error) { state.error = res.error; return render(); }
     if (!LIVE) { const dev = store.get("devices", {}); dev[res.id] = deviceId(); store.set("devices", dev); }
     state.error = ""; state.op = res; state.active = res.glrs.length > 1 ? "all" : 0; state.step = "home";
-    store.set("op", res); store.set("active", state.active); render();
+    store.set("op", res); store.set("active", state.active); here(); render();
   });
 }
 
@@ -741,7 +821,8 @@ async function save(glrs, status, problem) {
   app.querySelectorAll(".big3, .tiles2, .tankgrid").forEach((el) => el.classList.add("busy"));
   const q = app.querySelector(".bigq"); if (q) q.textContent = t("saving");
   try {
-    const res = await data.submit(glrs, status, problem);
+    const loc = await stamp();   // a refusal or no fix still saves the report
+    const res = await data.submit(glrs, status, problem, loc);
     state.editing = false; state.step = "home"; state.pick = null;
     toast(res.queued ? t("offline") : t("saved"));
   } catch (e) {
@@ -851,7 +932,7 @@ async function renderReview() {
       const draftIssue = d.status === "partial" || d.status === "no";
       return `<div class="rv-item">
         <div class="rv-top"><div>${kindTag(r.kind)} <b>${esc(nm(r))}</b> <span class="sub">· ${esc(nm2(r.hab, r.habTa))} · ${esc(fmtCap(r.capacity))}</span>
-            <div class="sub">${esc(nm2(r.operator, r.operatorTa))} · ${esc(r.operator_phone ?? "")}${r.at ? ` · ${esc(fmtTime(r.at))}` : ""}${r.entered_by === "reviewer" ? ` · ${esc(t("byReviewer"))}` : ""}</div></div>
+            <div class="sub">${esc(nm2(r.operator, r.operatorTa))} · ${esc(r.operator_phone ?? "")}${r.at ? ` · ${esc(fmtTime(r.at))}` : ""}${r.entered_by === "reviewer" ? ` · ${esc(t("byReviewer"))}` : ""}</div>${locLine(r)}</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${statusPill(r.status)}${!silent ? reviewPill(r.review_status) : ""}</div></div>
         ${silent ? `
           <div class="rv-body" style="color:var(--muted)">${esc(t("silentNote"))}</div>
@@ -889,12 +970,12 @@ async function renderReview() {
     <div class="section-h" style="margin-top:8px"><h3>${esc(t("operators"))}</h3><span class="label">${myOps.length}</span></div>
     <p style="margin:-4px 0 0;color:var(--muted);font-size:14px">${esc(t("opHint"))}</p>
     <div class="rv">${myOps.map((o) => `<div class="rv-item">
-        <div class="rv-top"><div><b>${esc(nm(o))}</b> <span class="sub">· ${esc(o.phone)}</span><div class="sub">${o.glrCount} ${esc(t("tanks"))} · ${esc(o.bound ? t("deviceBound") : t("noDevice"))}</div></div></div>
+        <div class="rv-top"><div><b>${esc(nm(o))}</b> <span class="sub">· ${esc(o.phone)}</span><div class="sub">${o.glrCount} ${esc(t("tanks"))} · ${esc(o.bound ? t("deviceBound") : t("noDevice"))}${o.lastLink ? ` · ${esc(t("linkSent"))} ${esc(fmtDate(String(o.lastLink).slice(0, 10)))}` : ""}</div></div></div>
         ${state.newPins[o.id] ? `<div class="pinbox">${esc(t("pinIs"))}: <b>${esc(state.newPins[o.id])}</b><br>${esc(t("tellOp"))}</div>` : ""}
         <div class="rv-actions">
-          <button data-setpin="${o.id}">${esc(t("setPin"))}</button>
+          <button class="wa" data-walink="${o.id}">${esc(t("waLink"))}</button>
           <button data-resetdev="${o.id}" ${o.bound ? "" : "disabled"}>${esc(t("resetDevice"))}</button>
-          <a target="_blank" rel="noopener" href="https://wa.me/91${esc(o.phone)}?text=${encodeURIComponent(t("waText").replace("{url}", appUrl))}">${esc(t("waLink"))}</a>
+          <button data-setpin="${o.id}">${esc(t("setPin"))}</button>
         </div>
       </div>`).join("")}</div>
     ${LIVE ? "" : `<div style="text-align:center"><button class="link" id="resetDemo">${esc(t("reset"))}</button></div>`}
@@ -919,6 +1000,18 @@ async function renderReview() {
   app.querySelectorAll("[data-rvall]").forEach((b) => b.addEventListener("click", async () => {
     b.disabled = true;
     try { for (const i of silentGroups.get(b.dataset.rvall) ?? []) await data.recordFor(list[i], "yes", null, ""); toast(t("saved")); } catch (e) { toast(e.message); }
+    render();
+  }));
+  // A fresh one-time link for this operator, sent from the officer's own WhatsApp to the operator's registered number.
+  app.querySelectorAll("[data-walink]").forEach((b) => b.addEventListener("click", async () => {
+    const o = myOps.find((x) => x.id === +b.dataset.walink); if (!o) return;
+    const w = window.open("about:blank", "_blank");   // opened inside the tap so the browser allows it; pointed at WhatsApp below
+    try {
+      const code = await data.createLink(o.id);
+      const wa = `https://wa.me/91${o.phone}?text=${encodeURIComponent(t("waText").replace("{url}", `${appUrl}#join=${encodeURIComponent(code)}`))}`;
+      if (w) w.location.href = wa; else location.href = wa;
+      toast(t("linkSent"));
+    } catch (e) { w?.close(); toast(e.message); }
     render();
   }));
   app.querySelectorAll("[data-setpin]").forEach((b) => b.addEventListener("click", async () => {
@@ -954,7 +1047,7 @@ async function renderOfficer() {
     const gExt = ext.filter((h) => h.panchayat_id === g.panchayat_id);
     tableRows += `<tr class="grp"><td colspan="5">${esc(nm2(g.panchayat, g.panchayatTa))} <span style="color:var(--muted);font-weight:400">· ${esc(nm2(g.block, g.blockTa))} · ${items.length} ${esc(t("tanks"))} (${esc(kindCount(items))})${bad ? ` · <span style="color:var(--bad)">${bad} ${esc(t("notDelivered").toLowerCase())}</span>` : ""}${part ? ` · <span style="color:var(--warn)">${part} ${esc(t("partialDelivered").toLowerCase())}</span>` : ""}</span>${gExt.length ? `<div style="color:var(--muted);font-weight:400;font-size:13px;margin-top:2px">${gExt.map((h) => `${esc(nm(h))}: ${esc(t("extSupply").replace("{who}", nm2(h.ext, h.extTa)))}`).join(" · ")}</div>` : ""}</td></tr>`;
     tableRows += items.map((r) => `<tr>
-      <td>${kindTag(r.kind)} <b>${esc(nm(r))}</b><br><span style="color:var(--muted);font-size:13px">${esc(nm2(r.hab, r.habTa))} · ${esc(fmtCap(r.capacity))}</span><br><span style="color:var(--muted);font-size:13px">${esc(nm2(r.operator, r.operatorTa))}</span></td>
+      <td>${kindTag(r.kind)} <b>${esc(nm(r))}</b><br><span style="color:var(--muted);font-size:13px">${esc(nm2(r.hab, r.habTa))} · ${esc(fmtCap(r.capacity))}</span><br><span style="color:var(--muted);font-size:13px">${esc(nm2(r.operator, r.operatorTa))}</span>${locLine(r)}</td>
       <td>${statusPill(r.status)}</td>
       <td class="time">${esc(fmtTime(r.at))}</td>
       <td>${r.status === "no" || r.status === "partial" ? `<b>${esc(problemLabel(r.problem))}</b>` : ""}${r.remarks ? `<div style="color:var(--muted)">${esc(r.remarks)}</div>` : ""}${diagSummary(r)}${voiceBtn(r, "t" + r.id)}</td>
@@ -980,7 +1073,7 @@ async function renderOfficer() {
           <div class="alert ${r.status}"><span class="stripe"></span>
             <div><b>${kindTag(r.kind)} ${esc(nm(r))} <span style="font-weight:400;color:var(--muted)">· ${esc(nm2(r.hab, r.habTa))} · ${esc(nm2(r.panchayat, r.panchayatTa))}</span></b>
               <div class="meta">${r.status === "partial" ? esc(t("partialDelivered")) + " · " : ""}${esc(problemLabel(r.problem))} · ${reviewPill(r.review_status)} · ${esc(nm2(r.operator, r.operatorTa))}</div>
-              ${r.remarks ? `<div class="cm">“${esc(r.remarks)}”</div>` : ""}${diagSummary(r)}${voiceBtn(r, i)}</div>
+              ${r.remarks ? `<div class="cm">“${esc(r.remarks)}”</div>` : ""}${diagSummary(r)}${locLine(r)}${voiceBtn(r, i)}</div>
             <div class="time">${esc(fmtTime(r.at))}</div>
           </div>`).join("")}${silent2.map((g) => `
           <div class="alert silent"><span class="stripe"></span>
@@ -1057,8 +1150,27 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
 }
 
 if (!LIVE) seedDemo();
-flushQueue();
-render();
+// Opened from the WhatsApp link (…/#join=CODE): sign this phone in, no typing.
+const joinCode = ROLE === "op" ? new URLSearchParams(location.hash.slice(1)).get("join") : null;
+if (joinCode) {
+  history.replaceState(null, "", location.pathname + location.search);   // the code works once; keep it out of the address bar
+  openLink(joinCode);
+} else { if (state.op) here(); flushQueue(); render(); }
+
+async function openLink(code) {
+  app.innerHTML = `<div class="page op"><div class="card wa-card"><h2>${esc(t("opening"))}</h2></div></div>`;
+  const res = await data.join(code);
+  if (res.error) {
+    // Operators often tap the same WhatsApp message every day to open the app: if this phone is already signed in, just open it.
+    state.error = state.op ? "" : res.error;
+  } else {
+    if (!LIVE) { const dev = store.get("devices", {}); dev[res.id] = deviceId(); store.set("devices", dev); }
+    state.op = res; state.active = res.glrs.length > 1 ? "all" : 0; state.step = "home"; state.error = "";
+    store.set("op", res); store.set("active", state.active);
+  }
+  if (state.op) here();   // ask "allow location?" now, while the operator is looking, and warm up a fix
+  flushQueue(); render();
+}
 </script>
 
 </head>

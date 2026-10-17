@@ -24,11 +24,11 @@ The three pages never link to each other. In live mode the database enforces the
 
 The block's tank sheet lists, for every habitation, the pump operator who will use the app and their mobile number. That list is the access control:
 
-- **Sign-in is mobile number + 4-digit PIN.** The number must already be in the operators table. The panchayat officer sets the PIN from the review page and tells the operator in person or by phone. No SMS, no OTP cost, no DLT registration, nothing to print.
-- **Wrong PINs lock the number.** Five wrong PINs lock it for 15 minutes, then one try per 15 minutes until the right PIN or a new PIN from the panchayat officer, so a 4-digit PIN cannot be guessed by script.
-- **One phone per operator.** The first sign-in binds the phone. A second phone is refused until the panchayat officer taps *Reset phone*. A lost phone is fixed the same way. Two people sharing one phone (the sheet's "Maran / Badichi") are one account.
-- **Every report is tagged** with the operator and the phone it came from, and the panchayat officer confirms or flags it.
-- **Sending the app link**: the review page has a *Send app link on WhatsApp* button per operator, which opens WhatsApp on the officer's own phone with the link and a one-line Tamil instruction.
+- **Nothing to type: a WhatsApp link.** On the review page the panchayat officer taps *Send app link on WhatsApp*. That makes a one-time link and opens WhatsApp on the officer's own phone, addressed to the operator's registered number, with a short Tamil message. The operator taps it and the app opens signed in. No email, no password, no PIN, no SMS cost.
+- **The phone is the key.** Opening the link binds that phone (a long random secret made on the phone; the server keeps only its hash). From then on the app just opens. Tapping the same WhatsApp message again opens the app on that phone, and nowhere else: a forwarded link does not work on another phone.
+- **New or lost phone**: send a new link (the old phone stops working), or tap *Reset phone*. Two people sharing one phone (the sheet's "Maran / Badichi") are one account.
+- **Fallback: number + PIN**, for an operator without WhatsApp. The officer sets the PIN and says it on a call; it is needed only once to bind the phone. Five wrong PINs lock the number for other phones (never for the operator's own bound phone), so a 4-digit PIN cannot be guessed by script.
+- **Against cheating, at no cost to the operator**: only the bound phone can report; each report carries where the phone was (asked once for permission, right after sign-in), shown to the panchayat officer as a map link, and "No location recorded" when there is none; only today can be reported; and the panchayat officer confirms or flags every problem report.
 
 Real phone numbers and staff emails never go into this public repo: `schema.sql` seeds 90000000xx placeholders, and the real data lives in `supabase/private/live-data.sql`, which is git-ignored and run only against the live database.
 
