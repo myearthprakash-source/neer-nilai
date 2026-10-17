@@ -201,29 +201,37 @@ begin
     from v_glr v where v.operator_id = v_oid and v.active order by v.code;
 end $$;
 
--- Daily report: status + one pictorial problem. Same-day resubmit overwrites and resets the review.
+-- Daily report: one status (+ one pictorial problem) for one or more tanks, in a single call, so an operator with
+-- 12 tanks on a slow village network waits for one round trip. Same-day resubmit overwrites and resets the review.
 -- Returns 'ok', or 'bad' / 'locked' / 'device'; raises only for a malformed request.
-create function submit_report(p_phone text, p_pin text, p_device text, p_glr_id int, p_status text, p_problem text default null)
+create or replace function submit_reports(p_phone text, p_pin text, p_device text, p_glr_ids int[], p_status text, p_problem text default null)
 returns text
 language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 declare v_oid int;
 begin
   v_oid := operator_auth(p_phone, p_pin, p_device);
   if v_oid <= 0 then return auth_code(v_oid); end if;
-  if not exists (select 1 from glrs where id = p_glr_id and operator_id = v_oid and active) then
+  if coalesce(cardinality(p_glr_ids), 0) = 0 then raise exception 'no tanks' using errcode = '23514'; end if;
+  if exists (select 1 from unnest(p_glr_ids) t(id) where not exists (select 1 from glrs g where g.id = t.id and g.operator_id = v_oid and g.active)) then
     raise exception 'tank not assigned to this operator' using errcode = '42501';
   end if;
   if p_status not in ('yes','partial','no') then raise exception 'bad status' using errcode = '23514'; end if;
   if p_status = 'yes' then p_problem := null; elsif p_problem is null then raise exception 'problem required' using errcode = '23514'; end if;
 
   insert into reports (glr_id, report_date, status, problem, operator_id, device_id, entered_by)
-  values (p_glr_id, ist_today(), p_status, p_problem, v_oid, p_device, 'operator')
+  select distinct t.id, ist_today(), p_status, p_problem, v_oid, p_device, 'operator' from unnest(p_glr_ids) t(id)
   on conflict (glr_id, report_date) do update
     set status = excluded.status, problem = excluded.problem, source_ok = null, pump_ok = null, glr_filled = null,
         operator_id = excluded.operator_id, device_id = excluded.device_id, entered_by = 'operator', reported_at = now(),
         review_status = 'pending', review_note = null, reviewed_by = null, reviewed_at = null;
   return 'ok';
 end $$;
+
+-- Single tank (kept for reports queued offline by an older version of the app).
+create function submit_report(p_phone text, p_pin text, p_device text, p_glr_id int, p_status text, p_problem text default null)
+returns text
+language sql security definer set search_path = public, extensions, pg_temp as $$
+  select submit_reports(p_phone, p_pin, p_device, array[p_glr_id], p_status, p_problem) $$;
 
 create or replace function attach_voice(p_phone text, p_pin text, p_device text, p_glr_id int, p_path text) returns text
 language plpgsql security definer set search_path = public, extensions, pg_temp as $$
@@ -250,6 +258,7 @@ end $$;
 
 revoke execute on function operator_auth(text, text, text) from public, anon, authenticated;
 grant execute on function operator_login(text, text, text) to anon, authenticated;
+grant execute on function submit_reports(text, text, text, int[], text, text) to anon, authenticated;
 grant execute on function submit_report(text, text, text, int, text, text) to anon, authenticated;
 grant execute on function attach_voice(text, text, text, int, text) to anon, authenticated;
 grant execute on function operator_history_all(text, text, text) to anon, authenticated;

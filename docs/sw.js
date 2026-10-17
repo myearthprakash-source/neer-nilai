@@ -2,7 +2,7 @@
 // and updates as soon as the phone is online. Variant (demo | live), icon path and version are stamped by build.js.
 // Demo and live share one origin, so each variant only ever deletes its own caches.
 const PREFIX = "neer-nilai-demo-";
-const CACHE = PREFIX + "202610171735";
+const CACHE = PREFIX + "202610171752";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest",
   "./review/", "./review/index.html", "./review/manifest.webmanifest",

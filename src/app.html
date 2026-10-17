@@ -69,6 +69,7 @@ textarea{min-height:76px;resize:vertical}
 .tankgrid i{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);display:block}
 .tankgrid i.yes{background:var(--good);border-color:var(--good)} .tankgrid i.partial{background:var(--warn);border-color:var(--warn)} .tankgrid i.no{background:var(--bad);border-color:var(--bad)}
 .tankgrid button.yes{border-color:#BFE3CF} .tankgrid button.partial{border-color:#EED6A6} .tankgrid button.no{border-color:#F0BDB2}
+.busy{opacity:.45;pointer-events:none;transition:opacity .15s}
 .counts{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:12px}
 .counts .pill{font-size:14px;padding:4px 12px}
 .ext{font-size:13px;color:var(--muted);background:var(--soft);border-radius:10px;padding:8px 12px}
@@ -235,7 +236,7 @@ const T = {
     deviceBound: "போன் இணைக்கப்பட்டது", noDevice: "இன்னும் உள்நுழையவில்லை", deviceReset: "போன் மீட்டமைக்கப்பட்டது. அடுத்த உள்நுழைவில் புதிய போன் இணையும்.",
     qSource: "ஆதாரத்தில் போதுமான தண்ணீர் இருந்ததா?", qPump: "பம்ப் சரியாக இயங்கியதா?", qGlr: "தொட்டி போதுமான அளவு நிரம்பியதா?", dYes: "ஆம்", dNo: "இல்லை", dUnknown: "தெரியவில்லை",
     pickOne: "ஒரு தொட்டி மட்டும் வேறா? அதைத் தொடவும்", changeTank: "ஒரு தொட்டியை மாற்ற கீழே தொடவும்", panchayat: "ஊராட்சி",
-    call: "அழை", allNormal: "அனைத்தும் வழக்கம்", oneByOne: "ஒவ்வொன்றாக பதிவு",
+    call: "அழை", allNormal: "அனைத்தும் வழக்கம்", oneByOne: "ஒவ்வொன்றாக பதிவு", saving: "சேமிக்கிறது…",
     pinLocked: "பல முறை தவறான PIN. 15 நிமிடம் கழித்து முயற்சிக்கவும் அல்லது ஊராட்சி அலுவலரிடம் புதிய PIN கேட்கவும்.",
     notRegistered: "இந்த மின்னஞ்சல் அலுவலராக பதிவு செய்யப்படவில்லை. நிர்வாகியை அணுகவும்.",
     extSupply: "{who} மூலம் தண்ணீர் — இந்த ஆப்பில் பதிவு இல்லை",
@@ -271,7 +272,7 @@ const T = {
     deviceBound: "Phone linked", noDevice: "Not signed in yet", deviceReset: "Phone reset. The next sign-in will link a new phone.",
     qSource: "Was sufficient water available in the source?", qPump: "Did the pump operate normally?", qGlr: "Was the tank adequately filled?", dYes: "Yes", dNo: "No", dUnknown: "Don't know",
     pickOne: "Only one tank different? Tap it", changeTank: "To change one tank, tap it below", panchayat: "Panchayat",
-    call: "Call", allNormal: "All normal", oneByOne: "Tank by tank",
+    call: "Call", allNormal: "All normal", oneByOne: "Tank by tank", saving: "Saving…",
     pinLocked: "Too many wrong PINs. Try again in 15 minutes, or ask the panchayat officer for a new PIN.",
     notRegistered: "This email is not registered as an officer. Contact the administrator.",
     extSupply: "water supplied by {who} — not reported in this app",
@@ -465,16 +466,18 @@ const data = {
     }
     return store.get(RK, []).filter((r) => glrs.some((g) => g.id === r.glr_id));
   },
-  async submit(glr, status, problem) {
+  // One status for one or more tanks, in a single request.
+  async submit(glrs, status, problem) {
+    const ids = glrs.map((g) => g.id);
     if (LIVE) {
-      if (!navigator.onLine) { queue(glr, { status, problem }); return { queued: true }; }
-      const { data: res, error } = await sb.rpc("submit_report", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId(), p_glr_id: glr.id, p_status: status, p_problem: problem });
+      if (!navigator.onLine) { queue(ids, { status, problem }); return { queued: true }; }
+      const { data: res, error } = await sb.rpc("submit_reports", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId(), p_glr_ids: ids, p_status: status, p_problem: problem });
       if (error) throw error;
       if (res !== "ok") throw authError(res);
       return { ok: true };
     }
-    const rows = store.get(RK, []).filter((r) => !(r.glr_id === glr.id && r.date === istToday()));
-    rows.push({ glr_id: glr.id, date: istToday(), status, problem: status === "yes" ? null : problem, source_ok: null, pump_ok: null, glr_filled: null, remarks: "", voice: null, entered_by: "operator",
+    const rows = store.get(RK, []).filter((r) => !(ids.includes(r.glr_id) && r.date === istToday()));
+    for (const id of ids) rows.push({ glr_id: id, date: istToday(), status, problem: status === "yes" ? null : problem, source_ok: null, pump_ok: null, glr_filled: null, remarks: "", voice: null, entered_by: "operator",
       at: nowIso(), review_status: "pending", review_note: "", reviewed_at: null });
     store.set(RK, rows);
     return { ok: true };
@@ -566,11 +569,11 @@ const data = {
 const AUTH_KEY = { bad: "badLogin", locked: "pinLocked", device: "deviceLocked" };
 const authError = (code) => Object.assign(new Error(t(AUTH_KEY[code] ?? "badLogin")), { authKey: AUTH_KEY[code] ?? "badLogin" });
 function deviceId() { let id = store.get("device", null); if (!id) { id = Math.random().toString(36).slice(2, 12); store.set("device", id); } return id; }
-function queue(glr, d) { const q = store.get("queue", []); q.push({ glr, d, at: nowIso() }); store.set("queue", q); }
+function queue(ids, d) { const q = store.get("queue", []); q.push({ ids, d, at: nowIso() }); store.set("queue", q); }
 async function flushQueue() {
   const q = store.get("queue", []); if (!q.length || !LIVE || !navigator.onLine || !state.op) return;
   const rest = [];
-  for (const item of q) { try { await data.submit(item.glr, item.d.status, item.d.problem); } catch { rest.push(item); } }
+  for (const item of q) { try { await data.submit(item.ids ? item.ids.map((id) => ({ id })) : [item.glr], item.d.status, item.d.problem); } catch { rest.push(item); } }
   store.set("queue", rest);
   if (rest.length < q.length) toast(t("saved"));
 }
@@ -720,11 +723,13 @@ async function renderOperator() {
 async function save(glrs, status, problem) {
   if (state.busy || !glrs.length) return;
   state.busy = true; state.error = "";
+  // Visible at once on a slow network: buttons dim and the question says "Saving…" until the server answers.
+  app.querySelectorAll(".big3, .tiles2, .tankgrid").forEach((el) => el.classList.add("busy"));
+  const q = app.querySelector(".bigq"); if (q) q.textContent = t("saving");
   try {
-    let queued = false;
-    for (const g of glrs) { const res = await data.submit(g, status, problem); queued = queued || !!res.queued; }
+    const res = await data.submit(glrs, status, problem);
     state.editing = false; state.step = "home"; state.pick = null;
-    toast(queued ? t("offline") : t("saved"));
+    toast(res.queued ? t("offline") : t("saved"));
   } catch (e) {
     // PIN changed or number locked since sign-in: back to the sign-in screen with the reason.
     if (e.authKey) { state.op = null; store.set("op", null); state.error = e.authKey; }
@@ -1016,14 +1021,17 @@ document.getElementById("langTa").addEventListener("click", () => { state.lang =
 document.getElementById("langEn").addEventListener("click", () => { state.lang = "en"; store.set("lang", "en"); render(); });
 
 if (LIVE && ROLE !== "op") {
-  sb.auth.onAuthStateChange(async (_e, session) => {
+  // supabase-js holds a lock while this callback runs; a database call inside it waits on that lock forever,
+  // so the officer lookup runs just after the callback returns.
+  sb.auth.onAuthStateChange((_e, session) => { setTimeout(() => applySession(session), 0); });
+  async function applySession(session) {
     let next = null;
     if (session?.user) {
       const { data: me } = await sb.from("officers").select("panchayat_id, role").eq("id", session.user.id).maybeSingle();
       next = { email: session.user.email, panchayat_id: me?.panchayat_id ?? null, role: me?.role };
     }
     if (JSON.stringify(next) !== JSON.stringify(state.officer)) { state.officer = next; store.set("staff_" + ROLE, next); render(); }   // also picks up a role granted after the first sign-in
-  });
+  }
 }
 
 let installEvt = null;

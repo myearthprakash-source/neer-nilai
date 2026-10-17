@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="ta">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1D6FB4">
+<meta name="color-scheme" content="light">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Neer Nilai Review">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="../../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../../icons/icon-192.png">
+<title>Neer Nilai Review</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+Tamil:wght@400;500;700&display=swap">
+<style>
+/* Light only, on every phone: operators read it outdoors in sunlight, and a phone set to dark mode must not change it. */
+:root{
+  color-scheme: light;
+  --bg:#F5F7F8; --surface:#FFFFFF; --ink:#16212B; --muted:#5F6B76; --line:#DCE2E7; --soft:#EEF2F5;
+  --accent:#1D6FB4; --accent-ink:#FFFFFF; --accent-soft:#E3EEF8;
+  --good:#1C8A5A; --good-bg:#E1F3E9; --bad:#C2432D; --bad-bg:#FBE7E2; --warn:#B8770F; --warn-bg:#FBF0D9;
+  --shadow:0 1px 2px rgba(22,33,43,.06),0 8px 24px rgba(22,33,43,.06);
+  --sans:"IBM Plex Sans","Noto Sans Tamil",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h1,h2,h3{margin:0;text-wrap:balance;line-height:1.2}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{max-width:960px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em;min-width:0}
+.brand>div{min-width:0}
+.brand small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand .drop{flex:none}
+.install,.seg{flex:none}
+.brand .drop{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--accent);display:inline-block}
+.brand small{display:block;font-weight:400;color:var(--muted);font-size:12px;letter-spacing:0}
+.spacer{flex:1}
+.install{border:1.5px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:6px 14px;font-weight:600;font-size:14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--bg);gap:2px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:6px 12px;font-weight:500;color:var(--muted);font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+.page{max-width:480px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:16px}
+.page.wide{max-width:960px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.demo-note{font-size:13px;color:var(--muted);background:var(--soft);border-radius:8px;padding:8px 12px}
+.err{color:var(--bad);font-size:14px;margin-top:8px}
+.info{color:var(--good);font-size:14px;margin-top:8px}
+.link{border:0;background:none;color:var(--accent);font-weight:600;padding:0;font-size:14px}
+.field{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+textarea,input,select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--surface);font-size:16px}
+input.big{font-size:24px;letter-spacing:.08em;padding:14px;font-family:var(--mono)}
+textarea{min-height:76px;resize:vertical}
+.btn{border:0;border-radius:12px;padding:15px 18px;font-size:18px;font-weight:700;width:100%;background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill.yes{background:var(--good-bg);color:var(--good)} .pill.partial{background:var(--warn-bg);color:var(--warn)} .pill.no{background:var(--bad-bg);color:var(--bad)} .pill.silent{background:var(--soft);color:var(--muted)}
+.pill.pending{background:var(--soft);color:var(--muted)} .pill.confirmed{background:var(--accent-soft);color:var(--accent)} .pill.flagged{background:var(--bad-bg);color:var(--bad)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1}
+
+/* operator: big, few, pictorial */
+.op{gap:14px}
+.kind{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;padding:1px 6px;border-radius:5px;border:1px solid var(--line);color:var(--muted);background:var(--surface);vertical-align:2px;white-space:nowrap}
+.kind.OHT{border-color:#B9D3EA;color:var(--accent);background:var(--accent-soft)}
+.pick{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.pick .label{text-align:center}
+.tankgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tankgrid button{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 10px;display:grid;grid-template-columns:26px 1fr 12px;align-items:center;gap:8px;text-align:left;font-weight:600;font-size:15px;line-height:1.2;min-height:56px}
+.tankgrid button small{display:block;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-top:2px}
+.tankgrid svg{width:26px;height:26px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tankgrid i{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);display:block}
+.tankgrid i.yes{background:var(--good);border-color:var(--good)} .tankgrid i.partial{background:var(--warn);border-color:var(--warn)} .tankgrid i.no{background:var(--bad);border-color:var(--bad)}
+.tankgrid button.yes{border-color:#BFE3CF} .tankgrid button.partial{border-color:#EED6A6} .tankgrid button.no{border-color:#F0BDB2}
+.busy{opacity:.45;pointer-events:none;transition:opacity .15s}
+.counts{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.counts .pill{font-size:14px;padding:4px 12px}
+.ext{font-size:13px;color:var(--muted);background:var(--soft);border-radius:10px;padding:8px 12px}
+.who{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.who h2{font-size:24px;font-weight:700}
+.who .sub{color:var(--muted);font-size:15px;margin-top:2px}
+.who .d{font-weight:700;font-size:15px;text-align:right;white-space:nowrap}
+.bigq{font-size:26px;font-weight:700;line-height:1.25;text-align:center;padding:6px 0 2px}
+.big3{display:flex;flex-direction:column;gap:12px}
+.big3 button{border:0;border-radius:18px;padding:18px 18px;display:flex;align-items:center;gap:16px;text-align:left;color:#fff;font-size:24px;font-weight:700;line-height:1.15;box-shadow:var(--shadow);transition:transform .08s ease}
+.big3 button:active{transform:scale(.98)}
+.big3 .yes{background:var(--good)} .big3 .partial{background:var(--warn)} .big3 .no{background:var(--bad)}
+.big3 .ring{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;flex:none;font-size:34px}
+.big3 small{display:block;font-size:14px;font-weight:500;opacity:.9;margin-top:2px}
+.tiles2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tiles2 button{border:2px solid var(--line);background:var(--surface);border-radius:18px;padding:18px 10px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;font-size:17px;font-weight:700;line-height:1.2;text-align:center;min-height:132px;transition:transform .08s ease}
+.tiles2 button:active{transform:scale(.97)}
+.tiles2 svg{width:52px;height:52px;fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.back{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--muted);font-weight:600;font-size:16px;padding:4px 0}
+.done{text-align:center;padding:26px 18px 22px}
+.done .big{width:104px;height:104px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;font-size:56px;font-weight:700;color:#fff}
+.done.yes .big{background:var(--good)} .done.partial .big{background:var(--warn)} .done.no .big{background:var(--bad)} .done.mixed .big{background:var(--accent)}
+.done h2{font-size:24px}
+.done p{margin:6px 0 0;color:var(--muted);font-size:16px}
+.done .what{margin-top:12px;display:inline-flex;align-items:center;gap:10px;background:var(--soft);border-radius:999px;padding:8px 16px;font-weight:600}
+.done .what svg{width:24px;height:24px;fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.voice{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.voice button{border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:14px 22px;font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px}
+.voice button.rec{background:var(--bad);border-color:var(--bad);color:#fff;animation:pulse 1s infinite}
+.voice .hint{font-size:13px;color:var(--muted)}
+.voice audio{width:100%;max-width:320px;margin-top:4px}
+@keyframes pulse{50%{opacity:.7}}
+.strip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.strip div{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.strip i{display:block;width:100%;height:12px;border-radius:4px;background:var(--line)}
+.strip i.yes{background:var(--good)} .strip i.partial{background:var(--warn)} .strip i.no{background:var(--bad)}
+.small-links{display:flex;justify-content:center;gap:18px;flex-wrap:wrap}
+
+/* review + officer */
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.head h2{font-size:24px;font-weight:700}
+.head .sub{color:var(--muted);font-size:14px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:520px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;border-top:4px solid var(--line)}
+.tile .n{font-size:34px;font-weight:600;line-height:1;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tile .t{font-size:13px;color:var(--muted);margin-top:6px}
+.tile.yes{border-top-color:var(--good)} .tile.partial{border-top-color:var(--warn)} .tile.no{border-top-color:var(--bad)} .tile.silent{border-top-color:var(--muted)}
+.bar{height:8px;border-radius:4px;overflow:hidden;display:flex;background:var(--line)}
+.bar i{display:block;height:100%}
+.bar .y{background:var(--good)} .bar .p{background:var(--warn)} .bar .n{background:var(--bad)} .bar .s{background:var(--muted)}
+.section-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
+.section-h h3{font-size:16px;font-weight:700}
+.alerts{display:flex;flex-direction:column;gap:8px}
+.alert{display:grid;grid-template-columns:4px 1fr auto;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px 0;overflow:hidden}
+.alert .stripe{background:var(--bad);border-radius:0 2px 2px 0}
+.alert.partial .stripe{background:var(--warn)}
+.alert.silent .stripe{background:var(--muted)}
+.alert b{display:block;font-weight:600}
+.alert .meta{color:var(--muted);font-size:13px}
+.alert .cm{font-size:14px;margin-top:4px}
+.alert .time{font-size:13px;color:var(--muted);white-space:nowrap;padding-right:14px}
+.diagline{font-size:12px;color:var(--muted);margin-top:4px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.filters button{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:500}
+.filters button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.time{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--muted)}
+.grp{font-weight:600;background:var(--soft)}
+.grp td{padding:8px 10px}
+.settings{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.row .h{font-weight:500}
+.row .s{font-size:13px;color:var(--muted)}
+.switch{width:44px;height:26px;border-radius:999px;border:0;background:var(--line);position:relative;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--surface);transition:left .15s}
+.switch[aria-checked="true"]{background:var(--accent)}
+.switch[aria-checked="true"]::after{left:21px}
+.two{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:760px){.two{grid-template-columns:1.1fr .9fr}}
+.rv{display:flex;flex-direction:column;gap:10px}
+.rv-item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.rv-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.rv-top b{font-weight:600}
+.rv-top .sub{color:var(--muted);font-size:13px}
+.rv-body{font-size:14px;margin-top:6px}
+.rv-diag{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.rv-diag .q{font-size:13px;color:var(--muted);margin-bottom:4px}
+.diag{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.diag button{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 4px;font-size:14px;font-weight:500}
+.diag button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 12px;font-size:14px;font-weight:500}
+.chips button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.rv-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.rv-actions button{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px}
+.rv-actions .ok{border-color:var(--accent);color:var(--accent)}
+.rv-actions .flag{border-color:var(--bad);color:var(--bad)}
+.rv-actions .st-yes{border-color:var(--good);color:var(--good)} .rv-actions .st-partial{border-color:var(--warn);color:var(--warn)} .rv-actions .st-no{border-color:var(--bad);color:var(--bad)}
+.rv-actions input{flex:1;min-width:140px;padding:8px 10px;font-size:14px}
+.rv-actions a{border:1.5px solid #25D366;color:#128C7E;border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px;text-decoration:none;background:var(--surface)}
+.rv-actions a.call{border-color:var(--accent);color:var(--accent)}
+.play{border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;margin-top:6px}
+.pinbox{margin-top:8px;background:var(--warn-bg);border-radius:10px;padding:10px 12px;font-size:14px}
+.pinbox b{font-family:var(--mono);font-size:22px;letter-spacing:.2em}
+.credit{max-width:960px;margin:0 auto;padding:8px 16px 28px;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.02em}
+.credit b{font-weight:600;color:var(--ink)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="top"><div class="top-in">
+  <div class="brand"><span class="drop"></span><div>Neer Nilai<small id="brandSub">நீர் நிலை</small></div></div>
+  <div class="spacer"></div>
+  <button class="install" id="installBtn" hidden>Install app</button>
+  <div class="seg" role="group" aria-label="Language">
+    <button id="langTa" aria-pressed="true">தமிழ்</button>
+    <button id="langEn" aria-pressed="false">EN</button>
+  </div>
+</div></div>
+
+<main id="app"></main>
+<footer class="credit">Made by <b>Catalyx Technology</b></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+// ---------------------------------------------------------------- config
+// Fill these to go live against Supabase. Leave empty for demo mode (sample data kept on this phone only).
+const CONFIG = {"SUPABASE_URL":"https://vavenmlzapzvjzqbmofz.supabase.co","SUPABASE_ANON_KEY":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhdmVubWx6YXB6dmp6cWJtb2Z6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNTY2MjcsImV4cCI6MjEwNzgzMjYyN30.uNwA7W5Y3gmNe5INkB6c-q5YhKIpmfwAtL_bxcQ5lMc"};
+const LIVE = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY && window.supabase);
+// Three pages, one file. Role is fixed by the URL:  /  operator   /review/  panchayat officer   /officer/  block + district.
+const ROLE = /\/officer(\/|\.html|$)/i.test(location.pathname) ? "of" : /\/review(\/|\.html|$)/i.test(location.pathname) ? "rv" : "op";
+// Each page keeps its own staff session, so one person can test the review and officer pages side by side.
+const sb = LIVE ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { storageKey: "nnl-auth-" + ROLE } }) : null;
+
+// ---------------------------------------------------------------- i18n
+const T = {
+  ta: {
+    operatorSub: "நீர் நிலை · தினசரி தண்ணீர் பதிவு", reviewSub: "நீர் நிலை · ஊராட்சி சரிபார்ப்பு", officerSub: "நீர் நிலை · அலுவலர் டாஷ்போர்டு",
+    loginTitle: "உள்நுழைவு", phone: "உங்கள் கைபேசி எண்", pin: "PIN (4 இலக்கம்)", login: "உள்நுழை",
+    loginHint: "உங்கள் எண் ஊராட்சியில் பதிவு செய்யப்பட்டிருக்க வேண்டும். PIN ஊராட்சி அலுவலர் தருவார்.",
+    badLogin: "எண் அல்லது PIN தவறு. ஊராட்சி அலுவலரை அணுகவும்.", deviceLocked: "இந்த எண் வேறு போனில் பயன்பாட்டில் உள்ளது. ஊராட்சி அலுவலரை அணுகவும்.",
+    opDemoHint: "டெமோ: ஆபரேட்டரை தேர்வு செய்யவும், PIN 1234", logout: "வெளியேறு",
+    bigq: "இன்று தண்ணீர் வந்ததா?", bigqAll: "இன்று எல்லா தொட்டிக்கும் தண்ணீர் வந்ததா?", allTanks: "அனைத்து தொட்டிகள்", tanks: "தொட்டிகள்",
+    yes: "தண்ணீர் வந்தது", yesSub: "வழக்கம் போல்", partial: "குறைவாக வந்தது", partialSub: "வழக்கத்தை விட குறைவு", no: "தண்ணீர் வரவில்லை", noSub: "இன்று விநியோகம் இல்லை",
+    whatProblem: "என்ன பிரச்சனை?", back: "பின்",
+    done: "பதிவு ஆகிவிட்டது. நன்றி!", doneYes: "இன்று தண்ணீர் வந்தது", donePartial: "இன்று குறைவாக வந்தது", doneNo: "இன்று தண்ணீர் வரவில்லை", doneAll: "எல்லா தொட்டிகளும் பதிவு ஆகிவிட்டன",
+    doneInfo: "ஊராட்சி அலுவலருக்கு தகவல் சென்றுவிட்டது.", change: "மாற்ற வேண்டுமா?", changeOne: "ஒரு தொட்டியை மட்டும் மாற்ற மேலே தேர்வு செய்யவும்.",
+    voiceAdd: "பேசி குறிப்பு சேர்", voiceStop: "நிறுத்து", voiceHint: "மைக்கை தொட்டு பேசுங்கள் (20 வினாடி)", voiceSaved: "குரல் குறிப்பு சேமிக்கப்பட்டது", voiceNo: "இந்த போனில் மைக் கிடைக்கவில்லை",
+    today: "இன்று", last7: "கடந்த 7 நாட்கள்", capacity: "கொள்ளளவு", location: "இடம்",
+    reportedAt: "பதிவு நேரம்", offline: "இணையம் இல்லை. இணைப்பு வந்ததும் அனுப்பப்படும்.", saved: "சேமிக்கப்பட்டது",
+    demoBanner: "டெமோ முறை: தரவு இந்த போனில் மட்டும். Supabase இணைத்தால் நேரடி முறை.", reset: "டெமோ தரவை மீட்டமை",
+    delivered: "வழக்கம்", partialDelivered: "பகுதியளவு", notDelivered: "வரவில்லை", notReported: "பதிவு இல்லை",
+    alerts: "இன்றைய எச்சரிக்கைகள்", noAlerts: "இன்று எச்சரிக்கை எதுவும் இல்லை.", all: "அனைத்தும்", glr: "தொட்டி", status: "நிலை", time: "நேரம்", problemCol: "பிரச்சனை / நடவடிக்கை", operator: "ஆபரேட்டர்",
+    review: "சரிபார்ப்பு", pending: "நிலுவை", confirmed: "உறுதி", flagged: "குறியிடப்பட்டது", confirm: "உறுதி செய்", flag: "தவறு எனக் குறி", notePh: "எடுத்த நடவடிக்கை / குறிப்பு",
+    reviewTitle: "ஊராட்சி சரிபார்ப்பு — இன்று", reviewHint: "ஒவ்வொரு தொட்டி பதிவையும் சரிபார்த்து உறுதி செய்யவும். பதிவு இல்லாத தொட்டிக்கு ஆபரேட்டரை அழைத்து நீங்களே பதிவு செய்யலாம்.",
+    nothingToReview: "இன்று சரிபார்க்க பதிவுகள் இல்லை.", recordFor: "ஆபரேட்டர் சார்பாக பதிவு:", byReviewer: "ஊராட்சி அலுவலர் பதிவு", voiceNote: "குரல் குறிப்பு", play: "▶ கேள்",
+    operators: "ஆபரேட்டர்கள்", opHint: "எண் + PIN மட்டுமே உள்நுழைவு. PIN-ஐ ஆபரேட்டரிடம் நேரில் அல்லது தொலைபேசியில் சொல்லவும். ஒரு எண்ணுக்கு ஒரு போன் மட்டும்.",
+    setPin: "புதிய PIN", resetDevice: "போனை மீட்டமை", waLink: "WhatsApp-ல் ஆப் இணைப்பு", pinIs: "புதிய PIN", tellOp: "ஆபரேட்டரிடம் நேரில் சொல்லவும். இது மீண்டும் காட்டப்படாது.",
+    deviceBound: "போன் இணைக்கப்பட்டது", noDevice: "இன்னும் உள்நுழையவில்லை", deviceReset: "போன் மீட்டமைக்கப்பட்டது. அடுத்த உள்நுழைவில் புதிய போன் இணையும்.",
+    qSource: "ஆதாரத்தில் போதுமான தண்ணீர் இருந்ததா?", qPump: "பம்ப் சரியாக இயங்கியதா?", qGlr: "தொட்டி போதுமான அளவு நிரம்பியதா?", dYes: "ஆம்", dNo: "இல்லை", dUnknown: "தெரியவில்லை",
+    pickOne: "ஒரு தொட்டி மட்டும் வேறா? அதைத் தொடவும்", changeTank: "ஒரு தொட்டியை மாற்ற கீழே தொடவும்", panchayat: "ஊராட்சி",
+    call: "அழை", allNormal: "அனைத்தும் வழக்கம்", oneByOne: "ஒவ்வொன்றாக பதிவு", saving: "சேமிக்கிறது…",
+    pinLocked: "பல முறை தவறான PIN. 15 நிமிடம் கழித்து முயற்சிக்கவும் அல்லது ஊராட்சி அலுவலரிடம் புதிய PIN கேட்கவும்.",
+    notRegistered: "இந்த மின்னஞ்சல் அலுவலராக பதிவு செய்யப்படவில்லை. நிர்வாகியை அணுகவும்.",
+    extSupply: "{who} மூலம் தண்ணீர் — இந்த ஆப்பில் பதிவு இல்லை",
+    silentNote: "மதியம் வரை பதிவு இல்லை", officerTitle: "மாவட்ட நிலை — இன்று",
+    settings: "அறிவிப்பு அமைப்புகள்", notifyIn: "பயன்பாட்டில்", notifyEmail: "மின்னஞ்சல்", notifyWa: "வாட்ஸ்அப்", digest: "மதியம் 12:00 சுருக்கம்", alwaysOn: "எப்போதும்", free: "இலவசம்", cheap: "ஒரு செய்திக்கு ≈ ₹0.12",
+    officerLogin: "அலுவலர் உள்நுழைவு", reviewLogin: "ஊராட்சி அலுவலர் உள்நுழைவு", email: "அலுவலக மின்னஞ்சல்", accessCode: "அணுகல் குறியீடு", signIn: "உள்நுழை", signOut: "வெளியேறு",
+    magicSent: "உள்நுழைவு இணைப்பு உங்கள் மின்னஞ்சலுக்கு அனுப்பப்பட்டது. அதை திறக்கவும்.", badStaffLogin: "மின்னஞ்சல் அல்லது குறியீடு தவறு",
+    officerDemoHint: "டெமோ: ஏதேனும் மின்னஞ்சல், குறியீடு 1234", install: "ஆப் நிறுவு",
+    waText: "நீர் நிலை ஆப்: {url}\nஉங்கள் கைபேசி எண் மற்றும் PIN உடன் உள்நுழையவும். தினமும் தண்ணீர் வந்ததா என்று ஒரு பொத்தானை தொடவும்.",
+  },
+  en: {
+    operatorSub: "நீர் நிலை · Daily water report", reviewSub: "நீர் நிலை · Panchayat review", officerSub: "நீர் நிலை · Officer dashboard",
+    loginTitle: "Sign in", phone: "Your mobile number", pin: "PIN (4 digits)", login: "Sign in",
+    loginHint: "Your number must be registered with the panchayat. The panchayat officer gives you the PIN.",
+    badLogin: "Wrong number or PIN. Contact the panchayat officer.", deviceLocked: "This number is already in use on another phone. Contact the panchayat officer.",
+    opDemoHint: "Demo: pick an operator, PIN 1234", logout: "Sign out",
+    bigq: "Did water come today?", bigqAll: "Did water come to all tanks today?", allTanks: "All tanks", tanks: "tanks",
+    yes: "Water came", yesSub: "Normal supply", partial: "Came less", partialSub: "Less than normal", no: "Water did not come", noSub: "No supply today",
+    whatProblem: "What is the problem?", back: "Back",
+    done: "Recorded. Thank you!", doneYes: "Water came today", donePartial: "Less water today", doneNo: "No water today", doneAll: "All tanks recorded",
+    doneInfo: "The panchayat officer has been informed.", change: "Need to change?", changeOne: "To change one tank only, pick it above.",
+    voiceAdd: "Add voice note", voiceStop: "Stop", voiceHint: "Tap the mic and speak (20 seconds)", voiceSaved: "Voice note saved", voiceNo: "Microphone not available on this phone",
+    today: "Today", last7: "Last 7 days", capacity: "Capacity", location: "Location",
+    reportedAt: "Reported at", offline: "You are offline. The report will send when signal returns.", saved: "Saved",
+    demoBanner: "Demo mode: data stays on this phone. Connect Supabase for live mode.", reset: "Reset demo data",
+    delivered: "Normal", partialDelivered: "Partial", notDelivered: "Not supplied", notReported: "Not reported",
+    alerts: "Alerts today", noAlerts: "No alerts today.", all: "All", glr: "Tank", status: "Status", time: "Time", problemCol: "Problem / action taken", operator: "Operator",
+    review: "Review", pending: "Pending", confirmed: "Confirmed", flagged: "Flagged", confirm: "Confirm", flag: "Flag as incorrect", notePh: "Action taken / remarks",
+    reviewTitle: "Panchayat review — today", reviewHint: "Check each tank's report and confirm it. For a tank with no report, call the operator and record it yourself.",
+    nothingToReview: "Nothing to review today.", recordFor: "Record on behalf of operator:", byReviewer: "Entered by panchayat officer", voiceNote: "Voice note", play: "▶ Play",
+    operators: "Operators", opHint: "Sign-in is number + PIN only. Tell the operator the PIN in person or by phone. One phone per number.",
+    setPin: "New PIN", resetDevice: "Reset phone", waLink: "Send app link on WhatsApp", pinIs: "New PIN", tellOp: "Tell the operator in person. It will not be shown again.",
+    deviceBound: "Phone linked", noDevice: "Not signed in yet", deviceReset: "Phone reset. The next sign-in will link a new phone.",
+    qSource: "Was sufficient water available in the source?", qPump: "Did the pump operate normally?", qGlr: "Was the tank adequately filled?", dYes: "Yes", dNo: "No", dUnknown: "Don't know",
+    pickOne: "Only one tank different? Tap it", changeTank: "To change one tank, tap it below", panchayat: "Panchayat",
+    call: "Call", allNormal: "All normal", oneByOne: "Tank by tank", saving: "Saving…",
+    pinLocked: "Too many wrong PINs. Try again in 15 minutes, or ask the panchayat officer for a new PIN.",
+    notRegistered: "This email is not registered as an officer. Contact the administrator.",
+    extSupply: "water supplied by {who} — not reported in this app",
+    silentNote: "No report by noon", officerTitle: "District status — today",
+    settings: "Notification settings", notifyIn: "In-app", notifyEmail: "Email", notifyWa: "WhatsApp", digest: "12:00 noon digest", alwaysOn: "Always on", free: "Free", cheap: "≈ ₹0.12 per message",
+    officerLogin: "Officer sign in", reviewLogin: "Panchayat officer sign in", email: "Official email", accessCode: "Access code", signIn: "Sign in", signOut: "Sign out",
+    magicSent: "A sign-in link has been sent to your email. Open it to continue.", badStaffLogin: "Wrong email or access code",
+    officerDemoHint: "Demo: any email, access code 1234", install: "Install app",
+    waText: "Neer Nilai app: {url}\nSign in with your mobile number and PIN. Every day, tap one button to say whether water came.",
+  }
+};
+const ICONS = {
+  power: `<svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 10-12h-7l1-8z"/></svg>`,
+  pump: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/><path d="M14.5 10.5 9.5 13.5" stroke-width="3"/></svg>`,
+  pipe: `<svg viewBox="0 0 24 24"><path d="M2 9h6l2 3-2 3H2M22 9h-6l-2 3 2 3h6"/><path d="M11 6l1.5 3M12.5 15 11 18M13.5 9l-1.5 3 1.5 3"/></svg>`,
+  source: `<svg viewBox="0 0 24 24"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/><path d="M4 4l16 16"/></svg>`,
+  glr: `<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 15c2-1.5 4 1.5 6 0s4 1.5 6 0 4 1.5 6 0"/><path d="M8 2v3M16 2v3"/></svg>`,
+  unknown: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7"/><path d="M12 17h.01" stroke-width="3"/></svg>`,
+};
+// Tank kinds: GLR = ground level reservoir (low, wide, on the ground); OHT = overhead tank (on legs).
+const KIND_ICON = {
+  GLR: `<svg viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="9" rx="2"/><path d="M3 15c2-1.2 4 1.2 6 0s4 1.2 6 0 4 1.2 6 0"/><path d="M1.5 21h21"/></svg>`,
+  OHT: `<svg viewBox="0 0 24 24"><path d="M5 4.2C5 3 8.1 2 12 2s7 1 7 2.2v4.6C19 10 15.9 11 12 11s-7-1-7-2.2z"/><path d="M5 4.2C5 5.4 8.1 6.4 12 6.4s7-1 7-2.2"/><path d="M8 10.6 6.5 22M16 10.6 17.5 22M7.4 15.2l9.6 5M16.6 15.2l-9.6 5"/></svg>`,
+};
+const kindTag = (k) => `<span class="kind ${k === "OHT" ? "OHT" : "GLR"}">${k === "OHT" ? "OHT" : "GLR"}</span>`;
+const PROBLEMS = [
+  { code: "power",       en: "No electricity",          ta: "மின்சாரம் இல்லை",        icon: "power",  op: true },
+  { code: "pump",        en: "Motor / pump broken",     ta: "மோட்டார் பழுது",          icon: "pump",   op: true },
+  { code: "pipe",        en: "Pipe broken / leak",      ta: "குழாய் உடைப்பு",          icon: "pipe",   op: true },
+  { code: "source",      en: "No water in source",      ta: "ஆதாரத்தில் தண்ணீர் இல்லை", icon: "source", op: true },
+  { code: "glr",         en: "Tank not filled",         ta: "தொட்டி நிரம்பவில்லை",     icon: "glr",    op: true },
+  { code: "unknown",     en: "Don't know / other",      ta: "தெரியவில்லை / மற்றவை",     icon: "unknown", op: true },
+  { code: "pipe_source", en: "Source-to-tank pipeline", ta: "ஆதாரம் → தொட்டி குழாய்" },
+  { code: "pipe_dist",   en: "Distribution pipeline / valve", ta: "விநியோகக் குழாய் / வால்வு" },
+  { code: "other",       en: "Other",                   ta: "மற்றவை" },
+];
+const DIAG = [["source_ok", "qSource"], ["pump_ok", "qPump"], ["glr_filled", "qGlr"]];
+
+// ---------------------------------------------------------------- demo data: the block sheets for Kookal (Udhagai) and Masinagudi (Gudalur).
+// Phone numbers are dummies here; real ones go only into the live database. Tanks are GLR (ground level) or OHT (overhead).
+// A habitation with `ext` gets its water from another body (e.g. TNEB) and has no tanks to report.
+const DEMO = {
+  district: { id: 1, name: "The Nilgiris", ta: "நீலகிரி" },
+  blocks: [{ id: 1, name: "Udhagai", ta: "உதகை" }, { id: 2, name: "Gudalur", ta: "கூடலூர்" }],
+  panchayats: [{ id: 1, b: 1, name: "Kookal", ta: "கூக்கல்" }, { id: 2, b: 2, name: "Masinagudi", ta: "மசினகுடி" }],
+  habitations: [
+    { id: 1, p: 1, name: "Kookal", ta: "கூக்கல்" },
+    { id: 2, p: 1, name: "Uyilatty", ta: "உயிலட்டி" },
+    { id: 3, p: 1, name: "Degili", ta: "தெகிலி" },
+    { id: 4, p: 1, name: "Kurumudi", ta: "குறுமுடி" },
+    { id: 5, p: 1, name: "Nerikambai", ta: "நெரிகம்பை" },
+    { id: 6, p: 2, name: "Achakarai", ta: "அச்சக்கரை" },
+    { id: 7, p: 2, name: "Masinagudi", ta: "மசினகுடி" },
+    { id: 8, p: 2, name: "Boothanatham", ta: "பூதநத்தம்" },
+    { id: 9, p: 2, name: "Moyar", ta: "மாயார்" },
+    { id: 10, p: 2, name: "Singara", ta: "சிங்காரா", ext: "TNEB", extTa: "மின்வாரியம் (TNEB)" },
+    { id: 11, p: 2, name: "Theppakadu", ta: "தெப்பக்காடு" },
+  ],
+  operators: [
+    { id: 1, p: 1, name: "Sivakumar", ta: "சிவகுமார்", phone: "9000000001" },
+    { id: 2, p: 1, name: "Gopal", ta: "கோபால்", phone: "9000000002" },
+    { id: 3, p: 1, name: "Suresh", ta: "சுரேஷ்", phone: "9000000003" },
+    { id: 4, p: 1, name: "Kantharaj", ta: "காந்தராஜ்", phone: "9000000004" },
+    { id: 5, p: 2, name: "Ramesh", ta: "ரமேஷ்", phone: "9000000005" },
+    { id: 6, p: 2, name: "Sidick Shameer", ta: "சித்திக் ஷமீர்", phone: "9000000006" },
+    { id: 7, p: 2, name: "Manigandan", ta: "மணிகண்டன்", phone: "9000000007" },
+    { id: 8, p: 2, name: "Ragavendran", ta: "ராகவேந்திரன்", phone: "9000000008" },
+    { id: 9, p: 2, name: "Maran / Badichi", ta: "மாறன் / பாடிச்சி", phone: "9000000009" },
+  ],
+  glrs: [
+    { id: 1,  h: 1, op: 1, kind: "GLR", code: "NLG-UDH-KKL-01", name: "Kookal 1",     ta: "கூக்கல் 1",     location: "Near Hethaiyamman temple", capacity: 30000 },
+    { id: 2,  h: 1, op: 1, kind: "GLR", code: "NLG-UDH-KKL-02", name: "Kookal 2",     ta: "கூக்கல் 2",     location: "Near Hethaiyamman temple", capacity: 30000 },
+    { id: 3,  h: 2, op: 2, kind: "GLR", code: "NLG-UDH-KKL-03", name: "Uyilatty 1",   ta: "உயிலட்டி 1",   location: "Near main road", capacity: 30000 },
+    { id: 4,  h: 2, op: 2, kind: "GLR", code: "NLG-UDH-KKL-04", name: "Uyilatty 2",   ta: "உயிலட்டி 2",   location: "Near main road", capacity: 30000 },
+    { id: 5,  h: 2, op: 2, kind: "GLR", code: "NLG-UDH-KKL-05", name: "Uyilatty 3",   ta: "உயிலட்டி 3",   location: "Near main road", capacity: 30000 },
+    { id: 6,  h: 3, op: 3, kind: "GLR", code: "NLG-UDH-KKL-06", name: "Degili 1",     ta: "தெகிலி 1",     location: "Near community hall", capacity: 30000 },
+    { id: 7,  h: 3, op: 3, kind: "GLR", code: "NLG-UDH-KKL-07", name: "Degili 2",     ta: "தெகிலி 2",     location: "Near community hall", capacity: 30000 },
+    { id: 8,  h: 3, op: 3, kind: "GLR", code: "NLG-UDH-KKL-08", name: "Degili 3",     ta: "தெகிலி 3",     location: "Near community hall", capacity: 30000 },
+    { id: 9,  h: 4, op: 4, kind: "GLR", code: "NLG-UDH-KKL-09", name: "Kurumudi 1",   ta: "குறுமுடி 1",   location: "Near community hall", capacity: 30000 },
+    { id: 10, h: 4, op: 4, kind: "GLR", code: "NLG-UDH-KKL-10", name: "Kurumudi 2",   ta: "குறுமுடி 2",   location: "Near community hall", capacity: 30000 },
+    { id: 11, h: 5, op: 4, kind: "GLR", code: "NLG-UDH-KKL-11", name: "Nerikambai",   ta: "நெரிகம்பை",    location: "Near Mahendran house", capacity: 15000 },
+    // Masinagudi village panchayat, Gudalur block (sheet: 9 GLR + 12 OHT, 5 operators; Singara is supplied by TNEB)
+    { id: 12, h: 6,  op: 5, kind: "GLR", code: "NLG-GDL-MSG-01", name: "Achakarai",          ta: "அச்சக்கரை",            location: "", capacity: 30000 },
+    { id: 13, h: 6,  op: 5, kind: "GLR", code: "NLG-GDL-MSG-02", name: "ST Colony",          ta: "ST காலனி",              location: "Achakkarai ST Colony", capacity: 20000 },
+    { id: 14, h: 7,  op: 6, kind: "GLR", code: "NLG-GDL-MSG-03", name: "Water Board",        ta: "குடிநீர் வாரியம்",       location: "Masinagudi Water Board", capacity: 60000 },
+    { id: 15, h: 7,  op: 6, kind: "GLR", code: "NLG-GDL-MSG-04", name: "Group House",        ta: "தொகுப்பு வீடுகள்",       location: "Group House Masinagudi", capacity: 30000 },
+    { id: 16, h: 7,  op: 6, kind: "GLR", code: "NLG-GDL-MSG-05", name: "ST Colony",          ta: "ST காலனி",              location: "ST colony Masinagudi", capacity: 30000 },
+    { id: 17, h: 7,  op: 6, kind: "GLR", code: "NLG-GDL-MSG-06", name: "Vinayagar Kovil St", ta: "விநாயகர் கோவில் தெரு",   location: "Masinagudi Vinayagar kovil Street", capacity: 30000 },
+    { id: 18, h: 7,  op: 6, kind: "OHT", code: "NLG-GDL-MSG-07", name: "Water Board",        ta: "குடிநீர் வாரியம்",       location: "Masinagudi water Board", capacity: 40000 },
+    { id: 19, h: 7,  op: 6, kind: "OHT", code: "NLG-GDL-MSG-08", name: "Sivakumar Colony 1", ta: "சிவகுமார் காலனி 1",      location: "Sivakumar Colony", capacity: 60000 },
+    { id: 20, h: 7,  op: 6, kind: "OHT", code: "NLG-GDL-MSG-09", name: "Sivakumar Colony 2", ta: "சிவகுமார் காலனி 2",      location: "Masinagudi Sivakumar Colony", capacity: 60000 },
+    { id: 21, h: 7,  op: 6, kind: "OHT", code: "NLG-GDL-MSG-10", name: "Indra Colony",       ta: "இந்திரா காலனி",          location: "Indra Colony Masinagudi", capacity: 60000 },
+    { id: 22, h: 7,  op: 6, kind: "OHT", code: "NLG-GDL-MSG-11", name: "Moyar Road",         ta: "மாயார் சாலை",           location: "Moyar Road, Masinagudi", capacity: 60000 },
+    { id: 23, h: 7,  op: 6, kind: "OHT", code: "NLG-GDL-MSG-12", name: "Police Station",     ta: "காவல் நிலையம்",          location: "Near Police Station", capacity: 30000 },
+    { id: 24, h: 7,  op: 6, kind: "OHT", code: "NLG-GDL-MSG-13", name: "Govt School",        ta: "அரசுப் பள்ளி",           location: "Government School", capacity: 30000 },
+    { id: 25, h: 7,  op: 6, kind: "OHT", code: "NLG-GDL-MSG-14", name: "PMAY Houses",        ta: "PMAY வீடுகள்",           location: "PMAY House", capacity: 60000 },
+    { id: 26, h: 8,  op: 7, kind: "GLR", code: "NLG-GDL-MSG-15", name: "Sivan Temple",       ta: "சிவன் கோவில்",           location: "", capacity: 30000 },
+    { id: 27, h: 8,  op: 7, kind: "GLR", code: "NLG-GDL-MSG-16", name: "Keel Boothanatham",  ta: "கீழ் பூதநத்தம்",          location: "", capacity: 30000 },
+    { id: 28, h: 8,  op: 7, kind: "OHT", code: "NLG-GDL-MSG-17", name: "Mel Boothanatham",   ta: "மேல் பூதநத்தம்",          location: "", capacity: 30000 },
+    { id: 29, h: 8,  op: 7, kind: "OHT", code: "NLG-GDL-MSG-18", name: "Kel Boothanatham",   ta: "கீழ் பூதநத்தம்",          location: "", capacity: 20000 },
+    { id: 30, h: 9,  op: 8, kind: "OHT", code: "NLG-GDL-MSG-19", name: "Selvappa Colony",    ta: "செல்வப்பா காலனி",         location: "Selvappa Colony Moyar", capacity: 30000 },
+    { id: 31, h: 9,  op: 8, kind: "OHT", code: "NLG-GDL-MSG-20", name: "Undi Moyar",         ta: "உண்டி மாயார்",           location: "", capacity: 60000 },
+    { id: 32, h: 11, op: 9, kind: "GLR", code: "NLG-GDL-MSG-21", name: "Yanaipadi",          ta: "யானைப்பாடி",             location: "", capacity: 30000 },
+  ],
+};
+function glrInfo(g) {
+  const h = DEMO.habitations.find((x) => x.id === g.h), p = DEMO.panchayats.find((x) => x.id === h.p), b = DEMO.blocks.find((x) => x.id === p.b), o = DEMO.operators.find((x) => x.id === g.op);
+  return { id: g.id, kind: g.kind, code: g.code, name: g.name, ta: g.ta, location: g.location, capacity: g.capacity,
+    hab: h.name, habTa: h.ta, panchayat_id: p.id, panchayat: p.name, panchayatTa: p.ta, block_id: b.id, block: b.name, blockTa: b.ta, district: DEMO.district.name, districtTa: DEMO.district.ta,
+    operator_id: o?.id, operator: o?.name, operatorTa: o?.ta, operator_phone: o?.phone };
+}
+
+// ---------------------------------------------------------------- state + storage
+// Demo and live pages share one web origin, so they keep separate keys (a demo sign-in must never reach the live page).
+const SP = LIVE ? "nnl." : "nn.";
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(SP + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(SP + k, JSON.stringify(v)); } catch {} },
+};
+const RK = "reports_v6";
+const istToday = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+const dayOffset = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); };
+const nowIso = () => new Date().toISOString();
+
+let state = {
+  lang: store.get("lang", "ta"),
+  op: ((o) => o?.glrs?.every((g) => g.kind) ? o : null)(store.get("op", null)),   // signed-in operator: {id, name, ta, phone, pin, glrs:[...]}; pre-GLR/OHT sessions sign in again
+  active: store.get("active", "all"),       // "all" or index into op.glrs
+  editing: false, step: "home", pick: null, recording: false,
+  officer: store.get("staff_" + ROLE, null),
+  rvDraft: {}, rvOpen: {}, newPins: {},
+  filterBlock: 0, filterStatus: "all",
+  busy: false, error: "", info: "",
+  prefs: store.get("prefs", { email: true, wa: false, digest: true }),
+};
+const t = (k) => T[state.lang][k] ?? k;
+const nm = (o) => state.lang === "ta" && o.ta ? o.ta : o.name;
+const nm2 = (name, ta) => state.lang === "ta" && ta ? ta : name;
+
+function seedDemo() {
+  if (store.get(RK, null)) return;
+  const at = (h, m) => new Date(`${istToday()}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00+05:30`).toISOString();   // IST clock, whatever the phone's zone
+  const today = istToday(), rows = [];
+  const R = (glr_id, date, status, extra, hh, mm, review) => rows.push({ glr_id, date, status, source_ok: null, pump_ok: null, glr_filled: null, problem: null, remarks: "", voice: null, entered_by: "operator", ...extra, at: at(hh, mm),
+    review_status: review?.[0] ?? "pending", review_note: review?.[1] ?? "", reviewed_at: review ? at(hh + 1, 0) : null });
+  // Kurumudi GLR 1 history (Kantharaj), last 6 days.
+  ["yes", "yes", "no", "partial", "yes", "yes"].forEach((v, i) => [9, 10].forEach((g) => R(g, dayOffset(-6 + i), v,
+    v === "no" ? { source_ok: "yes", pump_ok: "no", glr_filled: "no", problem: "power", remarks: "EB line fault, restored next day" }
+    : v === "partial" ? { source_ok: "no", pump_ok: "yes", glr_filled: "no", problem: "source" } : {}, 8, 30, ["confirmed", ""])));
+  // Today: Sivakumar and Gopal reported; Suresh reported one of three; Kantharaj not yet.
+  R(1, today, "yes", {}, 7, 40, ["confirmed", ""]); R(2, today, "yes", {}, 7, 40, ["confirmed", ""]);
+  R(3, today, "yes", {}, 8, 5); R(4, today, "yes", {}, 8, 5);
+  R(5, today, "partial", { source_ok: "no", pump_ok: "yes", glr_filled: "no", problem: "source", remarks: "Main road tank half; source low after dry week" }, 8, 5, ["confirmed", ""]);
+  R(6, today, "no", { problem: "pump" }, 8, 20);
+  // Masinagudi: Sidick Shameer's 12 tanks (4 GLR + 8 OHT), last 6 days; Moyar Road OHT ran short twice.
+  for (let i = 0; i < 6; i++) for (let g = 14; g <= 25; g++) {
+    const short = g === 22 && (i === 1 || i === 4);
+    R(g, dayOffset(-6 + i), short ? "partial" : "yes", short ? { source_ok: "yes", pump_ok: "yes", glr_filled: "no", problem: "glr", remarks: "OHT filled to half; GLR level low" } : {}, 6, 45, ["confirmed", ""]);
+  }
+  // Today: Ramesh all fine; Manigandan's Kel Boothanatham OHT has no water (motor); Ragavendran short at Undi Moyar.
+  // Sidick Shameer (the demo sign-in) and Maran / Badichi have not reported yet.
+  R(12, today, "yes", {}, 6, 50, ["confirmed", ""]); R(13, today, "yes", {}, 6, 50, ["confirmed", ""]);
+  [26, 27, 28].forEach((g) => R(g, today, "yes", {}, 7, 15)); R(29, today, "no", { problem: "pump" }, 7, 15);
+  R(30, today, "yes", {}, 7, 35); R(31, today, "partial", { problem: "pipe" }, 7, 35);
+  store.set(RK, rows);
+}
+
+// ---------------------------------------------------------------- data layer (demo | live)
+const data = {
+  async login(phone, pin) {
+    phone = phone.replace(/\D/g, "").slice(-10);
+    if (LIVE) {
+      const { data: rows, error } = await sb.rpc("operator_login", { p_phone: phone, p_pin: pin, p_device: deviceId() });
+      if (error) return { error: navigator.onLine ? "badLogin" : "offline" };
+      const r0 = rows?.[0];
+      if (!r0 || r0.err) return { error: AUTH_KEY[r0?.err] ?? "badLogin" };
+      return { id: r0.operator_id, name: r0.operator_name, ta: r0.operator_name_ta, phone, pin,
+        glrs: rows.map((r) => ({ id: r.glr_id, kind: r.kind ?? "GLR", code: r.code, name: r.glr, ta: r.glr_ta, location: r.location, capacity: r.capacity, hab: r.habitation, habTa: r.habitation_ta,
+          panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta })) };
+    }
+    const o = DEMO.operators.find((x) => x.phone === phone);
+    const pins = store.get("pins", {});
+    if (!o || pin !== (pins[o.id] ?? "1234")) return { error: "badLogin" };
+    return { id: o.id, name: o.name, ta: o.ta, phone, pin, glrs: DEMO.glrs.filter((g) => g.op === o.id).map(glrInfo) };
+  },
+  // Last 14 days for all of the operator's tanks in one call.
+  async historyAll(glrs) {
+    if (LIVE) {
+      const { data: rows } = await sb.rpc("operator_history_all", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId() });
+      return (rows ?? []).map((r) => ({ glr_id: r.glr_id, date: r.report_date, status: r.status, problem: r.problem, remarks: r.remarks, at: r.reported_at, voice: r.voice_path }));
+    }
+    return store.get(RK, []).filter((r) => glrs.some((g) => g.id === r.glr_id));
+  },
+  // One status for one or more tanks, in a single request.
+  async submit(glrs, status, problem) {
+    const ids = glrs.map((g) => g.id);
+    if (LIVE) {
+      if (!navigator.onLine) { queue(ids, { status, problem }); return { queued: true }; }
+      const { data: res, error } = await sb.rpc("submit_reports", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId(), p_glr_ids: ids, p_status: status, p_problem: problem });
+      if (error) throw error;
+      if (res !== "ok") throw authError(res);
+      return { ok: true };
+    }
+    const rows = store.get(RK, []).filter((r) => !(ids.includes(r.glr_id) && r.date === istToday()));
+    for (const id of ids) rows.push({ glr_id: id, date: istToday(), status, problem: status === "yes" ? null : problem, source_ok: null, pump_ok: null, glr_filled: null, remarks: "", voice: null, entered_by: "operator",
+      at: nowIso(), review_status: "pending", review_note: "", reviewed_at: null });
+    store.set(RK, rows);
+    return { ok: true };
+  },
+  async attachVoice(glrs, blob) {
+    if (LIVE) {
+      for (const g of glrs) {
+        const path = `${g.code}/${istToday()}.webm`;
+        const { error } = await sb.storage.from("voice").upload(path, blob, { upsert: true, contentType: blob.type || "audio/webm" });
+        if (error) throw error;
+        const { data: res, error: e2 } = await sb.rpc("attach_voice", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId(), p_glr_id: g.id, p_path: path });
+        if (e2) throw e2;
+        if (res !== "ok") throw authError(res);
+      }
+      return;
+    }
+    const dataUrl = await new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
+    if (dataUrl.length > 1_500_000) throw new Error("too long");
+    const rows = store.get(RK, []);
+    for (const g of glrs) { const r = rows.find((x) => x.glr_id === g.id && x.date === istToday()); if (r) r.voice = dataUrl; }
+    store.set(RK, rows);
+  },
+  async today() {
+    if (LIVE) {
+      const { data: rows, error } = await sb.from("v_today").select("*");
+      if (error) throw error;
+      return rows.map((r) => ({ id: r.glr_id, kind: r.kind ?? "GLR", code: r.code, name: r.glr, ta: r.glr_ta, location: r.location, capacity: r.capacity, hab: r.habitation, habTa: r.habitation_ta, panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta,
+        block_id: r.block_id, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta, operator_id: r.operator_id, operator: r.operator_name, operatorTa: r.operator_name_ta, operator_phone: r.operator_phone,
+        report_id: r.report_id, status: r.status, source_ok: r.source_ok, pump_ok: r.pump_ok, glr_filled: r.glr_filled, problem: r.problem, remarks: r.remarks, voice: r.voice_path, entered_by: r.entered_by, at: r.reported_at,
+        review_status: r.review_status ?? "pending", review_note: r.review_note ?? "" }));
+    }
+    const rows = store.get(RK, []);
+    return DEMO.glrs.map((g) => {
+      const info = glrInfo(g);
+      const r = rows.find((x) => x.glr_id === g.id && x.date === istToday());
+      return { ...info, report_id: r ? g.id : null, status: r ? r.status : "not_reported", source_ok: r?.source_ok ?? null, pump_ok: r?.pump_ok ?? null, glr_filled: r?.glr_filled ?? null,
+        problem: r?.problem ?? null, remarks: r?.remarks ?? "", voice: r?.voice ?? null, entered_by: r?.entered_by ?? null, at: r?.at ?? null, review_status: r?.review_status ?? "pending", review_note: r?.review_note ?? "" };
+    });
+  },
+  // Habitations with no tanks of their own (water from TNEB etc.): shown as a note so nobody chases a missing report.
+  async external() {
+    if (LIVE) {
+      const { data: rows } = await sb.from("habitations").select("id, name, name_ta, supply_note, panchayat_id").not("supply_note", "is", null);
+      return (rows ?? []).map((h) => ({ name: h.name, ta: h.name_ta, ext: h.supply_note, extTa: h.supply_note, panchayat_id: h.panchayat_id }));
+    }
+    return DEMO.habitations.filter((h) => h.ext).map((h) => ({ ...h, panchayat_id: h.p }));
+  },
+  async operators() {
+    if (LIVE) {
+      const { data: rows, error } = await sb.from("v_operators").select("*");
+      if (error) throw error;
+      return rows.map((r) => ({ id: r.id, name: r.name, ta: r.name_ta, phone: r.phone, glrCount: r.glr_count, bound: !!r.device_id, panchayat_id: r.panchayat_id }));
+    }
+    const dev = store.get("devices", {});
+    return DEMO.operators.map((o) => ({ ...o, glrCount: DEMO.glrs.filter((g) => g.op === o.id).length, bound: !!dev[o.id], panchayat_id: o.p }));
+  },
+  async setPin(opId, pin) {
+    if (LIVE) { const { error } = await sb.rpc("set_operator_pin", { p_operator_id: opId, p_pin: pin }); if (error) throw error; return; }
+    const pins = store.get("pins", {}); pins[opId] = pin; store.set("pins", pins);
+  },
+  async resetDevice(opId) {
+    if (LIVE) { const { error } = await sb.rpc("reset_operator_device", { p_operator_id: opId }); if (error) throw error; return; }
+    const dev = store.get("devices", {}); delete dev[opId]; store.set("devices", dev);
+  },
+  async review(row, d) {
+    if (LIVE) {
+      const { error } = await sb.rpc("review_report", { p_report_id: row.report_id, p_status: d.review_status, p_note: d.remarks, p_source_ok: d.source_ok, p_pump_ok: d.pump_ok, p_glr_filled: d.glr_filled, p_problem: d.problem });
+      if (error) throw error; return;
+    }
+    const rows = store.get(RK, []);
+    const r = rows.find((x) => x.glr_id === row.id && x.date === istToday());
+    if (r) { Object.assign(r, { review_status: d.review_status, remarks: d.remarks ?? r.remarks, source_ok: d.source_ok, pump_ok: d.pump_ok, glr_filled: d.glr_filled, problem: d.problem ?? r.problem, reviewed_at: nowIso() }); store.set(RK, rows); }
+  },
+  async recordFor(row, status, problem, remarks) {
+    if (LIVE) { const { error } = await sb.rpc("reviewer_submit", { p_glr_id: row.id, p_status: status, p_problem: problem, p_remarks: remarks }); if (error) throw error; return; }
+    const rows = store.get(RK, []).filter((r) => !(r.glr_id === row.id && r.date === istToday()));
+    rows.push({ glr_id: row.id, date: istToday(), status, problem: status === "yes" ? null : problem, source_ok: null, pump_ok: null, glr_filled: null, remarks: remarks ?? "", voice: null, entered_by: "reviewer",
+      at: nowIso(), review_status: "confirmed", review_note: "", reviewed_at: nowIso() });
+    store.set(RK, rows);
+  },
+  async voiceUrl(row) {
+    if (!row.voice) return null;
+    if (!LIVE) return row.voice;
+    const { data: d } = await sb.storage.from("voice").createSignedUrl(row.voice, 3600);
+    return d?.signedUrl ?? null;
+  },
+};
+// Operator functions answer a wrong PIN, a lockout or another phone with a code instead of an error.
+const AUTH_KEY = { bad: "badLogin", locked: "pinLocked", device: "deviceLocked" };
+const authError = (code) => Object.assign(new Error(t(AUTH_KEY[code] ?? "badLogin")), { authKey: AUTH_KEY[code] ?? "badLogin" });
+function deviceId() { let id = store.get("device", null); if (!id) { id = Math.random().toString(36).slice(2, 12); store.set("device", id); } return id; }
+function queue(ids, d) { const q = store.get("queue", []); q.push({ ids, d, at: nowIso() }); store.set("queue", q); }
+async function flushQueue() {
+  const q = store.get("queue", []); if (!q.length || !LIVE || !navigator.onLine || !state.op) return;
+  const rest = [];
+  for (const item of q) { try { await data.submit(item.ids ? item.ids.map((id) => ({ id })) : [item.glr], item.d.status, item.d.problem); } catch { rest.push(item); } }
+  store.set("queue", rest);
+  if (rest.length < q.length) toast(t("saved"));
+}
+window.addEventListener("online", flushQueue);
+
+// ---------------------------------------------------------------- rendering helpers
+const app = document.getElementById("app");
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtTime = (iso) => iso ? new Date(iso).toLocaleTimeString(state.lang === "ta" ? "ta-IN" : "en-IN", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" }) : "";
+const fmtDate = (ymd) => new Date(ymd + "T00:00:00").toLocaleDateString(state.lang === "ta" ? "ta-IN" : "en-IN", { weekday: "short", day: "numeric", month: "short" });
+const fmtCap = (n) => n ? `${Number(n).toLocaleString("en-IN")} L` : "";
+const problemOf = (code) => PROBLEMS.find((x) => x.code === code);
+const problemLabel = (code) => { const r = problemOf(code); return r ? (state.lang === "ta" ? r.ta : r.en) : ""; };
+const dLabel = (v) => v === "yes" ? t("dYes") : v === "no" ? t("dNo") : v === "unknown" ? t("dUnknown") : "–";
+const statusLabel = (s) => s === "yes" ? t("delivered") : s === "partial" ? t("partialDelivered") : s === "no" ? t("notDelivered") : t("notReported");
+const statusPill = (s) => `<span class="pill ${s === "not_reported" ? "silent" : s}">${esc(statusLabel(s))}</span>`;
+const reviewPill = (s) => `<span class="pill ${s}">${esc(t(s))}</span>`;
+function diagSummary(r) {
+  if (r.status === "yes" || r.status === "not_reported") return "";
+  const short = { qSource: state.lang === "ta" ? "ஆதாரம்" : "Source", qPump: state.lang === "ta" ? "பம்ப்" : "Pump", qGlr: state.lang === "ta" ? "தொட்டி" : "Tank" };
+  const parts = DIAG.filter(([k]) => r[k]).map(([k, q]) => `${short[q]}: ${dLabel(r[k])}`);
+  return parts.length ? `<div class="diagline">${esc(parts.join(" · "))}</div>` : "";
+}
+const voiceBtn = (r, i) => r.voice ? `<button class="play" data-play="${i}">${esc(t("play"))} · ${esc(t("voiceNote"))}</button><span id="audio-${i}"></span>` : "";
+const kindCount = (rows) => { const o = rows.filter((r) => r.kind === "OHT").length, g = rows.length - o; return [g ? `${g} GLR` : "", o ? `${o} OHT` : ""].filter(Boolean).join(" · "); };
+const extLine = (list) => list.length ? `<div class="ext">${list.map((h) => `<b>${esc(nm(h))}</b>: ${esc(t("extSupply").replace("{who}", nm2(h.ext, h.extTa)))}`).join("<br>")}</div>` : "";
+
+function render() {
+  document.getElementById("langTa").setAttribute("aria-pressed", state.lang === "ta");
+  document.getElementById("langEn").setAttribute("aria-pressed", state.lang === "en");
+  document.getElementById("brandSub").textContent = t(ROLE === "of" ? "officerSub" : ROLE === "rv" ? "reviewSub" : "operatorSub");
+  document.getElementById("installBtn").textContent = t("install");
+  document.documentElement.lang = state.lang === "ta" ? "ta" : "en";
+  if (ROLE === "op") state.op ? renderOperator() : renderOperatorLogin();
+  else if (!state.officer) renderStaffLogin();
+  else if (LIVE && !state.officer.role) renderNotRegistered();
+  else if (ROLE === "rv") renderReview();
+  else renderOfficer();
+}
+
+// ---------------------------------------------------------------- operator: phone + PIN, 3 big buttons, 6 picture tiles, done
+function renderOperatorLogin() {
+  const opts = DEMO.panchayats.map((p) => `<optgroup label="${esc(nm(p))}">${DEMO.operators.filter((o) => o.p === p.id).map((o) => `<option value="${o.phone}" ${o.id === 6 ? "selected" : ""}>${esc(nm(o))} · ${esc(o.phone)}</option>`).join("")}</optgroup>`).join("");
+  app.innerHTML = `<div class="page op">
+    ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
+    <div class="card">
+      <h2 style="font-size:22px;font-weight:700">${esc(t("loginTitle"))}</h2>
+      <p style="margin:6px 0 0;color:var(--muted);font-size:14px">${esc(t("loginHint"))}</p>
+      <div class="field"><label class="label" for="phone">${esc(t("phone"))}</label>
+        ${LIVE ? `<input id="phone" class="big" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="98765 43210">` : `<select id="phone">${opts}</select>`}</div>
+      <div class="field"><label class="label" for="pin">${esc(t("pin"))}</label><input id="pin" class="big" inputmode="numeric" maxlength="4" placeholder="••••" type="password"></div>
+      ${state.error ? `<div class="err">${esc(t(state.error))}</div>` : ""}
+      <div style="margin-top:16px"><button class="btn" id="loginBtn">${esc(t("login"))}</button></div>
+      ${LIVE ? "" : `<p style="font-size:13px;color:var(--muted);margin:12px 0 0">${esc(t("opDemoHint"))}</p>`}
+    </div>
+  </div>`;
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const res = await data.login(document.getElementById("phone").value, document.getElementById("pin").value);
+    if (res.error) { state.error = res.error; return render(); }
+    if (!LIVE) { const dev = store.get("devices", {}); dev[res.id] = deviceId(); store.set("devices", dev); }
+    state.error = ""; state.op = res; state.active = res.glrs.length > 1 ? "all" : 0; state.step = "home";
+    store.set("op", res); store.set("active", state.active); render();
+  });
+}
+
+async function renderOperator() {
+  const op = state.op, glrs = op.glrs;
+  if (state.active !== "all" && state.active >= glrs.length) state.active = glrs.length > 1 ? "all" : 0;
+  const allRows = await data.historyAll(glrs);
+  const todayOf = (g) => allRows.find((r) => r.glr_id === g.id && r.date === istToday());
+  const targets = state.active === "all" ? glrs.filter((g) => state.editing || !todayOf(g)) : [glrs[state.active]];
+  const allDone = glrs.every(todayOf);
+  const focus = state.active === "all" ? null : glrs[state.active];
+
+  // One operator can look after many tanks (Masinagudi: 12). The big answer comes first and covers every tank not yet
+  // reported today; the tank grid below it is only for the one tank that was different.
+  const back = focus && glrs.length > 1 ? `<button class="back" data-glr="all">‹ ${esc(t("allTanks"))} (${glrs.length})</button>` : "";
+  const grid = !focus && glrs.length > 1 ? `<div class="pick"><div class="label">${esc(t(allDone && !state.editing ? "changeTank" : "pickOne"))}</div><div class="tankgrid">
+    ${glrs.map((g, i) => { const r = todayOf(g); return `<button data-glr="${i}" class="${r ? r.status : ""}">${KIND_ICON[g.kind] ?? KIND_ICON.GLR}<span>${esc(nm(g))}<small>${esc(g.kind)}</small></span><i class="${r ? r.status : ""}"></i></button>`; }).join("")}
+  </div></div>` : "";
+
+  const who = focus
+    ? `<div class="card who"><div><h2>${esc(nm(focus))} ${kindTag(focus.kind)}</h2><div class="sub">${esc(nm2(focus.hab, focus.habTa))} · ${esc(fmtCap(focus.capacity))}${focus.location ? ` · ${esc(focus.location)}` : ""}</div></div><div class="d">${esc(fmtDate(istToday()))}</div></div>`
+    : `<div class="card who"><div><h2>${esc(nm(op))}</h2><div class="sub">${glrs.length} ${esc(t("tanks"))} · ${esc(kindCount(glrs))} · ${esc(nm2(glrs[0].panchayat, glrs[0].panchayatTa))}</div></div><div class="d">${esc(fmtDate(istToday()))}</div></div>`;
+
+  let body;
+  const showDone = !state.editing && (focus ? !!todayOf(focus) : allDone);
+  if (showDone) {
+    const rows = focus ? [todayOf(focus)] : glrs.map(todayOf);
+    const statuses = [...new Set(rows.map((r) => r.status))];
+    const one = statuses.length === 1 ? statuses[0] : "mixed";
+    const pr = focus ? problemOf(rows[0].problem) : null;
+    const issueGlrs = (focus ? [focus] : glrs).filter((g) => todayOf(g)?.status !== "yes");
+    const voiceRow = focus ? rows[0] : rows.find((r) => r.voice);
+    body = `<div class="card done ${one}">
+        <div class="big">${{ yes: "✓", partial: "◐", no: "✕", mixed: "✓" }[one]}</div>
+        <h2>${esc(t("done"))}</h2>
+        <p>${focus ? `${esc(t(one === "yes" ? "doneYes" : one === "partial" ? "donePartial" : "doneNo"))} · ${esc(fmtTime(rows[0].at))}` : esc(t("doneAll"))}</p>
+        ${pr ? `<div class="what">${ICONS[pr.icon] ?? ""}${esc(problemLabel(pr.code))}</div>` : ""}
+        ${!focus ? `<div class="counts">${["yes", "partial", "no"].map((s) => { const n = rows.filter((r) => r.status === s).length; return n ? `<span class="pill ${s}">${esc(statusLabel(s))} · ${n}</span>` : ""; }).join("")}</div>` : ""}
+        ${issueGlrs.length ? `<p>${esc(t("doneInfo"))}</p><div class="voice">
+          ${voiceRow?.voice ? `<audio controls src="${esc(voiceRow.voice)}"></audio><div class="hint">✓ ${esc(t("voiceSaved"))}</div>` : ""}
+          <button id="voiceBtn" class="${state.recording ? "rec" : ""}">${state.recording ? "■ " + esc(t("voiceStop")) : "🎤 " + esc(t(voiceRow?.voice ? "change" : "voiceAdd"))}</button>
+          ${!voiceRow?.voice && !state.recording ? `<div class="hint">${esc(t("voiceHint"))}</div>` : ""}
+        </div>` : ""}
+        <div class="small-links" style="margin-top:18px"><button class="link" id="editBtn">${esc(t("change"))}</button></div>
+      </div>`;
+  } else if (state.step === "problem") {
+    body = `<button class="back" id="backBtn">‹ ${esc(t("back"))}</button>
+      <div class="bigq">${esc(t("whatProblem"))}</div>
+      <div class="tiles2">${PROBLEMS.filter((p) => p.op).map((p) => `<button data-problem="${p.code}">${ICONS[p.icon]}${esc(state.lang === "ta" ? p.ta : p.en)}</button>`).join("")}</div>
+      ${state.error ? `<div class="err">${esc(state.error)}</div>` : ""}`;
+  } else {
+    body = `<div class="bigq">${esc(t(focus || targets.length === 1 ? "bigq" : "bigqAll"))}</div>
+      <div class="big3">
+        <button class="yes" data-status="yes"><span class="ring">✓</span><span>${esc(t("yes"))}<small>${esc(t("yesSub"))}</small></span></button>
+        <button class="partial" data-status="partial"><span class="ring">◐</span><span>${esc(t("partial"))}<small>${esc(t("partialSub"))}</small></span></button>
+        <button class="no" data-status="no"><span class="ring">✕</span><span>${esc(t("no"))}<small>${esc(t("noSub"))}</small></span></button>
+      </div>
+      ${!focus && targets.length < glrs.length ? `<p style="margin:0;text-align:center;color:var(--muted);font-size:14px">${targets.length} / ${glrs.length} ${esc(t("tanks"))}</p>` : ""}
+      ${state.error ? `<div class="err">${esc(state.error)}</div>` : ""}
+      ${!navigator.onLine ? `<div class="err" style="color:var(--warn)">${esc(t("offline"))}</div>` : ""}
+      ${state.editing ? `<div class="small-links"><button class="link" id="cancelEdit">${esc(t("back"))}</button></div>` : ""}`;
+  }
+
+  let strip = "";
+  if (focus) {
+    const days = Array.from({ length: 7 }, (_, i) => dayOffset(i - 6));
+    strip = `<div class="card"><span class="label">${esc(t("last7"))}</span><div class="strip">${days.map((day) => { const r = allRows.find((x) => x.glr_id === focus.id && x.date === day); const short = new Date(day + "T00:00:00").toLocaleDateString(state.lang === "ta" ? "ta-IN" : "en-IN", { weekday: "narrow" }); return `<div><i class="${r ? r.status : ""}"></i>${esc(short)}</div>`; }).join("")}</div></div>`;
+  }
+
+  app.innerHTML = `<div class="page op">
+    ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
+    ${back}${who}${body}${grid}${strip}
+    <div class="small-links"><span style="color:var(--muted);font-size:13px">${esc(nm(op))} · ${esc(op.phone)}</span><button class="link" id="logout" style="color:var(--muted)">${esc(t("logout"))}</button></div>
+  </div>`;
+
+  app.querySelectorAll("[data-glr]").forEach((b) => b.addEventListener("click", () => { state.active = b.dataset.glr === "all" ? "all" : +b.dataset.glr; store.set("active", state.active); state.editing = false; state.step = "home"; state.pick = null; render(); }));
+  app.querySelectorAll("[data-status]").forEach((b) => b.addEventListener("click", () => { const s = b.dataset.status; if (s === "yes") return save(targets, "yes", null); state.pick = s; state.step = "problem"; state.error = ""; render(); }));
+  app.querySelectorAll("[data-problem]").forEach((b) => b.addEventListener("click", () => save(targets, state.pick, b.dataset.problem)));
+  document.getElementById("backBtn")?.addEventListener("click", () => { state.step = "home"; state.pick = null; render(); });
+  document.getElementById("cancelEdit")?.addEventListener("click", () => { state.editing = false; state.step = "home"; render(); });
+  document.getElementById("editBtn")?.addEventListener("click", () => { state.editing = true; state.step = "home"; state.pick = null; render(); });
+  document.getElementById("voiceBtn")?.addEventListener("click", () => { const gs = (focus ? [focus] : glrs).filter((g) => todayOf(g)?.status !== "yes"); state.recording ? stopVoice() : startVoice(gs); });
+  document.getElementById("logout")?.addEventListener("click", () => { state.op = null; store.set("op", null); state.editing = false; state.step = "home"; render(); });
+}
+async function save(glrs, status, problem) {
+  if (state.busy || !glrs.length) return;
+  state.busy = true; state.error = "";
+  // Visible at once on a slow network: buttons dim and the question says "Saving…" until the server answers.
+  app.querySelectorAll(".big3, .tiles2, .tankgrid").forEach((el) => el.classList.add("busy"));
+  const q = app.querySelector(".bigq"); if (q) q.textContent = t("saving");
+  try {
+    const res = await data.submit(glrs, status, problem);
+    state.editing = false; state.step = "home"; state.pick = null;
+    toast(res.queued ? t("offline") : t("saved"));
+  } catch (e) {
+    // PIN changed or number locked since sign-in: back to the sign-in screen with the reason.
+    if (e.authKey) { state.op = null; store.set("op", null); state.error = e.authKey; }
+    else state.error = e.message || String(e);
+  }
+  state.busy = false; render();
+}
+
+let rec = null, chunks = [], recTimer = null;
+async function startVoice(glrs) {
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { toast(t("voiceNo")); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    rec = new MediaRecorder(stream); chunks = [];
+    rec.ondataavailable = (e) => chunks.push(e.data);
+    rec.onstop = async () => {
+      stream.getTracks().forEach((tr) => tr.stop()); clearTimeout(recTimer); state.recording = false;
+      try { await data.attachVoice(glrs, new Blob(chunks, { type: rec.mimeType || "audio/webm" })); toast(t("voiceSaved")); } catch (e) { toast(e.message); }
+      render();
+    };
+    rec.start(); state.recording = true; render();
+    recTimer = setTimeout(stopVoice, 20000);
+  } catch { toast(t("voiceNo")); }
+}
+function stopVoice() { if (rec && rec.state === "recording") rec.stop(); }
+
+// ---------------------------------------------------------------- staff sign-in (panchayat reviewer, block/district officer)
+function renderStaffLogin() {
+  app.innerHTML = `<div class="page">
+    ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
+    <div class="card">
+      <h2 style="font-size:20px;font-weight:700">${esc(t(ROLE === "rv" ? "reviewLogin" : "officerLogin"))}</h2>
+      ${!LIVE && ROLE === "rv" ? `<div class="field"><label class="label" for="offPan">${esc(t("panchayat"))}</label><select id="offPan">${[...DEMO.panchayats].reverse().map((p) => `<option value="${p.id}">${esc(nm(p))} · ${esc(nm(DEMO.blocks.find((b) => b.id === p.b)))}</option>`).join("")}</select></div>` : ""}
+      <div class="field"><label class="label" for="offEmail">${esc(t("email"))}</label><input id="offEmail" type="email" autocomplete="email" placeholder="${ROLE === "rv" ? "vp.panchayat@tn.gov.in" : "bdo.block@tn.gov.in"}"></div>
+      ${LIVE ? "" : `<div class="field"><label class="label" for="offCode">${esc(t("accessCode"))}</label><input id="offCode" inputmode="numeric" maxlength="4" type="password" placeholder="••••"></div>`}
+      ${state.error ? `<div class="err">${esc(state.error)}</div>` : ""}
+      ${state.info ? `<div class="info">${esc(state.info)}</div>` : ""}
+      <div style="margin-top:16px"><button class="btn" id="offLogin">${esc(t("signIn"))}</button></div>
+      ${LIVE ? "" : `<p style="font-size:13px;color:var(--muted);margin:12px 0 0">${esc(t("officerDemoHint"))}</p>`}
+    </div>
+  </div>`;
+  document.getElementById("offLogin").addEventListener("click", async () => {
+    const email = document.getElementById("offEmail").value.trim();
+    state.error = ""; state.info = "";
+    if (LIVE) {
+      const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href } });
+      state.error = error ? error.message : ""; state.info = error ? "" : t("magicSent"); return render();
+    }
+    const code = document.getElementById("offCode").value;
+    if (!email.includes("@") || code !== "1234") { state.error = t("badStaffLogin"); return render(); }
+    state.officer = ROLE === "rv" ? { email, panchayat_id: +document.getElementById("offPan").value } : { email }; store.set("staff_" + ROLE, state.officer); render();
+  });
+}
+function renderNotRegistered() {
+  app.innerHTML = `<div class="page"><div class="card"><p style="margin:0 0 10px">${esc(t("notRegistered"))}</p>${signOutBtn()}</div></div>`;
+  bindSignOut();
+}
+function signOutBtn() { return `<div class="sub">${esc(state.officer?.email ?? "")} · <button class="link" id="signOut">${esc(t("signOut"))}</button></div>`; }
+function bindSignOut() { document.getElementById("signOut")?.addEventListener("click", async () => { if (LIVE) await sb.auth.signOut(); state.officer = null; store.set("staff_" + ROLE, null); render(); }); }
+function bindReset() { document.getElementById("resetDemo")?.addEventListener("click", () => { try { localStorage.removeItem("nn." + RK); localStorage.removeItem("nn.pins"); localStorage.removeItem("nn.devices"); } catch {} seedDemo(); state.rvDraft = {}; state.newPins = {}; render(); }); }
+function bindPlay(list) {
+  app.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", async () => {
+    const i = +b.dataset.play, url = await data.voiceUrl(list[i]); if (!url) return;
+    document.getElementById("audio-" + i).innerHTML = `<audio controls autoplay src="${esc(url)}" style="display:block;width:100%;max-width:320px;margin-top:6px"></audio>`;
+  }));
+}
+
+// ---------------------------------------------------------------- panchayat review: confirm/flag, diagnostics, record on behalf, operators
+async function renderReview() {
+  let rows, ops, ext;
+  try { rows = await data.today(); ops = await data.operators(); ext = await data.external(); } catch (e) { app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  const pid = state.officer.panchayat_id;
+  const mine = LIVE ? rows : rows.filter((r) => r.panchayat_id === pid);
+  const myOps = LIVE ? ops : ops.filter((o) => o.panchayat_id === pid);
+  const myExt = ext.filter((h) => mine.some((r) => r.panchayat_id === h.panchayat_id));
+  const pname = mine[0] ? nm2(mine[0].panchayat, mine[0].panchayatTa) : "";
+  const rank = { no: 0, partial: 1, not_reported: 2, yes: 3 };
+  const pend = (r) => r.review_status === "pending" ? 0 : 1;
+  const list = [...mine].sort((a, b) => rank[a.status] - rank[b.status] || pend(a) - pend(b) || String(a.code).localeCompare(String(b.code)));
+  const pending = mine.filter((r) => r.status !== "not_reported" && r.review_status === "pending").length;
+  const draft = (r) => state.rvDraft[r.id] ?? (state.rvDraft[r.id] = { status: null, problem: r.problem, source_ok: r.source_ok, pump_ok: r.pump_ok, glr_filled: r.glr_filled, remarks: r.remarks ?? "" });
+  const appUrl = location.origin + location.pathname.replace(/review\/?(index\.html)?$/, "");
+
+  // Silent tanks are grouped per operator: one call to the operator usually settles all of them ("all came").
+  const silentGroups = new Map();
+  list.forEach((r, i) => { if (r.status === "not_reported") { const k = String(r.operator_id ?? "none"); if (!silentGroups.has(k)) silentGroups.set(k, []); silentGroups.get(k).push(i); } });
+  const groupCard = (k, idx) => {
+    const r0 = list[idx[0]], tanks = idx.map((i) => list[i]);
+    if (idx.length === 1 || state.rvOpen[k]) return idx.map((i) => item(list[i], i)).join("");
+    return `<div class="rv-item">
+      <div class="rv-top"><div><b>${esc(nm2(r0.operator, r0.operatorTa) || "—")}</b> <span class="sub">· ${esc(r0.operator_phone ?? "")}</span>
+          <div class="sub">${idx.length} ${esc(t("tanks"))} (${esc(kindCount(tanks))}) · ${esc(t("silentNote"))}</div></div>${statusPill("not_reported")}</div>
+      <div class="rv-body" style="color:var(--muted)">${tanks.map((r) => esc(nm(r))).join(" · ")}</div>
+      <div class="rv-actions">
+        ${r0.operator_phone ? `<a class="call" href="tel:+91${esc(r0.operator_phone)}">${esc(t("call"))}</a>` : ""}
+        <button class="st-yes" data-rvall="${esc(k)}">${esc(t("allNormal"))}</button>
+        <button data-rvopen="${esc(k)}">${esc(t("oneByOne"))}</button>
+      </div>
+    </div>`;
+  };
+  const item = (r, i) => {
+      const d = draft(r);
+      const isIssue = r.status === "partial" || r.status === "no";
+      const silent = r.status === "not_reported";
+      const draftIssue = d.status === "partial" || d.status === "no";
+      return `<div class="rv-item">
+        <div class="rv-top"><div>${kindTag(r.kind)} <b>${esc(nm(r))}</b> <span class="sub">· ${esc(nm2(r.hab, r.habTa))} · ${esc(fmtCap(r.capacity))}</span>
+            <div class="sub">${esc(nm2(r.operator, r.operatorTa))} · ${esc(r.operator_phone ?? "")}${r.at ? ` · ${esc(fmtTime(r.at))}` : ""}${r.entered_by === "reviewer" ? ` · ${esc(t("byReviewer"))}` : ""}</div></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${statusPill(r.status)}${!silent ? reviewPill(r.review_status) : ""}</div></div>
+        ${silent ? `
+          <div class="rv-body" style="color:var(--muted)">${esc(t("silentNote"))}</div>
+          <div class="rv-body" style="margin-top:8px"><b>${esc(t("recordFor"))}</b></div>
+          <div class="rv-actions">${["yes", "partial", "no"].map((s) => `<button class="st-${s}" data-rf="${i}" data-s="${s}" style="${d.status === s ? "background:var(--soft)" : ""}">${esc(statusLabel(s))}</button>`).join("")}</div>
+          ${draftIssue ? `<div class="rv-diag"><div class="chips">${PROBLEMS.map((p) => `<button data-rfp="${i}" data-p="${p.code}" aria-pressed="${d.problem === p.code}">${esc(state.lang === "ta" ? p.ta : p.en)}</button>`).join("")}</div>
+            <input id="rfnote-${i}" placeholder="${esc(t("notePh"))}" value="${esc(d.remarks)}"></div>` : ""}
+          ${d.status ? `<div class="rv-actions"><button class="ok" data-rfsave="${i}" ${draftIssue && !d.problem ? "disabled" : ""}>${esc(t("confirm"))}</button></div>` : ""}`
+        : `
+          ${isIssue ? `<div class="rv-body"><b>${esc(problemLabel(r.problem))}</b></div>${voiceBtn(r, i)}` : (r.remarks ? `<div class="rv-body">${esc(r.remarks)}</div>` : "")}
+          ${r.review_note ? `<div class="rv-body" style="color:var(--muted)">${esc(t("review"))}: ${esc(r.review_note)}</div>` : ""}
+          ${isIssue ? `<div class="rv-diag">
+            ${DIAG.map(([k, q]) => `<div><div class="q">${esc(t(q))}</div><div class="diag">${["yes", "no", "unknown"].map((v) => `<button data-rvd="${i}" data-k="${k}" data-v="${v}" aria-pressed="${d[k] === v}">${esc(dLabel(v))}</button>`).join("")}</div></div>`).join("")}
+            <div><div class="q">${esc(t("problemCol"))}</div><div class="chips">${PROBLEMS.map((p) => `<button data-rvp="${i}" data-p="${p.code}" aria-pressed="${d.problem === p.code}">${esc(state.lang === "ta" ? p.ta : p.en)}</button>`).join("")}</div></div>
+          </div>` : ""}
+          <div class="rv-actions">
+            <input id="note-${i}" placeholder="${esc(t("notePh"))}" value="${esc(d.remarks)}">
+            <button class="ok" data-rv="${i}" data-s="confirmed">${esc(t("confirm"))}</button>
+            <button class="flag" data-rv="${i}" data-s="flagged">${esc(t("flag"))}</button>
+          </div>`}
+      </div>`; };
+  const ordered = [
+    ...list.map((r, i) => r.status === "no" || r.status === "partial" ? item(r, i) : ""),
+    ...[...silentGroups].map(([k, idx]) => groupCard(k, idx)),
+    ...list.map((r, i) => r.status === "yes" ? item(r, i) : ""),
+  ].join("");
+
+  app.innerHTML = `<div class="page wide">
+    ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
+    <div class="head"><div><h2>${esc(pname)} · ${esc(t("reviewTitle"))}</h2><div class="sub">${esc(fmtDate(istToday()))} · ${mine.length} ${esc(t("tanks"))} (${esc(kindCount(mine))}) · ${pending} ${esc(t("pending").toLowerCase())}</div></div>${signOutBtn()}</div>
+    <p style="margin:0;color:var(--muted);font-size:14px">${esc(t("reviewHint"))}</p>
+    ${extLine(myExt)}
+    <div class="rv">${ordered || `<div class="card" style="color:var(--muted)">${esc(t("nothingToReview"))}</div>`}</div>
+
+    <div class="section-h" style="margin-top:8px"><h3>${esc(t("operators"))}</h3><span class="label">${myOps.length}</span></div>
+    <p style="margin:-4px 0 0;color:var(--muted);font-size:14px">${esc(t("opHint"))}</p>
+    <div class="rv">${myOps.map((o) => `<div class="rv-item">
+        <div class="rv-top"><div><b>${esc(nm(o))}</b> <span class="sub">· ${esc(o.phone)}</span><div class="sub">${o.glrCount} ${esc(t("tanks"))} · ${esc(o.bound ? t("deviceBound") : t("noDevice"))}</div></div></div>
+        ${state.newPins[o.id] ? `<div class="pinbox">${esc(t("pinIs"))}: <b>${esc(state.newPins[o.id])}</b><br>${esc(t("tellOp"))}</div>` : ""}
+        <div class="rv-actions">
+          <button data-setpin="${o.id}">${esc(t("setPin"))}</button>
+          <button data-resetdev="${o.id}" ${o.bound ? "" : "disabled"}>${esc(t("resetDevice"))}</button>
+          <a target="_blank" rel="noopener" href="https://wa.me/91${esc(o.phone)}?text=${encodeURIComponent(t("waText").replace("{url}", appUrl))}">${esc(t("waLink"))}</a>
+        </div>
+      </div>`).join("")}</div>
+    ${LIVE ? "" : `<div style="text-align:center"><button class="link" id="resetDemo">${esc(t("reset"))}</button></div>`}
+  </div>`;
+  bindSignOut(); bindReset(); bindPlay(list);
+  const keepNotes = () => app.querySelectorAll("input[id^='note-'],input[id^='rfnote-']").forEach((inp) => { const i = +inp.id.split("-")[1]; draft(list[i]).remarks = inp.value; });
+  app.querySelectorAll("[data-rvd]").forEach((b) => b.addEventListener("click", () => { keepNotes(); const d = draft(list[+b.dataset.rvd]); d[b.dataset.k] = d[b.dataset.k] === b.dataset.v ? null : b.dataset.v; render(); }));
+  app.querySelectorAll("[data-rvp]").forEach((b) => b.addEventListener("click", () => { keepNotes(); draft(list[+b.dataset.rvp]).problem = b.dataset.p; render(); }));
+  app.querySelectorAll("[data-rv]").forEach((b) => b.addEventListener("click", async () => {
+    keepNotes(); const r = list[+b.dataset.rv], d = draft(r);
+    try { await data.review(r, { review_status: b.dataset.s, remarks: d.remarks, source_ok: d.source_ok, pump_ok: d.pump_ok, glr_filled: d.glr_filled, problem: d.problem }); toast(t(b.dataset.s)); delete state.rvDraft[r.id]; } catch (e) { toast(e.message); }
+    render();
+  }));
+  app.querySelectorAll("[data-rf]").forEach((b) => b.addEventListener("click", () => { keepNotes(); draft(list[+b.dataset.rf]).status = b.dataset.s; render(); }));
+  app.querySelectorAll("[data-rfp]").forEach((b) => b.addEventListener("click", () => { keepNotes(); draft(list[+b.dataset.rfp]).problem = b.dataset.p; render(); }));
+  app.querySelectorAll("[data-rfsave]").forEach((b) => b.addEventListener("click", async () => {
+    keepNotes(); const r = list[+b.dataset.rfsave], d = draft(r);
+    try { await data.recordFor(r, d.status, d.problem, d.remarks); toast(t("saved")); delete state.rvDraft[r.id]; } catch (e) { toast(e.message); }
+    render();
+  }));
+  app.querySelectorAll("[data-rvopen]").forEach((b) => b.addEventListener("click", () => { state.rvOpen[b.dataset.rvopen] = true; render(); }));
+  app.querySelectorAll("[data-rvall]").forEach((b) => b.addEventListener("click", async () => {
+    b.disabled = true;
+    try { for (const i of silentGroups.get(b.dataset.rvall) ?? []) await data.recordFor(list[i], "yes", null, ""); toast(t("saved")); } catch (e) { toast(e.message); }
+    render();
+  }));
+  app.querySelectorAll("[data-setpin]").forEach((b) => b.addEventListener("click", async () => {
+    const id = +b.dataset.setpin, pin = String(Math.floor(1000 + Math.random() * 9000));
+    try { await data.setPin(id, pin); state.newPins[id] = pin; } catch (e) { toast(e.message); }
+    render();
+  }));
+  app.querySelectorAll("[data-resetdev]").forEach((b) => b.addEventListener("click", async () => {
+    try { await data.resetDevice(+b.dataset.resetdev); toast(t("deviceReset")); } catch (e) { toast(e.message); }
+    render();
+  }));
+}
+
+// ---------------------------------------------------------------- block / district officer
+async function renderOfficer() {
+  let rows, ext;
+  try { rows = await data.today(); ext = await data.external(); } catch (e) { app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  const cnt = (s) => rows.filter((r) => r.status === s).length;
+  const yes = cnt("yes"), partial = cnt("partial"), no = cnt("no"), silent = cnt("not_reported"), total = rows.length || 1;
+  const blocks = [...new Map(rows.map((r) => [r.block_id, { id: r.block_id, name: r.block, ta: r.blockTa }])).values()];
+  const shown = rows.filter((r) => (state.filterBlock === 0 || r.block_id === state.filterBlock) && (state.filterStatus === "all" || r.status === state.filterStatus));
+  const rank = { no: 0, partial: 1, not_reported: 2 };
+  const alerts = rows.filter((r) => r.status === "no" || r.status === "partial").sort((a, b) => rank[a.status] - rank[b.status] || (b.at ?? "").localeCompare(a.at ?? ""));
+  // Silence is one alert per operator, not one per tank (an operator with 12 tanks would otherwise bury the real issues).
+  const silent2 = [...rows.filter((r) => r.status === "not_reported").reduce((m, r) => { const k = `${r.panchayat_id}:${r.operator_id ?? r.id}`; if (!m.has(k)) m.set(k, []); m.get(k).push(r); return m; }, new Map()).values()];
+  const dName = rows[0] ? nm2(rows[0].district, rows[0].districtTa) : "";
+
+  let tableRows = "";
+  const groups = new Map();
+  for (const r of shown) { const k = `${r.block_id}:${r.panchayat_id}`; if (!groups.has(k)) groups.set(k, { r, items: [] }); groups.get(k).items.push(r); }
+  for (const { r: g, items } of groups.values()) {
+    const bad = items.filter((x) => x.status === "no").length, part = items.filter((x) => x.status === "partial").length;
+    const gExt = ext.filter((h) => h.panchayat_id === g.panchayat_id);
+    tableRows += `<tr class="grp"><td colspan="5">${esc(nm2(g.panchayat, g.panchayatTa))} <span style="color:var(--muted);font-weight:400">· ${esc(nm2(g.block, g.blockTa))} · ${items.length} ${esc(t("tanks"))} (${esc(kindCount(items))})${bad ? ` · <span style="color:var(--bad)">${bad} ${esc(t("notDelivered").toLowerCase())}</span>` : ""}${part ? ` · <span style="color:var(--warn)">${part} ${esc(t("partialDelivered").toLowerCase())}</span>` : ""}</span>${gExt.length ? `<div style="color:var(--muted);font-weight:400;font-size:13px;margin-top:2px">${gExt.map((h) => `${esc(nm(h))}: ${esc(t("extSupply").replace("{who}", nm2(h.ext, h.extTa)))}`).join(" · ")}</div>` : ""}</td></tr>`;
+    tableRows += items.map((r) => `<tr>
+      <td>${kindTag(r.kind)} <b>${esc(nm(r))}</b><br><span style="color:var(--muted);font-size:13px">${esc(nm2(r.hab, r.habTa))} · ${esc(fmtCap(r.capacity))}</span><br><span style="color:var(--muted);font-size:13px">${esc(nm2(r.operator, r.operatorTa))}</span></td>
+      <td>${statusPill(r.status)}</td>
+      <td class="time">${esc(fmtTime(r.at))}</td>
+      <td>${r.status === "no" || r.status === "partial" ? `<b>${esc(problemLabel(r.problem))}</b>` : ""}${r.remarks ? `<div style="color:var(--muted)">${esc(r.remarks)}</div>` : ""}${diagSummary(r)}${voiceBtn(r, "t" + r.id)}</td>
+      <td>${r.status !== "not_reported" ? reviewPill(r.review_status) : ""}${r.review_note ? `<div style="color:var(--muted);font-size:13px">${esc(r.review_note)}</div>` : ""}</td>
+    </tr>`).join("");
+  }
+
+  const prefs = state.prefs;
+  app.innerHTML = `<div class="page wide">
+    ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
+    <div class="head"><div><h2>${esc(dName)} · ${esc(t("officerTitle"))}</h2><div class="sub">${esc(fmtDate(istToday()))} · ${rows.length} ${esc(t("tanks"))} (${esc(kindCount(rows))})</div></div>${signOutBtn()}</div>
+    <div class="tiles">
+      <div class="tile yes"><div class="n">${yes}</div><div class="t">${esc(t("delivered"))}</div></div>
+      <div class="tile partial"><div class="n">${partial}</div><div class="t">${esc(t("partialDelivered"))}</div></div>
+      <div class="tile no"><div class="n">${no}</div><div class="t">${esc(t("notDelivered"))}</div></div>
+      <div class="tile silent"><div class="n">${silent}</div><div class="t">${esc(t("notReported"))}</div></div>
+    </div>
+    <div class="bar"><i class="y" style="width:${yes / total * 100}%"></i><i class="p" style="width:${partial / total * 100}%"></i><i class="n" style="width:${no / total * 100}%"></i><i class="s" style="width:${silent / total * 100}%"></i></div>
+    <div class="two">
+      <div>
+        <div class="section-h"><h3>${esc(t("alerts"))}</h3><span class="label">${alerts.length + silent2.length}</span></div>
+        <div class="alerts">${alerts.map((r, i) => `
+          <div class="alert ${r.status}"><span class="stripe"></span>
+            <div><b>${kindTag(r.kind)} ${esc(nm(r))} <span style="font-weight:400;color:var(--muted)">· ${esc(nm2(r.hab, r.habTa))} · ${esc(nm2(r.panchayat, r.panchayatTa))}</span></b>
+              <div class="meta">${r.status === "partial" ? esc(t("partialDelivered")) + " · " : ""}${esc(problemLabel(r.problem))} · ${reviewPill(r.review_status)} · ${esc(nm2(r.operator, r.operatorTa))}</div>
+              ${r.remarks ? `<div class="cm">“${esc(r.remarks)}”</div>` : ""}${diagSummary(r)}${voiceBtn(r, i)}</div>
+            <div class="time">${esc(fmtTime(r.at))}</div>
+          </div>`).join("")}${silent2.map((g) => `
+          <div class="alert silent"><span class="stripe"></span>
+            <div><b>${esc(nm2(g[0].operator, g[0].operatorTa) || "—")} <span style="font-weight:400;color:var(--muted)">· ${esc(nm2(g[0].panchayat, g[0].panchayatTa))} · ${esc(nm2(g[0].block, g[0].blockTa))}</span></b>
+              <div class="meta">${esc(t("silentNote"))} · ${g.length === 1 ? esc(kindCount(g)) : `${g.length} ${esc(t("tanks"))} (${esc(kindCount(g))})`}</div>
+              <div class="diagline">${g.map((r) => esc(nm(r))).join(" · ")}</div></div>
+            <div class="time"></div>
+          </div>`).join("")}${alerts.length + silent2.length ? "" : `<div class="card" style="color:var(--muted)">${esc(t("noAlerts"))}</div>`}
+        </div>
+      </div>
+      <div>
+        <div class="section-h"><h3>${esc(t("settings"))}</h3></div>
+        <div class="card settings">
+          <div class="row"><div><div class="h">${esc(t("notifyIn"))}</div><div class="s">${esc(t("alwaysOn"))} · ${esc(t("free"))}</div></div><button class="switch" aria-checked="true" disabled aria-label="In-app"></button></div>
+          <div class="row"><div><div class="h">${esc(t("notifyEmail"))}</div><div class="s">${esc(t("free"))}</div></div><button class="switch" data-pref="email" role="switch" aria-checked="${prefs.email}" aria-label="Email"></button></div>
+          <div class="row"><div><div class="h">${esc(t("notifyWa"))}</div><div class="s">${esc(t("cheap"))}</div></div><button class="switch" data-pref="wa" role="switch" aria-checked="${prefs.wa}" aria-label="WhatsApp"></button></div>
+          <div class="row"><div><div class="h">${esc(t("digest"))}</div><div class="s">${esc(t("free"))}</div></div><button class="switch" data-pref="digest" role="switch" aria-checked="${prefs.digest}" aria-label="Digest"></button></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="filters">
+        <button data-fb="0" aria-pressed="${state.filterBlock === 0}">${esc(t("all"))}</button>
+        ${blocks.map((b) => `<button data-fb="${b.id}" aria-pressed="${state.filterBlock === b.id}">${esc(nm(b))}</button>`).join("")}
+        <span style="width:8px"></span>
+        <button data-fs="no" aria-pressed="${state.filterStatus === "no"}">${esc(t("notDelivered"))}</button>
+        <button data-fs="partial" aria-pressed="${state.filterStatus === "partial"}">${esc(t("partialDelivered"))}</button>
+        <button data-fs="not_reported" aria-pressed="${state.filterStatus === "not_reported"}">${esc(t("notReported"))}</button>
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>${esc(t("glr"))} / ${esc(t("operator"))}</th><th>${esc(t("status"))}</th><th>${esc(t("time"))}</th><th>${esc(t("problemCol"))}</th><th>${esc(t("review"))}</th></tr></thead>
+        <tbody>${tableRows || `<tr><td colspan="5" style="color:var(--muted)">—</td></tr>`}</tbody>
+      </table></div>
+    </div>
+    ${LIVE ? "" : `<div style="text-align:center"><button class="link" id="resetDemo">${esc(t("reset"))}</button></div>`}
+  </div>`;
+  bindSignOut(); bindReset();
+  app.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", async () => {
+    const key = b.dataset.play, row = key.startsWith("t") ? rows.find((r) => String(r.id) === key.slice(1)) : alerts[+key];
+    const url = row && await data.voiceUrl(row); if (!url) return;
+    document.getElementById("audio-" + key).innerHTML = `<audio controls autoplay src="${esc(url)}" style="display:block;width:100%;max-width:320px;margin-top:6px"></audio>`;
+  }));
+  app.querySelectorAll("[data-fb]").forEach((b) => b.addEventListener("click", () => { state.filterBlock = +b.dataset.fb; render(); }));
+  app.querySelectorAll("[data-fs]").forEach((b) => b.addEventListener("click", () => { state.filterStatus = state.filterStatus === b.dataset.fs ? "all" : b.dataset.fs; render(); }));
+  app.querySelectorAll("[data-pref]").forEach((b) => b.addEventListener("click", () => { state.prefs[b.dataset.pref] = !state.prefs[b.dataset.pref]; store.set("prefs", state.prefs); render(); }));
+}
+
+// ---------------------------------------------------------------- shell
+let toastTimer;
+function toast(msg) { const el = document.getElementById("toast"); el.textContent = msg; el.classList.add("on"); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("on"), 2200); }
+document.getElementById("langTa").addEventListener("click", () => { state.lang = "ta"; store.set("lang", "ta"); render(); });
+document.getElementById("langEn").addEventListener("click", () => { state.lang = "en"; store.set("lang", "en"); render(); });
+
+if (LIVE && ROLE !== "op") {
+  // supabase-js holds a lock while this callback runs; a database call inside it waits on that lock forever,
+  // so the officer lookup runs just after the callback returns.
+  sb.auth.onAuthStateChange((_e, session) => { setTimeout(() => applySession(session), 0); });
+  async function applySession(session) {
+    let next = null;
+    if (session?.user) {
+      const { data: me } = await sb.from("officers").select("panchayat_id, role").eq("id", session.user.id).maybeSingle();
+      next = { email: session.user.email, panchayat_id: me?.panchayat_id ?? null, role: me?.role };
+    }
+    if (JSON.stringify(next) !== JSON.stringify(state.officer)) { state.officer = next; store.set("staff_" + ROLE, next); render(); }   // also picks up a role granted after the first sign-in
+  }
+}
+
+let installEvt = null;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; document.getElementById("installBtn").hidden = false; });
+document.getElementById("installBtn").addEventListener("click", async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; document.getElementById("installBtn").hidden = true; });
+window.addEventListener("appinstalled", () => { document.getElementById("installBtn").hidden = true; });
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register(ROLE === "op" ? "./sw.js" : "../sw.js").catch(() => {});
+}
+
+if (!LIVE) seedDemo();
+flushQueue();
+render();
+</script>
+
+</head>
+</html>
