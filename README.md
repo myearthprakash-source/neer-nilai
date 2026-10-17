@@ -24,15 +24,16 @@ The three pages never link to each other. In live mode the database enforces the
 
 The block's tank sheet lists, for every habitation, the pump operator who will use the app and their mobile number. That list is the access control:
 
-- **Nothing to type: a WhatsApp link.** On the review page the panchayat officer taps *Send app link on WhatsApp*. That makes a one-time link and opens WhatsApp on the officer's own phone, addressed to the operator's registered number, with a short Tamil message. The operator taps it and the app opens signed in. No email, no password, no PIN, no SMS cost.
-- **The phone is the key.** Opening the link binds that phone (a long random secret made on the phone; the server keeps only its hash). From then on the app just opens. Tapping the same WhatsApp message again opens the app on that phone, and nowhere else: a forwarded link does not work on another phone.
-- **New or lost phone**: send a new link (the old phone stops working), or tap *Reset phone*. Two people sharing one phone (the sheet's "Maran / Badichi") are one account.
-- **Fallback: number + PIN**, for an operator without WhatsApp. The officer sets the PIN and says it on a call; it is needed only once to bind the phone. Five wrong PINs lock the number for other phones (never for the operator's own bound phone), so a 4-digit PIN cannot be guessed by script.
-- **Against cheating, at no cost to the operator**: only the bound phone can report; each report carries where the phone was (asked once for permission, right after sign-in), shown to the panchayat officer as a map link, and "No location recorded" when there is none; only today can be reported; and the panchayat officer confirms or flags every problem report.
+- **Everyone signs in the same way: mobile number + its last 4 digits.** Operators, panchayat officers and block/district officers. Nothing to remember, hand out, or wait for (no email, no SMS). Signed in once, the device stays signed in.
+- **What stops someone who knows a number** (the last 4 digits are part of it): the first sign-in binds the device. An operator has one phone; another phone with the same number is refused until the panchayat officer taps *Reset phone*. Officers may use two devices (phone + computer); a third is refused until a senior officer taps *Reset devices* on the dashboard's Staff list. Five wrong tries lock the number for 15 minutes for other devices (never for the person's own bound device).
+- **Hardening later, no screen changes**: give anyone a personal PIN (operators: *New PIN* on the review page; staff: `staff.pin_hash`) and it replaces the last-4 rule for that person.
+- **Against cheating, at no cost to the operator**: only the bound phone can report; each report carries where the phone was (asked once, right after sign-in), shown to the panchayat officer as a map link, or "No location recorded"; only today can be reported; the panchayat officer confirms or flags every problem report.
+- **WhatsApp**: *Send app link on WhatsApp* opens WhatsApp on the officer's phone, addressed to the operator, with the app link (which also signs that phone in) and a one-line instruction. Two people sharing one phone (the sheet's "Maran / Badichi") are one account.
+- **Staff accounts**: listed by phone in the `staff` table (role + district / block / panchayat). The `staff-login` edge function checks number + digits + device and opens a normal Supabase session with an admin one-time token, so row-level security works unchanged.
 
 Real phone numbers and staff emails never go into this public repo: `schema.sql` seeds 90000000xx placeholders, and the real data lives in `supabase/private/live-data.sql`, which is git-ignored and run only against the live database.
 
-**Staff** are registered by email in `officer_invites` (role + district / block / panchayat). Their first magic-link sign-in creates their officer record; anyone else who signs in sees nothing. The public anon key can only call the operator functions and read the tank list: phone numbers, PIN hashes and reports are closed to it (tested in a local Postgres with Supabase's default grants).
+The public anon key can only call the operator functions, the staff-login function and read the tank list: phone numbers, PIN and device hashes, staff and reports are closed to it (tested in a local Postgres with Supabase's default grants, and against the live project).
 
 ## The daily report (operator): one tap on a normal day, nothing to type
 
@@ -90,10 +91,10 @@ supabase/private/                   Git-ignored: live-data.sql (real operator ph
 
 ## Go-live steps
 
-1. Create a free Supabase project (Mumbai region). Run `supabase/schema.sql` in the SQL editor, then `supabase/private/live-data.sql`.
-2. Authentication → URL Configuration: add `https://myearthprakash-source.github.io/neer-nilai/live/**` to the redirect URLs (magic links come back to the page that asked).
+1. Create a free Supabase project (Mumbai region). Run `supabase/schema.sql` in the SQL editor, then `supabase/private/live-data.sql` (real operator and staff numbers).
+2. Edge Functions → deploy `supabase/functions/staff-login/index.ts` as `staff-login` (dashboard editor or `supabase functions deploy staff-login`).
 3. Put the project URL and anon key in `supabase/live.public.json`, run `node build.js`, push. The live pages appear at `/neer-nilai/live/`, `/live/review/` and `/live/officer/`; the demo stays where it is.
-4. Staff sign in with their registered email (magic link). The panchayat officer sets each operator's PIN from the review page and sends the app link on WhatsApp.
+4. Everyone signs in with their number + its last 4 digits. The panchayat officer can send each operator the app link on WhatsApp.
 5. Alerts (optional for the pilot): deploy the notify function (`supabase functions deploy notify`, secrets `RESEND_API_KEY`, `FROM_EMAIL`, optionally `WA_TOKEN`, `WA_PHONE_ID`, `APP_URL`), add a Database Webhook on `reports` (INSERT, UPDATE) to it, and schedule the noon digest with the pg_cron snippet in `schema.sql`.
 6. More panchayats: load districts, blocks, panchayats, habitations (with `supply_note` where another body supplies water), operators and tanks (`glrs`, `kind` = `GLR` or `OHT`) by CSV import, and add their officers to `officer_invites`.
 
