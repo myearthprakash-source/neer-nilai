@@ -8,11 +8,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Neer Nilai">
+<meta name="apple-mobile-web-app-title" content="Neer Nilai Demo">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
-<title>Neer Nilai</title>
+<title>Neer Nilai Demo</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+Tamil:wght@400;500;700&display=swap">
 <style>
 /* Light only, on every phone: operators read it outdoors in sunlight, and a phone set to dark mode must not change it. */
@@ -217,9 +217,10 @@ td.time{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:no
 // Fill these to go live against Supabase. Leave empty for demo mode (sample data kept on this phone only).
 const CONFIG = { SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };
 const LIVE = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY && window.supabase);
-const sb = LIVE ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY) : null;
 // Three pages, one file. Role is fixed by the URL:  /  operator   /review/  panchayat officer   /officer/  block + district.
 const ROLE = /\/officer(\/|\.html|$)/i.test(location.pathname) ? "of" : /\/review(\/|\.html|$)/i.test(location.pathname) ? "rv" : "op";
+// Each page keeps its own staff session, so one person can test the review and officer pages side by side.
+const sb = LIVE ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { storageKey: "nnl-auth-" + ROLE } }) : null;
 
 // ---------------------------------------------------------------- i18n
 const T = {
@@ -249,6 +250,8 @@ const T = {
     qSource: "ஆதாரத்தில் போதுமான தண்ணீர் இருந்ததா?", qPump: "பம்ப் சரியாக இயங்கியதா?", qGlr: "தொட்டி போதுமான அளவு நிரம்பியதா?", dYes: "ஆம்", dNo: "இல்லை", dUnknown: "தெரியவில்லை",
     pickOne: "ஒரு தொட்டி மட்டும் வேறா? அதைத் தொடவும்", changeTank: "ஒரு தொட்டியை மாற்ற கீழே தொடவும்", panchayat: "ஊராட்சி",
     call: "அழை", allNormal: "அனைத்தும் வழக்கம்", oneByOne: "ஒவ்வொன்றாக பதிவு",
+    pinLocked: "பல முறை தவறான PIN. 15 நிமிடம் கழித்து முயற்சிக்கவும் அல்லது ஊராட்சி அலுவலரிடம் புதிய PIN கேட்கவும்.",
+    notRegistered: "இந்த மின்னஞ்சல் அலுவலராக பதிவு செய்யப்படவில்லை. நிர்வாகியை அணுகவும்.",
     extSupply: "{who} மூலம் தண்ணீர் — இந்த ஆப்பில் பதிவு இல்லை",
     silentNote: "மதியம் வரை பதிவு இல்லை", officerTitle: "மாவட்ட நிலை — இன்று",
     settings: "அறிவிப்பு அமைப்புகள்", notifyIn: "பயன்பாட்டில்", notifyEmail: "மின்னஞ்சல்", notifyWa: "வாட்ஸ்அப்", digest: "மதியம் 12:00 சுருக்கம்", alwaysOn: "எப்போதும்", free: "இலவசம்", cheap: "ஒரு செய்திக்கு ≈ ₹0.12",
@@ -283,6 +286,8 @@ const T = {
     qSource: "Was sufficient water available in the source?", qPump: "Did the pump operate normally?", qGlr: "Was the tank adequately filled?", dYes: "Yes", dNo: "No", dUnknown: "Don't know",
     pickOne: "Only one tank different? Tap it", changeTank: "To change one tank, tap it below", panchayat: "Panchayat",
     call: "Call", allNormal: "All normal", oneByOne: "Tank by tank",
+    pinLocked: "Too many wrong PINs. Try again in 15 minutes, or ask the panchayat officer for a new PIN.",
+    notRegistered: "This email is not registered as an officer. Contact the administrator.",
     extSupply: "water supplied by {who} — not reported in this app",
     silentNote: "No report by noon", officerTitle: "District status — today",
     settings: "Notification settings", notifyIn: "In-app", notifyEmail: "Email", notifyWa: "WhatsApp", digest: "12:00 noon digest", alwaysOn: "Always on", free: "Free", cheap: "≈ ₹0.12 per message",
@@ -394,9 +399,11 @@ function glrInfo(g) {
 }
 
 // ---------------------------------------------------------------- state + storage
+// Demo and live pages share one web origin, so they keep separate keys (a demo sign-in must never reach the live page).
+const SP = LIVE ? "nnl." : "nn.";
 const store = {
-  get(k, d) { try { const v = localStorage.getItem("nn." + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem("nn." + k, JSON.stringify(v)); } catch {} },
+  get(k, d) { try { const v = localStorage.getItem(SP + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(SP + k, JSON.stringify(v)); } catch {} },
 };
 const RK = "reports_v6";
 const istToday = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
@@ -452,9 +459,9 @@ const data = {
     phone = phone.replace(/\D/g, "").slice(-10);
     if (LIVE) {
       const { data: rows, error } = await sb.rpc("operator_login", { p_phone: phone, p_pin: pin, p_device: deviceId() });
-      if (error) return { error: /device/i.test(error.message) ? "deviceLocked" : "badLogin" };
-      if (!rows?.length) return { error: "badLogin" };
-      const r0 = rows[0];
+      if (error) return { error: navigator.onLine ? "badLogin" : "offline" };
+      const r0 = rows?.[0];
+      if (!r0 || r0.err) return { error: AUTH_KEY[r0?.err] ?? "badLogin" };
       return { id: r0.operator_id, name: r0.operator_name, ta: r0.operator_name_ta, phone, pin,
         glrs: rows.map((r) => ({ id: r.glr_id, kind: r.kind ?? "GLR", code: r.code, name: r.glr, ta: r.glr_ta, location: r.location, capacity: r.capacity, hab: r.habitation, habTa: r.habitation_ta,
           panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta })) };
@@ -464,18 +471,20 @@ const data = {
     if (!o || pin !== (pins[o.id] ?? "1234")) return { error: "badLogin" };
     return { id: o.id, name: o.name, ta: o.ta, phone, pin, glrs: DEMO.glrs.filter((g) => g.op === o.id).map(glrInfo) };
   },
-  async history(glr) {
+  // Last 14 days for all of the operator's tanks in one call.
+  async historyAll(glrs) {
     if (LIVE) {
-      const { data: rows } = await sb.rpc("operator_history", { p_phone: state.op.phone, p_pin: state.op.pin, p_glr_id: glr.id });
-      return (rows ?? []).map((r) => ({ glr_id: glr.id, date: r.report_date, status: r.status, problem: r.problem, remarks: r.remarks, at: r.reported_at, voice: r.voice_path }));
+      const { data: rows } = await sb.rpc("operator_history_all", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId() });
+      return (rows ?? []).map((r) => ({ glr_id: r.glr_id, date: r.report_date, status: r.status, problem: r.problem, remarks: r.remarks, at: r.reported_at, voice: r.voice_path }));
     }
-    return store.get(RK, []).filter((r) => r.glr_id === glr.id);
+    return store.get(RK, []).filter((r) => glrs.some((g) => g.id === r.glr_id));
   },
   async submit(glr, status, problem) {
     if (LIVE) {
       if (!navigator.onLine) { queue(glr, { status, problem }); return { queued: true }; }
-      const { error } = await sb.rpc("submit_report", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId(), p_glr_id: glr.id, p_status: status, p_problem: problem });
+      const { data: res, error } = await sb.rpc("submit_report", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId(), p_glr_id: glr.id, p_status: status, p_problem: problem });
       if (error) throw error;
+      if (res !== "ok") throw authError(res);
       return { ok: true };
     }
     const rows = store.get(RK, []).filter((r) => !(r.glr_id === glr.id && r.date === istToday()));
@@ -490,8 +499,9 @@ const data = {
         const path = `${g.code}/${istToday()}.webm`;
         const { error } = await sb.storage.from("voice").upload(path, blob, { upsert: true, contentType: blob.type || "audio/webm" });
         if (error) throw error;
-        const { error: e2 } = await sb.rpc("attach_voice", { p_phone: state.op.phone, p_pin: state.op.pin, p_glr_id: g.id, p_path: path });
+        const { data: res, error: e2 } = await sb.rpc("attach_voice", { p_phone: state.op.phone, p_pin: state.op.pin, p_device: deviceId(), p_glr_id: g.id, p_path: path });
         if (e2) throw e2;
+        if (res !== "ok") throw authError(res);
       }
       return;
     }
@@ -566,6 +576,9 @@ const data = {
     return d?.signedUrl ?? null;
   },
 };
+// Operator functions answer a wrong PIN, a lockout or another phone with a code instead of an error.
+const AUTH_KEY = { bad: "badLogin", locked: "pinLocked", device: "deviceLocked" };
+const authError = (code) => Object.assign(new Error(t(AUTH_KEY[code] ?? "badLogin")), { authKey: AUTH_KEY[code] ?? "badLogin" });
 function deviceId() { let id = store.get("device", null); if (!id) { id = Math.random().toString(36).slice(2, 12); store.set("device", id); } return id; }
 function queue(glr, d) { const q = store.get("queue", []); q.push({ glr, d, at: nowIso() }); store.set("queue", q); }
 async function flushQueue() {
@@ -607,6 +620,7 @@ function render() {
   document.documentElement.lang = state.lang === "ta" ? "ta" : "en";
   if (ROLE === "op") state.op ? renderOperator() : renderOperatorLogin();
   else if (!state.officer) renderStaffLogin();
+  else if (LIVE && !state.officer.role) renderNotRegistered();
   else if (ROLE === "rv") renderReview();
   else renderOfficer();
 }
@@ -639,7 +653,7 @@ function renderOperatorLogin() {
 async function renderOperator() {
   const op = state.op, glrs = op.glrs;
   if (state.active !== "all" && state.active >= glrs.length) state.active = glrs.length > 1 ? "all" : 0;
-  const allRows = LIVE ? (await Promise.all(glrs.map((g) => data.history(g)))).flat() : store.get(RK, []).filter((r) => glrs.some((g) => g.id === r.glr_id));
+  const allRows = await data.historyAll(glrs);
   const todayOf = (g) => allRows.find((r) => r.glr_id === g.id && r.date === istToday());
   const targets = state.active === "all" ? glrs.filter((g) => state.editing || !todayOf(g)) : [glrs[state.active]];
   const allDone = glrs.every(todayOf);
@@ -725,7 +739,11 @@ async function save(glrs, status, problem) {
     for (const g of glrs) { const res = await data.submit(g, status, problem); queued = queued || !!res.queued; }
     state.editing = false; state.step = "home"; state.pick = null;
     toast(queued ? t("offline") : t("saved"));
-  } catch (e) { state.error = e.message || String(e); }
+  } catch (e) {
+    // PIN changed or number locked since sign-in: back to the sign-in screen with the reason.
+    if (e.authKey) { state.op = null; store.set("op", null); state.error = e.authKey; }
+    else state.error = e.message || String(e);
+  }
   state.busy = false; render();
 }
 
@@ -773,6 +791,10 @@ function renderStaffLogin() {
     if (!email.includes("@") || code !== "1234") { state.error = t("badStaffLogin"); return render(); }
     state.officer = ROLE === "rv" ? { email, panchayat_id: +document.getElementById("offPan").value } : { email }; store.set("staff_" + ROLE, state.officer); render();
   });
+}
+function renderNotRegistered() {
+  app.innerHTML = `<div class="page"><div class="card"><p style="margin:0 0 10px">${esc(t("notRegistered"))}</p>${signOutBtn()}</div></div>`;
+  bindSignOut();
 }
 function signOutBtn() { return `<div class="sub">${esc(state.officer?.email ?? "")} · <button class="link" id="signOut">${esc(t("signOut"))}</button></div>`; }
 function bindSignOut() { document.getElementById("signOut")?.addEventListener("click", async () => { if (LIVE) await sb.auth.signOut(); state.officer = null; store.set("staff_" + ROLE, null); render(); }); }
@@ -1014,7 +1036,7 @@ if (LIVE && ROLE !== "op") {
       const { data: me } = await sb.from("officers").select("panchayat_id, role").eq("id", session.user.id).maybeSingle();
       next = { email: session.user.email, panchayat_id: me?.panchayat_id ?? null, role: me?.role };
     }
-    if ((next?.email ?? null) !== (state.officer?.email ?? null)) { state.officer = next; store.set("staff_" + ROLE, next); render(); }
+    if (JSON.stringify(next) !== JSON.stringify(state.officer)) { state.officer = next; store.set("staff_" + ROLE, next); render(); }   // also picks up a role granted after the first sign-in
   });
 }
 

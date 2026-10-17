@@ -4,12 +4,10 @@
 -- A habitation supplied by another body (e.g. Singara by TNEB) has no tanks and carries a supply_note instead.
 -- Identity: each tank has a registered pump operator (name + mobile number, from the block's list).
 --   Operator signs in with mobile number + 4-digit PIN given by the panchayat officer. One phone per operator.
---   Panchayat officer reviews; block/district officers watch the dashboard.
--- Run in the Supabase SQL editor. Safe to re-run on an empty project.
+--   Panchayat officer reviews; block/district officers watch the dashboard. Staff are registered by email in officer_invites.
+-- Run in the Supabase SQL editor. Safe to re-run. Then run supabase/private/*.sql (real phone numbers, staff emails).
 
 create extension if not exists pgcrypto;
-create extension if not exists pg_cron;
-create extension if not exists pg_net;
 
 -- ---------------------------------------------------------------- master data
 create table if not exists districts   (id serial primary key, name text not null, name_ta text);
@@ -21,16 +19,20 @@ alter table habitations add column if not exists supply_note text;
 
 -- Pump operators: the people who use the app. Phone number is the identity.
 create table if not exists operators (
-  id             serial primary key,
-  panchayat_id   int not null references panchayats(id),
-  name           text not null,
-  name_ta        text,
-  phone          text not null unique check (phone ~ '^[6-9][0-9]{9}$'),   -- 10-digit Indian mobile
-  pin_hash       text,                                                      -- bcrypt of the 4-digit PIN, set by panchayat officer
-  device_id      text,                                                      -- bound on first sign-in; reset by panchayat officer
-  device_bound_at timestamptz,
-  active         boolean not null default true
+  id               serial primary key,
+  panchayat_id     int not null references panchayats(id),
+  name             text not null,
+  name_ta          text,
+  phone            text not null unique check (phone ~ '^[6-9][0-9]{9}$'),   -- 10-digit Indian mobile
+  pin_hash         text,                                                      -- bcrypt of the 4-digit PIN, set by panchayat officer
+  pin_fails        int not null default 0,                                    -- wrong PINs since the last good one
+  pin_locked_until timestamptz,                                               -- set after 5 wrong PINs
+  device_id        text,                                                      -- bound on first sign-in; reset by panchayat officer
+  device_bound_at  timestamptz,
+  active           boolean not null default true
 );
+alter table operators add column if not exists pin_fails int not null default 0;
+alter table operators add column if not exists pin_locked_until timestamptz;
 
 create table if not exists glrs (
   id             serial primary key,
@@ -78,6 +80,17 @@ create table if not exists officers (
   alert_email    boolean not null default true,
   alert_whatsapp boolean not null default false,
   alert_digest   boolean not null default true
+);
+
+-- Register staff by email. Their first magic-link sign-in creates the officers row (trigger below);
+-- apply_officer_invites() does the same for people who signed in before they were registered.
+create table if not exists officer_invites (
+  email          text primary key,
+  name           text not null,
+  role           text not null check (role in ('state','district','block','panchayat')),
+  district_id    int references districts(id),
+  block_id       int references blocks(id),
+  panchayat_id   int references panchayats(id)
 );
 
 -- ---------------------------------------------------------------- reports
@@ -137,47 +150,68 @@ join blocks b on b.id = p.block_id
 join districts d on d.id = b.district_id
 left join operators o on o.id = g.operator_id;
 
--- Verify operator (phone + PIN + device). Binds the device on first use; refuses a different device.
-create or replace function operator_check(p_phone text, p_pin text, p_device text) returns int
-language plpgsql security definer as $$
+-- ---------------------------------------------------------------- operator functions (called with the public anon key)
+-- Earlier versions raised on a wrong PIN; these return a code instead so the failure count is saved.
+drop function if exists operator_check(text, text, text);
+drop function if exists operator_login(text, text, text);
+drop function if exists submit_report(text, text, text, int, text, text);
+drop function if exists attach_voice(text, text, int, text);
+drop function if exists operator_history(text, text, int);
+
+-- Phone + PIN + phone binding. Returns the operator id, or 0 = wrong number/PIN, -1 = locked, -2 = number bound to another phone.
+-- 5 wrong PINs lock the number for 15 minutes; after that each further wrong PIN locks it again, until a correct PIN
+-- or a new PIN from the panchayat officer. That makes guessing 10,000 PINs take months instead of minutes.
+create or replace function operator_auth(p_phone text, p_pin text, p_device text) returns int
+language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 declare v operators;
 begin
-  select * into v from operators where phone = p_phone and active and pin_hash is not null and pin_hash = crypt(p_pin, pin_hash);
-  if v.id is null then raise exception 'invalid phone or pin' using errcode = '28000'; end if;
-  if v.device_id is null then
-    update operators set device_id = p_device, device_bound_at = now() where id = v.id;
-  elsif v.device_id <> p_device then
-    raise exception 'device not allowed for this number' using errcode = '28000';
+  select * into v from operators where phone = p_phone and active;
+  if v.id is null then return 0; end if;
+  if v.pin_locked_until > now() then return -1; end if;
+  if v.pin_hash is null or v.pin_hash <> crypt(coalesce(p_pin, ''), v.pin_hash) then
+    update operators set pin_fails = pin_fails + 1,
+        pin_locked_until = case when pin_fails + 1 >= 5 then now() + interval '15 minutes' end
+    where id = v.id;
+    return 0;
   end if;
+  if v.device_id is not null and v.device_id <> p_device then return -2; end if;
+  update operators set pin_fails = 0, pin_locked_until = null,
+      device_id = coalesce(device_id, p_device), device_bound_at = coalesce(device_bound_at, now())
+  where id = v.id;
   return v.id;
 end $$;
 
--- Sign-in: returns one row per tank (GLR or OHT) the operator looks after.
-drop function if exists operator_login(text, text, text);   -- return type gained `kind`
+create or replace function auth_code(p int) returns text
+language sql immutable as $$ select case p when -1 then 'locked' when -2 then 'device' else 'bad' end $$;
+
+-- Sign-in: one row per tank (GLR or OHT) the operator looks after; on failure a single row with err set.
 create function operator_login(p_phone text, p_pin text, p_device text)
-returns table (operator_id int, operator_name text, operator_name_ta text,
+returns table (err text, operator_id int, operator_name text, operator_name_ta text,
                glr_id int, kind text, code text, glr text, glr_ta text, location text, capacity int,
                habitation text, habitation_ta text, panchayat_id int, panchayat text, panchayat_ta text,
                block text, block_ta text, district text, district_ta text)
-language plpgsql security definer as $$
+language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 declare v_oid int;
 begin
-  v_oid := operator_check(p_phone, p_pin, p_device);
+  v_oid := operator_auth(p_phone, p_pin, p_device);
+  if v_oid <= 0 then err := auth_code(v_oid); return next; return; end if;
   return query
-    select v.operator_id, v.operator_name, v.operator_name_ta, v.glr_id, v.kind, v.code, v.glr, v.glr_ta, v.location, v.capacity,
+    select null::text, v.operator_id, v.operator_name, v.operator_name_ta, v.glr_id, v.kind, v.code, v.glr, v.glr_ta, v.location, v.capacity,
            v.habitation, v.habitation_ta, v.panchayat_id, v.panchayat, v.panchayat_ta, v.block, v.block_ta, v.district, v.district_ta
     from v_glr v where v.operator_id = v_oid and v.active order by v.code;
 end $$;
 
 -- Daily report: status + one pictorial problem. Same-day resubmit overwrites and resets the review.
-create or replace function submit_report(p_phone text, p_pin text, p_device text, p_glr_id int, p_status text, p_problem text default null)
-returns reports
-language plpgsql security definer as $$
-declare v_oid int; v_row reports;
+-- Returns 'ok', or 'bad' / 'locked' / 'device'; raises only for a malformed request.
+create function submit_report(p_phone text, p_pin text, p_device text, p_glr_id int, p_status text, p_problem text default null)
+returns text
+language plpgsql security definer set search_path = public, extensions, pg_temp as $$
+declare v_oid int;
 begin
-  v_oid := operator_check(p_phone, p_pin, p_device);
+  v_oid := operator_auth(p_phone, p_pin, p_device);
+  if v_oid <= 0 then return auth_code(v_oid); end if;
   if not exists (select 1 from glrs where id = p_glr_id and operator_id = v_oid and active) then
-    raise exception 'glr not assigned to this operator' using errcode = '42501';
+    raise exception 'tank not assigned to this operator' using errcode = '42501';
   end if;
   if p_status not in ('yes','partial','no') then raise exception 'bad status' using errcode = '23514'; end if;
   if p_status = 'yes' then p_problem := null; elsif p_problem is null then raise exception 'problem required' using errcode = '23514'; end if;
@@ -187,34 +221,38 @@ begin
   on conflict (glr_id, report_date) do update
     set status = excluded.status, problem = excluded.problem, source_ok = null, pump_ok = null, glr_filled = null,
         operator_id = excluded.operator_id, device_id = excluded.device_id, entered_by = 'operator', reported_at = now(),
-        review_status = 'pending', review_note = null, reviewed_by = null, reviewed_at = null
-  returning * into v_row;
-  return v_row;
+        review_status = 'pending', review_note = null, reviewed_by = null, reviewed_at = null;
+  return 'ok';
 end $$;
 
-create or replace function attach_voice(p_phone text, p_pin text, p_glr_id int, p_path text) returns void
-language plpgsql security definer as $$
+create or replace function attach_voice(p_phone text, p_pin text, p_device text, p_glr_id int, p_path text) returns text
+language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 declare v_oid int;
 begin
-  v_oid := operator_check(p_phone, p_pin, (select device_id from operators where phone = p_phone));
+  v_oid := operator_auth(p_phone, p_pin, p_device);
+  if v_oid <= 0 then return auth_code(v_oid); end if;
   update reports set voice_path = p_path where glr_id = p_glr_id and report_date = ist_today() and operator_id = v_oid;
+  return 'ok';
 end $$;
 
-create or replace function operator_history(p_phone text, p_pin text, p_glr_id int)
-returns table (report_date date, status text, problem text, remarks text, voice_path text, reported_at timestamptz)
-language plpgsql security definer stable as $$
+-- Last 14 days for every tank of the operator, in one call.
+create or replace function operator_history_all(p_phone text, p_pin text, p_device text)
+returns table (glr_id int, report_date date, status text, problem text, remarks text, voice_path text, reported_at timestamptz)
+language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 declare v_oid int;
 begin
-  v_oid := operator_check(p_phone, p_pin, (select device_id from operators where phone = p_phone));
-  return query select r.report_date, r.status, r.problem, r.remarks, r.voice_path, r.reported_at
+  v_oid := operator_auth(p_phone, p_pin, p_device);
+  if v_oid <= 0 then return; end if;
+  return query select r.glr_id, r.report_date, r.status, r.problem, r.remarks, r.voice_path, r.reported_at
     from reports r join glrs g on g.id = r.glr_id
-    where g.id = p_glr_id and g.operator_id = v_oid and r.report_date >= ist_today() - 13 order by r.report_date;
+    where g.operator_id = v_oid and r.report_date >= ist_today() - 13 order by r.report_date;
 end $$;
 
-grant execute on function operator_login(text, text, text) to anon;
-grant execute on function submit_report(text, text, text, int, text, text) to anon;
-grant execute on function attach_voice(text, text, int, text) to anon;
-grant execute on function operator_history(text, text, int) to anon;
+revoke execute on function operator_auth(text, text, text) from public, anon, authenticated;
+grant execute on function operator_login(text, text, text) to anon, authenticated;
+grant execute on function submit_report(text, text, text, int, text, text) to anon, authenticated;
+grant execute on function attach_voice(text, text, text, int, text) to anon, authenticated;
+grant execute on function operator_history_all(text, text, text) to anon, authenticated;
 
 -- Voice notes bucket
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -226,17 +264,18 @@ drop policy if exists voice_read on storage.objects;    create policy voice_read
 
 -- ---------------------------------------------------------------- officer scope
 create or replace function officer_scope() returns table (role text, district_id int, block_id int, panchayat_id int)
-language sql stable security definer as $$ select role, district_id, block_id, panchayat_id from officers where id = auth.uid() $$;
+language sql stable security definer set search_path = public, pg_temp as $$
+  select o.role, o.district_id, o.block_id, o.panchayat_id from officers o where o.id = auth.uid() $$;
 
 create or replace function can_see_panchayat(p_panchayat_id int) returns boolean
-language sql stable security definer as $$
+language sql stable security definer set search_path = public, pg_temp as $$
   select exists (
     select 1 from officer_scope() s join panchayats p on p.id = p_panchayat_id join blocks b on b.id = p.block_id
     where s.role = 'state' or (s.role = 'district' and b.district_id = s.district_id)
        or (s.role = 'block' and p.block_id = s.block_id) or (s.role = 'panchayat' and p.id = s.panchayat_id))
 $$;
 create or replace function can_see_glr(p_glr_id int) returns boolean
-language sql stable security definer as $$ select can_see_panchayat((select panchayat_id from v_glr where glr_id = p_glr_id)) $$;
+language sql stable security definer set search_path = public, pg_temp as $$ select can_see_panchayat((select panchayat_id from v_glr where glr_id = p_glr_id)) $$;
 
 -- Operators visible to the signed-in officer (no pin_hash).
 create or replace view v_operators as
@@ -244,16 +283,16 @@ select o.id, o.panchayat_id, o.name, o.name_ta, o.phone, o.device_id, o.device_b
        (select count(*) from glrs g where g.operator_id = o.id and g.active) as glr_count
 from operators o where o.active and can_see_panchayat(o.panchayat_id);
 
--- Panchayat officer sets / resets an operator's PIN and phone binding.
+-- Panchayat officer sets / resets an operator's PIN (also clears a lockout) and phone binding.
 create or replace function set_operator_pin(p_operator_id int, p_pin text) returns void
-language plpgsql security definer as $$
+language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 begin
   if not can_see_panchayat((select panchayat_id from operators where id = p_operator_id)) then raise exception 'not allowed' using errcode = '42501'; end if;
   if p_pin !~ '^[0-9]{4}$' then raise exception 'pin must be 4 digits' using errcode = '23514'; end if;
-  update operators set pin_hash = crypt(p_pin, gen_salt('bf')) where id = p_operator_id;
+  update operators set pin_hash = crypt(p_pin, gen_salt('bf')), pin_fails = 0, pin_locked_until = null where id = p_operator_id;
 end $$;
 create or replace function reset_operator_device(p_operator_id int) returns void
-language plpgsql security definer as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not can_see_panchayat((select panchayat_id from operators where id = p_operator_id)) then raise exception 'not allowed' using errcode = '42501'; end if;
   update operators set device_id = null, device_bound_at = null where id = p_operator_id;
@@ -266,7 +305,7 @@ create or replace function review_report(
   p_report_id bigint, p_status text, p_note text default null,
   p_source_ok text default null, p_pump_ok text default null, p_glr_filled text default null, p_problem text default null
 ) returns reports
-language plpgsql security definer as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare v_row reports;
 begin
   if p_status not in ('confirmed','flagged') then raise exception 'bad review status' using errcode = '23514'; end if;
@@ -282,7 +321,7 @@ grant execute on function review_report(bigint, text, text, text, text, text, te
 
 -- Reviewer records a day on behalf of an operator (after a phone call). Counts as confirmed.
 create or replace function reviewer_submit(p_glr_id int, p_status text, p_problem text default null, p_remarks text default null) returns reports
-language plpgsql security definer as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare v_row reports;
 begin
   if not can_see_glr(p_glr_id) then raise exception 'not allowed' using errcode = '42501'; end if;
@@ -308,7 +347,35 @@ from v_glr v
 left join reports r on r.glr_id = v.glr_id and r.report_date = ist_today()
 where v.active and can_see_panchayat(v.panchayat_id);
 
--- ---------------------------------------------------------------- row-level security
+-- ---------------------------------------------------------------- staff registration
+create or replace function apply_officer_invites() returns int
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare n int;
+begin
+  insert into officers (id, name, role, district_id, block_id, panchayat_id, email)
+  select u.id, i.name, i.role, i.district_id, i.block_id, i.panchayat_id, u.email
+  from auth.users u join officer_invites i on lower(i.email) = lower(u.email)
+  on conflict (id) do update set name = excluded.name, role = excluded.role, district_id = excluded.district_id,
+      block_id = excluded.block_id, panchayat_id = excluded.panchayat_id, email = excluded.email;
+  get diagnostics n = row_count;
+  return n;
+end $$;
+
+create or replace function claim_officer_invite() returns trigger
+language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  insert into officers (id, name, role, district_id, block_id, panchayat_id, email)
+  select new.id, i.name, i.role, i.district_id, i.block_id, i.panchayat_id, new.email
+  from officer_invites i where lower(i.email) = lower(new.email)
+  on conflict (id) do nothing;
+  return new;
+end $$;
+drop trigger if exists neer_nilai_claim_invite on auth.users;
+create trigger neer_nilai_claim_invite after insert on auth.users for each row execute function claim_officer_invite();
+revoke execute on function apply_officer_invites() from public, anon, authenticated;
+revoke execute on function claim_officer_invite() from public, anon, authenticated;
+
+-- ---------------------------------------------------------------- row-level security and grants
 alter table reports enable row level security;
 alter table glrs enable row level security;
 alter table operators enable row level security;
@@ -317,6 +384,7 @@ alter table panchayats enable row level security;
 alter table blocks enable row level security;
 alter table districts enable row level security;
 alter table officers enable row level security;
+alter table officer_invites enable row level security;
 alter table notifications enable row level security;
 alter table problems enable row level security;
 
@@ -326,10 +394,7 @@ drop policy if exists read_panchayats on panchayats;   create policy read_pancha
 drop policy if exists read_habitations on habitations; create policy read_habitations on habitations for select using (true);
 drop policy if exists read_glrs on glrs;               create policy read_glrs on glrs for select using (true);
 drop policy if exists read_problems on problems;       create policy read_problems on problems for select using (true);
--- operators: no direct read for anon; staff read through v_operators (security definer functions handle sign-in)
-drop policy if exists officer_read_operators on operators;
-create policy officer_read_operators on operators for select to authenticated using (can_see_panchayat(panchayat_id));
-revoke select (pin_hash) on operators from anon, authenticated;
+drop policy if exists officer_read_operators on operators;   -- operators are read only through v_operators and the functions above
 drop policy if exists officer_read_reports on reports;
 create policy officer_read_reports on reports for select to authenticated using (can_see_glr(glr_id));
 drop policy if exists officer_read_self on officers;
@@ -339,9 +404,19 @@ create policy officer_update_self on officers for update to authenticated using 
 drop policy if exists officer_read_notifications on notifications;
 create policy officer_read_notifications on notifications for select to authenticated using (officer_id = auth.uid());
 
+-- Supabase grants the public anon key (and signed-in staff) everything on new tables and views by default; RLS above
+-- covers the tables, these close what RLS does not: views run as their owner, and column-level limits.
+revoke all on v_glr from anon, authenticated;                 -- has every operator's phone number
+revoke all on v_today, v_operators from anon;                 -- staff only (they filter by the signed-in officer anyway)
+revoke all on operators from anon, authenticated;             -- pin_hash, phone numbers
+revoke all on officer_invites from anon, authenticated;
+revoke insert, update, delete on officers from authenticated;
+grant update (alert_email, alert_whatsapp, alert_digest) on officers to authenticated;   -- only their own alert settings, never role or scope
+
 -- ---------------------------------------------------------------- alerts
 -- Database → Webhooks: table reports, INSERT + UPDATE → notify edge function.
--- Noon digest (12:00 IST = 06:30 UTC). Replace <PROJECT_REF> and <SERVICE_ROLE_KEY>:
+-- Noon digest (12:00 IST = 06:30 UTC). Enable pg_cron and pg_net first (Dashboard → Database → Extensions),
+-- then replace <PROJECT_REF> and <SERVICE_ROLE_KEY>:
 -- select cron.schedule('neer-nilai-digest', '30 6 * * *', $$
 --   select net.http_post(url := 'https://<PROJECT_REF>.supabase.co/functions/v1/notify',
 --     headers := '{"Content-Type":"application/json","Authorization":"Bearer <SERVICE_ROLE_KEY>"}'::jsonb,
@@ -350,7 +425,7 @@ create policy officer_read_notifications on notifications for select to authenti
 
 -- ---------------------------------------------------------------- pilot data: Kookal (Udhagai block) and Masinagudi (Gudalur block), from the block sheets
 -- Phone numbers here are 90000000xx placeholders (this file is public). Put the real ones in with
--- supabase/private/operator-phones.sql (git-ignored) after running this file in the live project.
+-- supabase/private/live-data.sql (git-ignored, also registers staff) after running this file in the live project.
 insert into districts (id, name, name_ta) values (1, 'The Nilgiris', 'நீலகிரி') on conflict do nothing;
 insert into blocks (id, district_id, name, name_ta) values (1, 1, 'Udhagai', 'உதகை'), (2, 1, 'Gudalur', 'கூடலூர்') on conflict do nothing;
 insert into panchayats (id, block_id, name, name_ta) values (1, 1, 'Kookal', 'கூக்கல்'), (2, 2, 'Masinagudi', 'மசினகுடி') on conflict do nothing;
@@ -410,5 +485,4 @@ select setval('blocks_id_seq', (select max(id) from blocks));
 select setval('panchayats_id_seq', (select max(id) from panchayats));
 select setval('habitations_id_seq', (select max(id) from habitations));
 select setval('operators_id_seq', (select max(id) from operators));
--- PINs are set by the panchayat officer from the review page (set_operator_pin). For a quick test:
--- select set_operator_pin(id, '1234') from operators;   -- run as a signed-in officer, or temporarily as postgres
+-- PINs are set by the panchayat officer from the review page (set_operator_pin).

@@ -1,11 +1,13 @@
 // Neer Nilai service worker: network first, cache fallback, so the app opens offline
-// and updates as soon as the phone is online. Version is stamped by build.js.
-const CACHE = "neer-nilai-__VERSION__";
+// and updates as soon as the phone is online. Variant (demo | live), icon path and version are stamped by build.js.
+// Demo and live share one origin, so each variant only ever deletes its own caches.
+const PREFIX = "neer-nilai-__VARIANT__-";
+const CACHE = PREFIX + "__VERSION__";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest",
   "./review/", "./review/index.html", "./review/manifest.webmanifest",
   "./officer/", "./officer/index.html", "./officer/manifest.webmanifest",
-  "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
+  "__ICONS__icons/icon-192.png", "__ICONS__icons/icon-512.png", "__ICONS__icons/icon-maskable-512.png",
 ];
 
 self.addEventListener("install", (e) => {
@@ -14,7 +16,7 @@ self.addEventListener("install", (e) => {
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => (k.startsWith(PREFIX) && k !== CACHE) || /^neer-nilai-\d+$/.test(k)).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });

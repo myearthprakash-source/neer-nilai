@@ -25,11 +25,14 @@ The three pages never link to each other. In live mode the database enforces the
 The block's tank sheet lists, for every habitation, the pump operator who will use the app and their mobile number. That list is the access control:
 
 - **Sign-in is mobile number + 4-digit PIN.** The number must already be in the operators table. The panchayat officer sets the PIN from the review page and tells the operator in person or by phone. No SMS, no OTP cost, no DLT registration, nothing to print.
+- **Wrong PINs lock the number.** Five wrong PINs lock it for 15 minutes, then one try per 15 minutes until the right PIN or a new PIN from the panchayat officer, so a 4-digit PIN cannot be guessed by script.
 - **One phone per operator.** The first sign-in binds the phone. A second phone is refused until the panchayat officer taps *Reset phone*. A lost phone is fixed the same way. Two people sharing one phone (the sheet's "Maran / Badichi") are one account.
 - **Every report is tagged** with the operator and the phone it came from, and the panchayat officer confirms or flags it.
 - **Sending the app link**: the review page has a *Send app link on WhatsApp* button per operator, which opens WhatsApp on the officer's own phone with the link and a one-line Tamil instruction.
 
-Real phone numbers never go into this public repo: `schema.sql` seeds 90000000xx placeholders, and the real numbers live in `supabase/private/operator-phones.sql`, which is git-ignored and run only against the live database.
+Real phone numbers and staff emails never go into this public repo: `schema.sql` seeds 90000000xx placeholders, and the real data lives in `supabase/private/live-data.sql`, which is git-ignored and run only against the live database.
+
+**Staff** are registered by email in `officer_invites` (role + district / block / panchayat). Their first magic-link sign-in creates their officer record; anyone else who signs in sees nothing. The public anon key can only call the operator functions and read the tank list: phone numbers, PIN hashes and reports are closed to it (tested in a local Postgres with Supabase's default grants).
 
 ## The daily report (operator): one tap on a normal day, nothing to type
 
@@ -78,19 +81,20 @@ Scale: about 12,500 village panchayats in Tamil Nadu, around 10 to 20 tanks each
 src/app.html                        Single source for all three pages (role fixed by URL)
 src/sw.js, src/icon.html            Service worker template, app icon source
 build.js                            Generates docs/ from src/   →  node build.js
-docs/                               Published site: index.html, review/, officer/, sw.js, icons/
-supabase/schema.sql                 Tables (5-level hierarchy, tank kind GLR/OHT), RPCs, review, RLS, views, pilot data
+docs/                               Published site. Demo: index.html, review/, officer/. Live: live/ (when configured)
+supabase/schema.sql                 Tables (5-level hierarchy, tank kind GLR/OHT), functions, review, RLS, grants, views, pilot data
+supabase/live.public.json           Live project URL + anon key (public by design); its presence makes build.js emit docs/live/
 supabase/functions/notify/index.ts  Edge function: alerts on Partial / No, noon digest
-supabase/private/                   Git-ignored: real operator phone numbers for the live database
+supabase/private/                   Git-ignored: live-data.sql (real operator phone numbers, staff emails)
 ```
 
 ## Go-live steps
 
-1. Create a free Supabase project (Mumbai region). Run `supabase/schema.sql` in the SQL editor, then `supabase/private/operator-phones.sql` for the real numbers.
-2. Deploy the notify function: `supabase functions deploy notify`. Set secrets `RESEND_API_KEY`, `FROM_EMAIL`, optionally `WA_TOKEN`, `WA_PHONE_ID`, and `APP_URL`.
-3. Database → Webhooks: table `reports`, events INSERT and UPDATE, target the `notify` function URL. Optionally schedule the noon digest with the pg_cron snippet at the end of `schema.sql`.
-4. In `src/app.html`, fill in `CONFIG.SUPABASE_URL` and `CONFIG.SUPABASE_ANON_KEY`, run `node build.js`, push. GitHub Pages serves `docs/`.
-5. Load further districts, blocks, panchayats, habitations (with `supply_note` where another body supplies water), operators and tanks (`glrs` table, `kind` = `GLR` or `OHT`) by CSV import. The Kookal and Masinagudi pilot rows are already in `schema.sql`. The panchayat officer then sets each operator's PIN from the review page and sends the app link on WhatsApp.
-6. Add staff: create the user by email in Supabase Auth, then insert a row in `officers` with role (`panchayat`, `block`, `district`, `state`) and the matching id.
+1. Create a free Supabase project (Mumbai region). Run `supabase/schema.sql` in the SQL editor, then `supabase/private/live-data.sql`.
+2. Authentication → URL Configuration: add `https://myearthprakash-source.github.io/neer-nilai/live/**` to the redirect URLs (magic links come back to the page that asked).
+3. Put the project URL and anon key in `supabase/live.public.json`, run `node build.js`, push. The live pages appear at `/neer-nilai/live/`, `/live/review/` and `/live/officer/`; the demo stays where it is.
+4. Staff sign in with their registered email (magic link). The panchayat officer sets each operator's PIN from the review page and sends the app link on WhatsApp.
+5. Alerts (optional for the pilot): deploy the notify function (`supabase functions deploy notify`, secrets `RESEND_API_KEY`, `FROM_EMAIL`, optionally `WA_TOKEN`, `WA_PHONE_ID`, `APP_URL`), add a Database Webhook on `reports` (INSERT, UPDATE) to it, and schedule the noon digest with the pg_cron snippet in `schema.sql`.
+6. More panchayats: load districts, blocks, panchayats, habitations (with `supply_note` where another body supplies water), operators and tanks (`glrs`, `kind` = `GLR` or `OHT`) by CSV import, and add their officers to `officer_invites`.
 
-Without `CONFIG` filled in, the site runs in demo mode with Nilgiris sample data (Kookal, Udhagai block; Masinagudi, Gudalur block) stored on the phone, which is what the public links show.
+The demo pages run without a database, with Nilgiris sample data (Kookal, Udhagai block; Masinagudi, Gudalur block) kept on each phone.
