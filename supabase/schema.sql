@@ -40,6 +40,9 @@ alter table operators add column if not exists device_hash text;
 alter table operators add column if not exists device_hashes text[] not null default '{}';
 -- Older versions allowed one phone per operator: that phone stays signed in.
 update operators set device_hashes = array_append(device_hashes, device_hash), device_hash = null where device_hash is not null;
+-- A number is unique among active operators only, so a removed operator's number can be given to someone new.
+alter table operators drop constraint if exists operators_phone_key;
+create unique index if not exists operators_phone_active on operators(phone) where active;
 
 create table if not exists glrs (
   id             serial primary key,
@@ -432,6 +435,61 @@ begin
 end $$;
 grant execute on function set_operator_pin(int, text) to authenticated;
 grant execute on function reset_operator_device(int) to authenticated;
+
+-- Panchayat officer (or the block / district above): add an operator, or change their name, number or tanks.
+-- Ticked tanks move to this operator (a tank has one operator); tanks no longer ticked are left without one.
+-- A new number signs out the old number's phones and links. Returns the operator id.
+create or replace function save_operator(p_id int, p_panchayat_id int, p_name text, p_name_ta text, p_phone text, p_glr_ids int[]) returns int
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare v operators; v_id int;
+begin
+  p_phone := right(regexp_replace(coalesce(p_phone, ''), '[^0-9]', '', 'g'), 10);
+  p_name := trim(coalesce(p_name, '')); p_name_ta := nullif(trim(coalesce(p_name_ta, '')), '');
+  p_glr_ids := coalesce(p_glr_ids, '{}');
+  if p_phone !~ '^[6-9][0-9]{9}$' then raise exception 'bad phone' using errcode = '23514'; end if;
+  if p_name = '' then raise exception 'name required' using errcode = '23514'; end if;
+  if p_id is not null then
+    select * into v from operators where id = p_id and active;
+    if v.id is null then raise exception 'operator not found' using errcode = '23514'; end if;
+    p_panchayat_id := v.panchayat_id;                                     -- an operator stays in their panchayat
+  end if;
+  if not can_see_panchayat(p_panchayat_id) then raise exception 'not allowed' using errcode = '42501'; end if;
+  if exists (select 1 from unnest(p_glr_ids) t(id) where not exists (
+      select 1 from glrs g join habitations h on h.id = g.habitation_id where g.id = t.id and g.active and h.panchayat_id = p_panchayat_id)) then
+    raise exception 'tank not in this panchayat' using errcode = '42501';
+  end if;
+  if exists (select 1 from operators o where o.phone = p_phone and o.active and o.id is distinct from p_id) then
+    raise exception 'phone in use' using errcode = '23505';
+  end if;
+  if p_id is null then
+    insert into operators (panchayat_id, name, name_ta, phone) values (p_panchayat_id, p_name, p_name_ta, p_phone) returning id into v_id;
+  else
+    v_id := p_id;
+    update operators o set name = p_name, name_ta = p_name_ta, phone = p_phone,
+        device_hashes = case when o.phone = p_phone then o.device_hashes else '{}' end,
+        pin_hash = case when o.phone = p_phone then o.pin_hash end, pin_fails = 0, pin_locked_until = null
+    where o.id = v_id;
+    if v.phone <> p_phone then update operator_links set expires_at = now() where operator_id = v_id and expires_at > now(); end if;
+  end if;
+  update glrs set operator_id = null where operator_id = v_id and not (id = any(p_glr_ids));
+  update glrs set operator_id = v_id where id = any(p_glr_ids);
+  return v_id;
+end $$;
+
+-- Someone stops being an operator: their phones and links stop working; their tanks wait for a new operator.
+-- Their past reports stay as they are.
+create or replace function remove_operator(p_id int) returns void
+language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if not can_see_panchayat((select panchayat_id from operators where id = p_id and active)) then raise exception 'not allowed' using errcode = '42501'; end if;
+  update operators set active = false, device_hashes = '{}', pin_hash = null, pin_fails = 0, pin_locked_until = null where id = p_id;
+  update glrs set operator_id = null where operator_id = p_id;
+  update operator_links set expires_at = now() where operator_id = p_id and expires_at > now();
+end $$;
+revoke execute on function save_operator(int, int, text, text, text, int[]) from public, anon;
+revoke execute on function remove_operator(int) from public, anon;
+grant execute on function save_operator(int, int, text, text, text, int[]) to authenticated;
+grant execute on function remove_operator(int) to authenticated;
 
 -- Review: confirm/flag + diagnostics + refined problem + action taken.
 create or replace function review_report(

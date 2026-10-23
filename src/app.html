@@ -197,6 +197,13 @@ td.time{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:no
 .staff-row .s{font-size:13px;color:var(--muted)}
 .staff-acts{display:flex;gap:18px;flex-wrap:wrap;margin-top:4px}
 .link.danger{color:var(--bad)}
+.newhere{margin:14px 0 0;font-size:14px;color:var(--muted);text-align:center}
+.rv-actions button:disabled{opacity:.4;cursor:not-allowed}
+.op-form{margin-top:4px}
+.tankpick{display:flex;flex-direction:column;gap:2px;max-height:360px;overflow:auto;border:1.5px solid var(--line);border-radius:10px;padding:6px}
+.tankpick label{display:flex;align-items:flex-start;gap:10px;padding:8px 6px;border-radius:8px;font-size:15px;cursor:pointer}
+.tankpick label:has(input:checked){background:var(--soft)}
+.tankpick input{width:20px;height:20px;padding:0;flex:none;margin-top:1px;accent-color:var(--accent)}
 .link:disabled{color:var(--muted)}
 .credit{max-width:960px;margin:0 auto;padding:8px 16px 28px;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.02em}
 .credit b{font-weight:600;color:var(--ink)}
@@ -254,7 +261,7 @@ const T = {
     review: "சரிபார்ப்பு", pending: "நிலுவை", confirmed: "உறுதி", flagged: "குறியிடப்பட்டது", confirm: "உறுதி செய்", flag: "தவறு எனக் குறி", notePh: "எடுத்த நடவடிக்கை / குறிப்பு",
     reviewTitle: "ஊராட்சி சரிபார்ப்பு — இன்று", reviewHint: "ஒவ்வொரு தொட்டி பதிவையும் சரிபார்த்து உறுதி செய்யவும். பதிவு இல்லாத தொட்டிக்கு ஆபரேட்டரை அழைத்து நீங்களே பதிவு செய்யலாம்.",
     nothingToReview: "இன்று சரிபார்க்க பதிவுகள் இல்லை.", recordFor: "ஆபரேட்டர் சார்பாக பதிவு:", byReviewer: "ஊராட்சி அலுவலர் பதிவு", voiceNote: "குரல் குறிப்பு", play: "▶ கேள்",
-    operators: "ஆபரேட்டர்கள்", opHint: "ஆபரேட்டர் தன் கைபேசி எண் + அதன் கடைசி 4 இலக்கத்துடன் எந்த போனிலும் உள்நுழையலாம், அல்லது WhatsApp இணைப்பைத் தொடலாம். போன் தொலைந்தால் 'எல்லா போன்களிலும் வெளியேற்று'.",
+    operators: "ஆபரேட்டர்கள்", opHint: "ஆபரேட்டர் தன் கைபேசி எண் + அதன் கடைசி 4 இலக்கத்துடன் எந்த போனிலும் உள்நுழையலாம், அல்லது WhatsApp இணைப்பைத் தொடலாம். புதியவரை '+ ஆபரேட்டரைச் சேர்' மூலம் சேர்க்கவும். போன் தொலைந்தால் 'எல்லா போன்களிலும் வெளியேற்று'.",
     setPin: "புதிய PIN", resetDevice: "எல்லா போன்களிலும் வெளியேற்று", waLink: "WhatsApp-ல் ஆப் இணைப்பு", pinIs: "புதிய PIN", tellOp: "ஆபரேட்டரிடம் நேரில் சொல்லவும். இது மீண்டும் காட்டப்படாது.",
     phonesIn: "{n} போனில் உள்நுழைந்துள்ளார்", noDevice: "இன்னும் உள்நுழையவில்லை", deviceReset: "எல்லா போன்களிலும் வெளியேற்றப்பட்டது. எண் + கடைசி 4 இலக்கத்துடன் மீண்டும் உள்நுழையலாம்.",
     qSource: "ஆதாரத்தில் போதுமான தண்ணீர் இருந்ததா?", qPump: "பம்ப் சரியாக இயங்கியதா?", qGlr: "தொட்டி போதுமான அளவு நிரம்பியதா?", dYes: "ஆம்", dNo: "இல்லை", dUnknown: "தெரியவில்லை",
@@ -267,6 +274,12 @@ const T = {
     role_state: "மாநில அலுவலர்", role_district: "மாவட்ட அலுவலர்", role_block: "வட்டார வளர்ச்சி அலுவலர் (BDO)", role_panchayat: "ஊராட்சி அலுவலர்",
     staffSaved: "சேமிக்கப்பட்டது. எண் + கடைசி 4 இலக்கத்துடன் இப்போதே உள்நுழையலாம்.", staffRemoved: "நீக்கப்பட்டது", noStaffYet: "இன்னும் யாரும் சேர்க்கப்படவில்லை.",
     badPhone: "10 இலக்க கைபேசி எண்ணை உள்ளிடவும்.", nameRequired: "பெயரை உள்ளிடவும்.", notAllowed: "அனுமதி இல்லை: இந்த எண் உங்கள் பகுதிக்கு வெளியே உள்ள ஒருவருடையது.",
+    addOperator: "+ ஆபரேட்டரைச் சேர்", nameTa: "தமிழில் பெயர் (விருப்பம்)", tanksRun: "இவர் இயக்கும் தொட்டிகள்", nowWith: "தற்போது:", noOperator: "ஆபரேட்டர் இல்லை",
+    pickTank: "குறைந்தது ஒரு தொட்டியைத் தேர்வு செய்யவும்.", phoneInUse: "இந்த எண் ஏற்கனவே வேறு ஆபரேட்டரிடம் உள்ளது.", notAllowedOp: "அனுமதி இல்லை: இது உங்கள் ஊராட்சிக்கு வெளியே உள்ளது.",
+    opSaved: "சேமிக்கப்பட்டது. WhatsApp-ல் ஆப் இணைப்பை அனுப்பவும், அல்லது அவர் எண் + கடைசி 4 இலக்கத்துடன் உள்நுழையலாம்.",
+    confirmRemoveOp: "{name} நீக்கவா? வேறொருவருக்கு ஒதுக்கும் வரை அவரது தொட்டிகளுக்கு ஆபரேட்டர் இருக்க மாட்டார்.",
+    noTanks: "இந்த எண்ணுக்கு தொட்டி எதுவும் ஒதுக்கப்படவில்லை. ஊராட்சி அலுவலரிடம் கேட்கவும்.",
+    newHereOp: "புதியவரா? உங்கள் எண்ணை ஊராட்சி அலுவலர் சேர்ப்பார்.", newHereStaff: "புதியவரா? உங்கள் எண்ணை மேல் அலுவலர் தன் டாஷ்போர்டில் சேர்ப்பார்.",
     pinLocked: "பல முறை தவறான PIN. 15 நிமிடம் கழித்து முயற்சிக்கவும் அல்லது ஊராட்சி அலுவலரிடம் புதிய PIN கேட்கவும்.",
     notRegistered: "இந்த எண் அலுவலராக பதிவு செய்யப்படவில்லை. மேல் அலுவலரை அணுகவும்.",
     extSupply: "{who} மூலம் தண்ணீர் — இந்த ஆப்பில் பதிவு இல்லை",
@@ -305,7 +318,7 @@ const T = {
     review: "Review", pending: "Pending", confirmed: "Confirmed", flagged: "Flagged", confirm: "Confirm", flag: "Flag as incorrect", notePh: "Action taken / remarks",
     reviewTitle: "Panchayat review — today", reviewHint: "Check each tank's report and confirm it. For a tank with no report, call the operator and record it yourself.",
     nothingToReview: "Nothing to review today.", recordFor: "Record on behalf of operator:", byReviewer: "Entered by panchayat officer", voiceNote: "Voice note", play: "▶ Play",
-    operators: "Operators", opHint: "Operators sign in on any phone with their mobile number and its last 4 digits, or by tapping the WhatsApp link. Lost phone? Tap Sign out all phones.",
+    operators: "Operators", opHint: "Operators sign in on any phone with their mobile number and its last 4 digits, or by tapping the WhatsApp link. Add someone new with + Add operator. Lost phone? Tap Sign out all phones.",
     setPin: "New PIN", resetDevice: "Sign out all phones", waLink: "Send app link on WhatsApp", pinIs: "New PIN", tellOp: "Tell the operator in person. It will not be shown again.",
     phonesIn: "Signed in on {n} phone(s)", noDevice: "Not signed in yet", deviceReset: "Signed out of all phones. They sign in again with the number and its last 4 digits.",
     qSource: "Was sufficient water available in the source?", qPump: "Did the pump operate normally?", qGlr: "Was the tank adequately filled?", dYes: "Yes", dNo: "No", dUnknown: "Don't know",
@@ -318,6 +331,12 @@ const T = {
     role_state: "State officer", role_district: "District officer", role_block: "Block officer (BDO)", role_panchayat: "Panchayat officer",
     staffSaved: "Saved. They can sign in now with the number and its last 4 digits.", staffRemoved: "Removed", noStaffYet: "No one added yet.",
     badPhone: "Enter a 10-digit mobile number.", nameRequired: "Enter the name.", notAllowed: "Not allowed: this number belongs to someone outside your area.",
+    addOperator: "+ Add operator", nameTa: "Name in Tamil (optional)", tanksRun: "Tanks they run", nowWith: "now with", noOperator: "no operator",
+    pickTank: "Tick at least one tank.", phoneInUse: "Another operator already has this number.", notAllowedOp: "Not allowed: that is outside your panchayat.",
+    opSaved: "Saved. Send them the app link on WhatsApp, or they sign in with the number and its last 4 digits.",
+    confirmRemoveOp: "Remove {name}? Their tanks will have no operator until you give them to someone.",
+    noTanks: "No tanks are assigned to this number. Ask your panchayat officer.",
+    newHereOp: "New here? Your panchayat officer adds your number.", newHereStaff: "New here? Your senior officer adds your number from their dashboard.",
     pinLocked: "Too many wrong PINs. Try again in 15 minutes, or ask the panchayat officer for a new PIN.",
     notRegistered: "This number is not registered as an officer. Ask your senior officer.",
     extSupply: "water supplied by {who} — not reported in this app",
@@ -452,6 +471,14 @@ const RK = "reports_v7";
 const istToday = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 const dayOffset = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); };
 const nowIso = () => new Date().toISOString();
+// Demo: operators added or changed on this phone are kept like the reports; "Reset demo data" brings back the sheet.
+const DEMO_SHEET = JSON.stringify({ operators: DEMO.operators, tanks: DEMO.glrs.map((g) => [g.id, g.op]) });
+function loadDemoOps() {
+  const s = store.get("ops", null) ?? JSON.parse(DEMO_SHEET), tanks = new Map(s.tanks);
+  DEMO.operators = s.operators; DEMO.glrs.forEach((g) => { g.op = tanks.get(g.id) ?? null; });
+}
+const saveDemoOps = () => store.set("ops", { operators: DEMO.operators, tanks: DEMO.glrs.map((g) => [g.id, g.op]) });
+if (!LIVE) loadDemoOps();
 
 let state = {
   lang: store.get("lang", "ta"),
@@ -463,6 +490,7 @@ let state = {
   filterBlock: 0, filterStatus: "all",
   busy: false, error: "", info: "", loginPhone: "",
   staffForm: null,                          // officer page: the Add / Change person form ({ phone, name, role, place, edit, error })
+  opForm: null, justAdded: null,            // review page: the Add / Change operator form; the operator just added
   prefs: store.get("prefs", { email: true, wa: false, digest: true }),
 };
 const t = (k) => T[state.lang][k] ?? k;
@@ -513,14 +541,56 @@ const data = {
       const { data: rows, error } = await sb.rpc("operator_login", { p_phone: phone, p_pin: pin, p_device: deviceId() });
       if (error) return { error: navigator.onLine ? "badLogin" : "offline" };
       const r0 = rows?.[0];
-      if (!r0 || r0.err) return { error: AUTH_KEY[r0?.err] ?? "badLogin" };
+      if (!r0) return { error: "noTanks" };   // signed in, but no tank is theirs right now
+      if (r0.err) return { error: AUTH_KEY[r0.err] ?? "badLogin" };
       return opFromRows(rows, phone);
     }
     const o = DEMO.operators.find((x) => x.phone === phone);
     const pins = store.get("pins", {});
     if (!o) return { error: "notRegOp" };
     if (pin !== (pins[o.id] ?? phone.slice(-4))) return { error: "wrongDigits" };   // last 4 digits, unless a personal PIN was set
-    return demoOp(o);
+    const op = demoOp(o);
+    return op.glrs.length ? op : { error: "noTanks" };
+  },
+  // The signed-in operator as the server knows them now (the panchayat officer may have changed their name, number or
+  // tanks). { error } = signed out, removed or no tanks; null = could not check (offline), keep what we have.
+  async refreshOp() {
+    if (LIVE) {
+      const { data: rows, error } = await sb.rpc("operator_login", { p_phone: state.op.phone, p_pin: null, p_device: deviceId() });
+      if (error) return null;
+      const r0 = rows?.[0];
+      if (!r0) return { error: "noTanks" };
+      if (r0.err) return { error: r0.err === "unknown" ? "notRegOp" : r0.err === "locked" ? "pinLocked" : "signInAgain" };
+      return opFromRows(rows, state.op.phone);
+    }
+    const o = DEMO.operators.find((x) => x.id === state.op.id);
+    const op = o && demoOp(o);
+    return !op ? { error: "notRegOp" } : op.phone !== state.op.phone ? { error: "signInAgain" } : op.glrs.length ? op : { error: "noTanks" };
+  },
+  // Add an operator or change one ({ id | null, panchayat_id, name, ta, phone, glrIds }); remove one.
+  async saveOperator(f) {
+    const phone = digits10(f.phone), name = f.name.trim(), ta = (f.ta ?? "").trim();
+    if (!name) throw new Error(t("nameRequired"));
+    if (!/^[6-9]\d{9}$/.test(phone)) throw new Error(t("badPhone"));
+    if (!f.glrIds.length) throw new Error(t("pickTank"));
+    if (LIVE) {
+      const { data: id, error } = await sb.rpc("save_operator", { p_id: f.id ?? null, p_panchayat_id: f.panchayat_id, p_name: name, p_name_ta: ta || null, p_phone: phone, p_glr_ids: f.glrIds });
+      if (error) throw new Error(error.code === "23505" ? t("phoneInUse") : error.code === "42501" ? t("notAllowedOp") : error.message);
+      return id;
+    }
+    if (DEMO.operators.some((o) => o.phone === phone && o.id !== f.id)) throw new Error(t("phoneInUse"));
+    let o = DEMO.operators.find((x) => x.id === f.id);
+    if (!o) { o = { id: Math.max(0, ...DEMO.operators.map((x) => x.id)) + 1, p: f.panchayat_id }; DEMO.operators.push(o); }
+    Object.assign(o, { name, ta, phone });
+    DEMO.glrs.forEach((g) => { if (f.glrIds.includes(g.id)) g.op = o.id; else if (g.op === o.id) g.op = null; });
+    saveDemoOps();
+    return o.id;
+  },
+  async removeOperator(id) {
+    if (LIVE) { const { error } = await sb.rpc("remove_operator", { p_id: id }); if (error) throw error; return; }
+    DEMO.operators = DEMO.operators.filter((o) => o.id !== id);
+    DEMO.glrs.forEach((g) => { if (g.op === id) g.op = null; });
+    saveDemoOps();
   },
   // The usual way in: the one-time link the panchayat officer sent on WhatsApp. Nothing to type.
   async join(code) {
@@ -801,6 +871,7 @@ function renderOperatorLogin() {
       <div class="field"><label class="label" for="pin">${esc(t("pin"))}</label><input id="pin" class="big" inputmode="numeric" maxlength="4" placeholder="••••"></div>
       ${state.error ? `<div class="err">${esc(t(state.error))}</div>` : ""}
       <div style="margin-top:16px"><button class="btn" id="loginBtn" ${state.busy ? "disabled" : ""}>${esc(t(state.busy ? "opening" : "login"))}</button></div>
+      <p class="newhere">${esc(t("newHereOp"))}</p>
     </div>
   </div>`;
   bindPhoneField("phone", "pin");
@@ -913,9 +984,17 @@ async function save(glrs, status, problem) {
   } catch (e) {
     // Signed out by the panchayat officer, number removed or locked since sign-in: back to the sign-in screen with the reason.
     if (e.authKey) { state.op = null; store.set("op", null); state.error = e.authKey === "wrongDigits" ? "signInAgain" : e.authKey; }
-    else state.error = e.message || String(e);
+    else { state.error = e.message || String(e); syncOp(); }   // e.g. a tank moved to another operator meanwhile
   }
   state.busy = false; render();
+}
+// Each time the app opens: pick up a changed name, number or tank list; a removed or signed-out operator goes back to sign-in.
+async function syncOp() {
+  if (!state.op) return;
+  const res = await data.refreshOp().catch(() => null);
+  if (!res || !state.op) return;
+  if (res.error) { state.op = null; store.set("op", null); state.error = res.error; return render(); }
+  if (JSON.stringify(res) !== JSON.stringify(state.op)) { state.op = res; store.set("op", res); render(); }
 }
 
 let rec = null, chunks = [], recTimer = null;
@@ -952,6 +1031,7 @@ function renderStaffLogin() {
       <div class="field"><label class="label" for="offPin">${esc(t("pin"))}</label><input id="offPin" class="big" inputmode="numeric" maxlength="4" placeholder="••••"></div>
       ${state.error ? `<div class="err">${esc(t(state.error))}</div>` : ""}
       <div style="margin-top:16px"><button class="btn" id="offLogin" ${state.busy ? "disabled" : ""}>${esc(t(state.busy ? "opening" : "signIn"))}</button></div>
+      <p class="newhere">${esc(t("newHereStaff"))}</p>
     </div>
   </div>`;
   bindPhoneField("offPhone", "offPin");
@@ -984,7 +1064,7 @@ function renderNotRegistered() {
 }
 function signOutBtn() { const o = state.officer ?? {}; return `<div class="sub">${esc(o.name || o.phone || o.email || "")} · <button class="link" id="signOut">${esc(t("signOut"))}</button></div>`; }
 function bindSignOut() { document.getElementById("signOut")?.addEventListener("click", async () => { if (LIVE) await sb.auth.signOut(); state.officer = null; store.set("staff_" + ROLE, null); render(); }); }
-function bindReset() { document.getElementById("resetDemo")?.addEventListener("click", () => { try { ["nn." + RK, "nn.pins", "nn.devices", "nn.staff", "nn.staffDev"].forEach((k) => localStorage.removeItem(k)); } catch {} seedDemo(); state.rvDraft = {}; state.newPins = {}; state.staffForm = null; render(); }); }
+function bindReset() { document.getElementById("resetDemo")?.addEventListener("click", () => { try { ["nn." + RK, "nn.pins", "nn.devices", "nn.staff", "nn.staffDev", "nn.ops"].forEach((k) => localStorage.removeItem(k)); } catch {} loadDemoOps(); seedDemo(); state.rvDraft = {}; state.newPins = {}; state.staffForm = state.opForm = state.justAdded = null; render(); }); }
 function bindPlay(list) {
   app.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", async () => {
     const i = +b.dataset.play, url = await data.voiceUrl(list[i]); if (!url) return;
@@ -1069,15 +1149,20 @@ async function renderReview() {
     ${extLine(myExt)}
     <div class="rv">${ordered || `<div class="card" style="color:var(--muted)">${esc(t("nothingToReview"))}</div>`}</div>
 
-    <div class="section-h" style="margin-top:8px"><h3>${esc(t("operators"))}</h3><span class="label">${myOps.length}</span></div>
+    <div class="section-h" style="margin-top:8px"><h3>${esc(t("operators"))} <span class="label">${myOps.length}</span></h3>
+      ${state.opForm ? "" : `<button class="link" id="addOp">${esc(t("addOperator"))}</button>`}</div>
     <p style="margin:-4px 0 0;color:var(--muted);font-size:14px">${esc(t("opHint"))}</p>
+    ${opForm(mine)}
     <div class="rv">${myOps.map((o) => `<div class="rv-item">
         <div class="rv-top"><div><b>${esc(nm(o))}</b> <span class="sub">· ${esc(o.phone)}</span><div class="sub">${o.glrCount} ${esc(t("tanks"))} · ${esc(o.phones ? t("phonesIn").replace("{n}", o.phones) : t("noDevice"))}${o.lastLink ? ` · ${esc(t("linkSent"))} ${esc(fmtDate(String(o.lastLink).slice(0, 10)))}` : ""}</div></div></div>
         ${state.newPins[o.id] ? `<div class="pinbox">${esc(t("pinIs"))}: <b>${esc(state.newPins[o.id])}</b><br>${esc(t("tellOp"))}</div>` : ""}
+        ${state.justAdded === o.id ? `<div class="pinbox">${esc(t("opSaved"))}</div>` : ""}
         <div class="rv-actions">
           <button class="wa" data-walink="${o.id}">${esc(t("waLink"))}</button>
           <button data-resetdev="${o.id}" ${o.phones ? "" : "disabled"}>${esc(t("resetDevice"))}</button>
           <button data-setpin="${o.id}">${esc(t("setPin"))}</button>
+          <button data-editop="${o.id}">${esc(t("editPerson"))}</button>
+          <button class="flag" data-removeop="${o.id}">${esc(t("removePerson"))}</button>
         </div>
       </div>`).join("")}</div>
     ${LIVE ? "" : `<div style="text-align:center"><button class="link" id="resetDemo">${esc(t("reset"))}</button></div>`}
@@ -1125,6 +1210,55 @@ async function renderReview() {
     try { await data.resetDevice(+b.dataset.resetdev); toast(t("deviceReset")); } catch (e) { toast(e.message); }
     render();
   }));
+  bindOpForm();
+  document.getElementById("addOp")?.addEventListener("click", () => {
+    state.opForm = { id: null, panchayat_id: LIVE ? mine[0]?.panchayat_id : pid, name: "", ta: "", phone: "", glrIds: [], scroll: true }; render();
+  });
+  app.querySelectorAll("[data-editop]").forEach((b) => b.addEventListener("click", () => {
+    const o = myOps.find((x) => x.id === +b.dataset.editop);
+    state.opForm = { id: o.id, panchayat_id: o.panchayat_id, name: o.name, ta: o.ta ?? "", phone: o.phone, glrIds: mine.filter((r) => r.operator_id === o.id).map((r) => r.id), scroll: true }; render();
+  }));
+  app.querySelectorAll("[data-removeop]").forEach((b) => b.addEventListener("click", async () => {
+    const o = myOps.find((x) => x.id === +b.dataset.removeop);
+    if (!confirm(t("confirmRemoveOp").replace("{name}", nm(o)))) return;
+    try { await data.removeOperator(o.id); toast(t("staffRemoved")); } catch (e) { toast(e.message); }
+    render();
+  }));
+}
+
+// ---------------------------------------------------------------- operators: add / change (panchayat officer, or the block / district above)
+// Name, number and the tanks they run, ticked from the panchayat's tank list. A tank ticked here moves from its
+// current operator (shown beside it), so a hand-over is one save.
+function opForm(rows) {
+  const f = state.opForm; if (!f) return "";
+  const pans = [...new Map(rows.map((r) => [r.panchayat_id, { id: r.panchayat_id, name: r.panchayat, ta: r.panchayatTa }])).values()];
+  if (!pans.some((p) => p.id === f.panchayat_id)) f.panchayat_id = pans[0]?.id;
+  const tanks = rows.filter((r) => r.panchayat_id === f.panchayat_id).sort((a, b) => String(a.code).localeCompare(String(b.code)));
+  const who = (r) => r.operator_id && r.operator_id !== f.id ? ` · ${t("nowWith")} ${nm2(r.operator, r.operatorTa)}` : !r.operator_id ? ` · ${t("noOperator")}` : "";
+  return `<div class="card op-form">
+    <div class="field" style="margin-top:0"><label class="label" for="ofName">${esc(t("name"))}</label><input id="ofName" autocomplete="off" value="${esc(f.name)}"></div>
+    <div class="field"><label class="label" for="ofTa">${esc(t("nameTa"))}</label><input id="ofTa" lang="ta" autocomplete="off" value="${esc(f.ta)}"></div>
+    <div class="field"><label class="label" for="ofPhone">${esc(t("mobile"))}</label><input id="ofPhone" inputmode="tel" autocomplete="off" placeholder="9876543210" value="${esc(f.phone)}"></div>
+    ${pans.length > 1 && !f.id ? `<div class="field"><label class="label" for="ofPan">${esc(t("panchayat"))}</label><select id="ofPan">${pans.map((p) => `<option value="${p.id}" ${p.id === f.panchayat_id ? "selected" : ""}>${esc(nm(p))}</option>`).join("")}</select></div>` : ""}
+    <div class="field"><div class="label">${esc(t("tanksRun"))}</div>
+      <div class="tankpick">${tanks.map((r) => `<label><input type="checkbox" value="${r.id}" ${f.glrIds.includes(r.id) ? "checked" : ""}>
+        <span>${kindTag(r.kind)} <b>${esc(nm(r))}</b> <span class="sub">· ${esc(nm2(r.hab, r.habTa))}${esc(who(r))}</span></span></label>`).join("")}</div></div>
+    ${f.error ? `<div class="err">${esc(f.error)}</div>` : ""}
+    <div class="rv-actions"><button class="ok" id="ofSave">${esc(t("save"))}</button><button id="ofCancel">${esc(t("cancel"))}</button></div>
+  </div>`;
+}
+function bindOpForm() {
+  const f = state.opForm; if (!f) return;
+  const $ = (id) => document.getElementById(id);
+  if (f.scroll) { f.scroll = false; app.querySelector(".op-form")?.scrollIntoView({ block: "start" }); }
+  const keep = () => { f.name = $("ofName").value; f.ta = $("ofTa").value; f.phone = $("ofPhone").value; f.glrIds = [...app.querySelectorAll(".tankpick input:checked")].map((c) => +c.value); };
+  $("ofPan")?.addEventListener("change", () => { keep(); f.panchayat_id = +$("ofPan").value; f.glrIds = []; render(); });
+  $("ofCancel").addEventListener("click", () => { state.opForm = null; render(); });
+  $("ofSave").addEventListener("click", async () => {
+    keep(); f.error = ""; $("ofSave").disabled = true; $("ofSave").textContent = t("saving");
+    try { const id = await data.saveOperator(f); state.opForm = null; state.justAdded = f.id ? null : id; toast(t("saved")); } catch (e) { f.error = e.message; }
+    render();
+  });
 }
 
 // ---------------------------------------------------------------- staff: add / change a person (district and block officers)
@@ -1320,7 +1454,7 @@ const joinCode = ROLE === "op" ? new URLSearchParams(location.hash.slice(1)).get
 if (joinCode) {
   history.replaceState(null, "", location.pathname + location.search);   // the code works once; keep it out of the address bar
   openLink(joinCode);
-} else { if (state.op) here(); flushQueue(); render(); }
+} else { if (state.op) here(); flushQueue(); render(); syncOp(); }
 
 async function openLink(code) {
   app.innerHTML = `<div class="page op"><div class="card wa-card"><h2>${esc(t("opening"))}</h2></div></div>`;
@@ -1335,5 +1469,6 @@ async function openLink(code) {
   }
   if (state.op) here();   // ask "allow location?" now, while the operator is looking, and warm up a fix
   flushQueue(); render();
+  if (res.error) syncOp();
 }
 </script>
