@@ -202,6 +202,16 @@ td.time{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:no
 .play{border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;margin-top:6px}
 .pinbox{margin-top:8px;background:var(--warn-bg);border-radius:10px;padding:10px 12px;font-size:14px}
 .pinbox b{font-family:var(--mono);font-size:22px;letter-spacing:.2em}
+.demo-pick{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px}
+.demo-pick .label{width:100%}
+.staff-form{margin-bottom:10px}
+.staff-row{display:flex;flex-direction:column;gap:2px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.staff-row:last-child{border-bottom:0;padding-bottom:0}
+.staff-row .h{font-weight:600}
+.staff-row .s{font-size:13px;color:var(--muted)}
+.staff-acts{display:flex;gap:18px;flex-wrap:wrap;margin-top:4px}
+.link.danger{color:var(--bad)}
+.link:disabled{color:var(--muted)}
 .credit{max-width:960px;margin:0 auto;padding:8px 16px 28px;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.02em}
 .credit b{font-weight:600;color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -238,7 +248,10 @@ const T = {
     operatorSub: "நீர் நிலை · தினசரி தண்ணீர் பதிவு", reviewSub: "நீர் நிலை · ஊராட்சி சரிபார்ப்பு", officerSub: "நீர் நிலை · அலுவலர் டாஷ்போர்டு",
     loginTitle: "உள்நுழைவு", phone: "உங்கள் கைபேசி எண்", pin: "எண்ணின் கடைசி 4 இலக்கம்", login: "உள்நுழை",
     loginHint: "பதிவு செய்யப்பட்ட கைபேசி எண்ணையும் அதன் கடைசி 4 இலக்கத்தையும் உள்ளிடவும்.",
-    badLogin: "எண் பதிவு செய்யப்படவில்லை அல்லது இலக்கம் தவறு.", deviceLocked: "இந்த எண் வேறு போனில் பயன்பாட்டில் உள்ளது. ஊராட்சி அலுவலரை அணுகவும்.",
+    badLogin: "உள்நுழைய முடியவில்லை. எண்ணைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.", deviceLocked: "இந்த எண் வேறு போனில் பயன்பாட்டில் உள்ளது. ஊராட்சி அலுவலரை அணுகவும்.",
+    wrongDigits: "இலக்கம் தவறு. உங்கள் கைபேசி எண்ணின் கடைசி 4 இலக்கத்தை உள்ளிடவும்.", signInAgain: "மீண்டும் உள்நுழையவும்.",
+    notRegOp: "இந்த எண் பதிவு செய்யப்படவில்லை. ஊராட்சி அலுவலரிடம் சேர்க்கச் சொல்லவும்.",
+    notRegStaff: "இந்த எண் அலுவலராக பதிவு செய்யப்படவில்லை. மேல் அலுவலரிடம் சேர்க்கச் சொல்லவும்.",
     staffDevice: "இந்த எண் ஏற்கனவே இரண்டு கருவிகளில் உள்நுழைந்துள்ளது. மேல் அலுவலரிடம் மீட்டமைக்கச் சொல்லவும்.",
     opDemoHint: "டெமோ: ஒருவரை தேர்வு செய்து, எண்ணின் கடைசி 4 இலக்கத்தை உள்ளிடவும்", logout: "வெளியேறு",
     bigq: "இன்று தண்ணீர் வந்ததா?", bigqAll: "இன்று எல்லா தொட்டிக்கும் தண்ணீர் வந்ததா?", allTanks: "அனைத்து தொட்டிகள்", tanks: "தொட்டிகள்",
@@ -255,15 +268,21 @@ const T = {
     review: "சரிபார்ப்பு", pending: "நிலுவை", confirmed: "உறுதி", flagged: "குறியிடப்பட்டது", confirm: "உறுதி செய்", flag: "தவறு எனக் குறி", notePh: "எடுத்த நடவடிக்கை / குறிப்பு",
     reviewTitle: "ஊராட்சி சரிபார்ப்பு — இன்று", reviewHint: "ஒவ்வொரு தொட்டி பதிவையும் சரிபார்த்து உறுதி செய்யவும். பதிவு இல்லாத தொட்டிக்கு ஆபரேட்டரை அழைத்து நீங்களே பதிவு செய்யலாம்.",
     nothingToReview: "இன்று சரிபார்க்க பதிவுகள் இல்லை.", recordFor: "ஆபரேட்டர் சார்பாக பதிவு:", byReviewer: "ஊராட்சி அலுவலர் பதிவு", voiceNote: "குரல் குறிப்பு", play: "▶ கேள்",
-    operators: "ஆபரேட்டர்கள்", opHint: "ஆபரேட்டர் தன் கைபேசி எண் + அதன் கடைசி 4 இலக்கத்துடன் உள்நுழைவார். ஒரு எண்ணுக்கு ஒரு போன் மட்டும்; போன் மாறினால் 'போனை மீட்டமை'.",
-    setPin: "புதிய PIN", resetDevice: "போனை மீட்டமை", waLink: "WhatsApp-ல் ஆப் இணைப்பு", pinIs: "புதிய PIN", tellOp: "ஆபரேட்டரிடம் நேரில் சொல்லவும். இது மீண்டும் காட்டப்படாது.",
-    deviceBound: "போன் இணைக்கப்பட்டது", noDevice: "இன்னும் உள்நுழையவில்லை", deviceReset: "போன் மீட்டமைக்கப்பட்டது. அடுத்த உள்நுழைவில் புதிய போன் இணையும்.",
+    operators: "ஆபரேட்டர்கள்", opHint: "ஆபரேட்டர் தன் கைபேசி எண் + அதன் கடைசி 4 இலக்கத்துடன் எந்த போனிலும் உள்நுழையலாம், அல்லது WhatsApp இணைப்பைத் தொடலாம். போன் தொலைந்தால் 'எல்லா போன்களிலும் வெளியேற்று'.",
+    setPin: "புதிய PIN", resetDevice: "எல்லா போன்களிலும் வெளியேற்று", waLink: "WhatsApp-ல் ஆப் இணைப்பு", pinIs: "புதிய PIN", tellOp: "ஆபரேட்டரிடம் நேரில் சொல்லவும். இது மீண்டும் காட்டப்படாது.",
+    phonesIn: "{n} போனில் உள்நுழைந்துள்ளார்", noDevice: "இன்னும் உள்நுழையவில்லை", deviceReset: "எல்லா போன்களிலும் வெளியேற்றப்பட்டது. எண் + கடைசி 4 இலக்கத்துடன் மீண்டும் உள்நுழையலாம்.",
     qSource: "ஆதாரத்தில் போதுமான தண்ணீர் இருந்ததா?", qPump: "பம்ப் சரியாக இயங்கியதா?", qGlr: "தொட்டி போதுமான அளவு நிரம்பியதா?", dYes: "ஆம்", dNo: "இல்லை", dUnknown: "தெரியவில்லை",
     pickOne: "ஒரு தொட்டி மட்டும் வேறா? அதைத் தொடவும்", changeTank: "ஒரு தொட்டியை மாற்ற கீழே தொடவும்", panchayat: "ஊராட்சி",
     call: "அழை", allNormal: "அனைத்தும் வழக்கம்", oneByOne: "ஒவ்வொன்றாக பதிவு", saving: "சேமிக்கிறது…",
-    staffTitle: "அலுவலர்கள்", staffHint: "ஒவ்வொருவரும் அதிகபட்சம் 2 கருவிகளில் உள்நுழையலாம். போன் மாறினால் 'கருவிகளை மீட்டமை'.", devices: "கருவி", resetDevices: "கருவிகளை மீட்டமை", devicesReset: "மீட்டமைக்கப்பட்டது",
+    staffTitle: "அலுவலர்கள்", staffHint: "நீங்கள் கவனிக்கும் அலுவலர்கள். அவர்கள் தங்கள் கைபேசி எண் + கடைசி 4 இலக்கத்துடன் எந்த போன் அல்லது கணினியிலும் உள்நுழையலாம்.",
+    devicesIn: "{n} கருவிகளில் உள்நுழைவு", resetDevices: "எல்லா கருவிகளிலும் வெளியேற்று", devicesReset: "வெளியேற்றப்பட்டது",
+    addPerson: "+ நபரைச் சேர்", editPerson: "மாற்று", removePerson: "நீக்கு", confirmRemove: "{name} நீக்கவா? அவர் இனி உள்நுழைய முடியாது.",
+    name: "பெயர்", mobile: "கைபேசி எண்", roleL: "பொறுப்பு", placeL: "இடம்", save: "சேமி", cancel: "ரத்து",
+    role_state: "மாநில அலுவலர்", role_district: "மாவட்ட அலுவலர்", role_block: "வட்டார வளர்ச்சி அலுவலர் (BDO)", role_panchayat: "ஊராட்சி அலுவலர்",
+    staffSaved: "சேமிக்கப்பட்டது. எண் + கடைசி 4 இலக்கத்துடன் இப்போதே உள்நுழையலாம்.", staffRemoved: "நீக்கப்பட்டது", noStaffYet: "இன்னும் யாரும் சேர்க்கப்படவில்லை.",
+    badPhone: "10 இலக்க கைபேசி எண்ணை உள்ளிடவும்.", nameRequired: "பெயரை உள்ளிடவும்.", notAllowed: "அனுமதி இல்லை: இந்த எண் உங்கள் பகுதிக்கு வெளியே உள்ள ஒருவருடையது.",
     pinLocked: "பல முறை தவறான PIN. 15 நிமிடம் கழித்து முயற்சிக்கவும் அல்லது ஊராட்சி அலுவலரிடம் புதிய PIN கேட்கவும்.",
-    notRegistered: "இந்த மின்னஞ்சல் அலுவலராக பதிவு செய்யப்படவில்லை. நிர்வாகியை அணுகவும்.",
+    notRegistered: "இந்த எண் அலுவலராக பதிவு செய்யப்படவில்லை. மேல் அலுவலரை அணுகவும்.",
     extSupply: "{who} மூலம் தண்ணீர் — இந்த ஆப்பில் பதிவு இல்லை",
     silentNote: "மதியம் வரை பதிவு இல்லை", officerTitle: "மாவட்ட நிலை — இன்று",
     settings: "அறிவிப்பு அமைப்புகள்", notifyIn: "பயன்பாட்டில்", notifyEmail: "மின்னஞ்சல்", notifyWa: "வாட்ஸ்அப்", digest: "மதியம் 12:00 சுருக்கம்", alwaysOn: "எப்போதும்", free: "இலவசம்", cheap: "ஒரு செய்திக்கு ≈ ₹0.12",
@@ -273,14 +292,17 @@ const T = {
     waText: "நீர் நிலை ஆப்\nஇந்த இணைப்பைத் தொடவும்: {url}\nகேட்டால், உங்கள் கைபேசி எண்ணையும் அதன் கடைசி 4 இலக்கத்தையும் உள்ளிடவும். தினமும் தண்ணீர் வந்ததா என்று ஒரு பொத்தானை தொடவும்.",
     waOpenTitle: "WhatsApp இணைப்பைத் தொடவும்", waOpenHint: "ஊராட்சி அலுவலர் உங்கள் WhatsApp-க்கு ஒரு இணைப்பு அனுப்புவார். அதைத் தொட்டால் ஆப் திறக்கும். எதுவும் தட்டச்சு செய்ய வேண்டாம்.",
     pinTitle: "எண் மற்றும் PIN மூலம் உள்நுழை", noWhatsapp: "WhatsApp இல்லையா? எண் மற்றும் PIN மூலம் உள்நுழை", opening: "திறக்கிறது…",
-    linkBad: "இந்த இணைப்பு ஏற்கனவே பயன்படுத்தப்பட்டது அல்லது காலாவதியானது. ஊராட்சி அலுவலரிடம் புதிய இணைப்பு கேட்கவும்.",
+    linkBad: "இந்த இணைப்பு காலாவதியானது. உங்கள் எண் + கடைசி 4 இலக்கத்துடன் உள்நுழையவும், அல்லது ஊராட்சி அலுவலரிடம் புதிய இணைப்பு கேட்கவும்.",
     mapLink: "இடம்", noLocation: "இடம் பதிவாகவில்லை", linkSent: "இணைப்பு அனுப்பப்பட்டது",
   },
   en: {
     operatorSub: "நீர் நிலை · Daily water report", reviewSub: "நீர் நிலை · Panchayat review", officerSub: "நீர் நிலை · Officer dashboard",
     loginTitle: "Sign in", phone: "Your mobile number", pin: "Last 4 digits of the number", login: "Sign in",
     loginHint: "Enter your registered mobile number and its last 4 digits.",
-    badLogin: "Number not registered, or wrong digits.", deviceLocked: "This number is already in use on another phone. Contact the panchayat officer.",
+    badLogin: "Could not sign in. Check the number and try again.", deviceLocked: "This number is already in use on another phone. Contact the panchayat officer.",
+    wrongDigits: "Wrong digits. Type the last 4 digits of your mobile number.", signInAgain: "Please sign in again.",
+    notRegOp: "This number is not registered. Ask your panchayat officer to add it.",
+    notRegStaff: "This number is not registered as staff. Ask your senior officer to add you.",
     staffDevice: "This number is already signed in on two devices. Ask your senior officer to reset it.",
     opDemoHint: "Demo: pick a person, then type the last 4 digits of the number", logout: "Sign out",
     bigq: "Did water come today?", bigqAll: "Did water come to all tanks today?", allTanks: "All tanks", tanks: "tanks",
@@ -297,15 +319,21 @@ const T = {
     review: "Review", pending: "Pending", confirmed: "Confirmed", flagged: "Flagged", confirm: "Confirm", flag: "Flag as incorrect", notePh: "Action taken / remarks",
     reviewTitle: "Panchayat review — today", reviewHint: "Check each tank's report and confirm it. For a tank with no report, call the operator and record it yourself.",
     nothingToReview: "Nothing to review today.", recordFor: "Record on behalf of operator:", byReviewer: "Entered by panchayat officer", voiceNote: "Voice note", play: "▶ Play",
-    operators: "Operators", opHint: "Operators sign in with their mobile number and its last 4 digits. One phone per number; if they change phones, tap Reset phone.",
-    setPin: "New PIN", resetDevice: "Reset phone", waLink: "Send app link on WhatsApp", pinIs: "New PIN", tellOp: "Tell the operator in person. It will not be shown again.",
-    deviceBound: "Phone linked", noDevice: "Not signed in yet", deviceReset: "Phone reset. The next sign-in will link a new phone.",
+    operators: "Operators", opHint: "Operators sign in on any phone with their mobile number and its last 4 digits, or by tapping the WhatsApp link. Lost phone? Tap Sign out all phones.",
+    setPin: "New PIN", resetDevice: "Sign out all phones", waLink: "Send app link on WhatsApp", pinIs: "New PIN", tellOp: "Tell the operator in person. It will not be shown again.",
+    phonesIn: "Signed in on {n} phone(s)", noDevice: "Not signed in yet", deviceReset: "Signed out of all phones. They sign in again with the number and its last 4 digits.",
     qSource: "Was sufficient water available in the source?", qPump: "Did the pump operate normally?", qGlr: "Was the tank adequately filled?", dYes: "Yes", dNo: "No", dUnknown: "Don't know",
     pickOne: "Only one tank different? Tap it", changeTank: "To change one tank, tap it below", panchayat: "Panchayat",
     call: "Call", allNormal: "All normal", oneByOne: "Tank by tank", saving: "Saving…",
-    staffTitle: "Staff", staffHint: "Each person can be signed in on up to 2 devices. If someone changes phones, tap Reset devices.", devices: "devices", resetDevices: "Reset devices", devicesReset: "Devices reset",
+    staffTitle: "Staff", staffHint: "People you look after. They sign in with their mobile number and its last 4 digits, on any phone or computer.",
+    devicesIn: "signed in on {n} device(s)", resetDevices: "Sign out everywhere", devicesReset: "Signed out everywhere",
+    addPerson: "+ Add person", editPerson: "Change", removePerson: "Remove", confirmRemove: "Remove {name}? They will no longer be able to sign in.",
+    name: "Name", mobile: "Mobile number", roleL: "Role", placeL: "Place", save: "Save", cancel: "Cancel",
+    role_state: "State officer", role_district: "District officer", role_block: "Block officer (BDO)", role_panchayat: "Panchayat officer",
+    staffSaved: "Saved. They can sign in now with the number and its last 4 digits.", staffRemoved: "Removed", noStaffYet: "No one added yet.",
+    badPhone: "Enter a 10-digit mobile number.", nameRequired: "Enter the name.", notAllowed: "Not allowed: this number belongs to someone outside your area.",
     pinLocked: "Too many wrong PINs. Try again in 15 minutes, or ask the panchayat officer for a new PIN.",
-    notRegistered: "This email is not registered as an officer. Contact the administrator.",
+    notRegistered: "This number is not registered as an officer. Ask your senior officer.",
     extSupply: "water supplied by {who} — not reported in this app",
     silentNote: "No report by noon", officerTitle: "District status — today",
     settings: "Notification settings", notifyIn: "In-app", notifyEmail: "Email", notifyWa: "WhatsApp", digest: "12:00 noon digest", alwaysOn: "Always on", free: "Free", cheap: "≈ ₹0.12 per message",
@@ -315,7 +343,7 @@ const T = {
     waText: "Neer Nilai app\nTap this link: {url}\nIf asked, enter your mobile number and its last 4 digits. Every day, tap one button to say whether water came.",
     waOpenTitle: "Tap the WhatsApp link", waOpenHint: "Your panchayat officer will send you a link on WhatsApp. Tap it and the app opens. Nothing to type.",
     pinTitle: "Sign in with number and PIN", noWhatsapp: "No WhatsApp? Sign in with number and PIN", opening: "Opening…",
-    linkBad: "This link was already used or has expired. Ask the panchayat officer for a new link.",
+    linkBad: "This link has expired. Sign in with your number and its last 4 digits, or ask the panchayat officer for a new link.",
     mapLink: "Location", noLocation: "No location recorded", linkSent: "Link sent",
   }
 };
@@ -381,8 +409,8 @@ const DEMO = {
   staff: [
     { phone: "9000000102", name: "VP Masinagudi (demo)", ta: "மசினகுடி ஊராட்சி அலுவலர் (டெமோ)", role: "panchayat", p: 2 },
     { phone: "9000000101", name: "VP Kookal (demo)", ta: "கூக்கல் ஊராட்சி அலுவலர் (டெமோ)", role: "panchayat", p: 1 },
-    { phone: "9000000100", name: "District officer (demo)", ta: "மாவட்ட அலுவலர் (டெமோ)", role: "district" },
-    { phone: "9000000103", name: "BDO Gudalur (demo)", ta: "கூடலூர் வட்டார அலுவலர் (டெமோ)", role: "block" },
+    { phone: "9000000100", name: "District officer (demo)", ta: "மாவட்ட அலுவலர் (டெமோ)", role: "district", d: 1 },
+    { phone: "9000000103", name: "BDO Gudalur (demo)", ta: "கூடலூர் வட்டார அலுவலர் (டெமோ)", role: "block", b: 2 },
   ],
   glrs: [
     { id: 1,  h: 1, op: 1, kind: "GLR", code: "NLG-UDH-KKL-01", name: "Kookal 1",     ta: "கூக்கல் 1",     location: "Near Hethaiyamman temple", capacity: 30000 },
@@ -447,7 +475,8 @@ let state = {
   officer: store.get("staff_" + ROLE, null),
   rvDraft: {}, rvOpen: {}, newPins: {},
   filterBlock: 0, filterStatus: "all",
-  busy: false, error: "", info: "",
+  busy: false, error: "", info: "", loginPhone: "",
+  staffForm: null,                          // officer page: the Add / Change person form ({ phone, name, role, place, edit, error })
   prefs: store.get("prefs", { email: true, wa: false, digest: true }),
 };
 const t = (k) => T[state.lang][k] ?? k;
@@ -491,9 +520,9 @@ const opFromRows = (rows, phone) => { const r0 = rows[0]; return { id: r0.operat
     panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta })) }; };
 const demoOp = (o) => ({ id: o.id, name: o.name, ta: o.ta, phone: o.phone, pin: null, glrs: DEMO.glrs.filter((g) => g.op === o.id).map(glrInfo) });
 const data = {
-  // Fallback sign-in: number + PIN (for an operator without WhatsApp). Binds this phone.
+  // Number + last 4 digits (or a personal PIN), on any phone. Signs this phone in.
   async login(phone, pin) {
-    phone = phone.replace(/\D/g, "").slice(-10);
+    phone = digits10(phone);
     if (LIVE) {
       const { data: rows, error } = await sb.rpc("operator_login", { p_phone: phone, p_pin: pin, p_device: deviceId() });
       if (error) return { error: navigator.onLine ? "badLogin" : "offline" };
@@ -503,7 +532,8 @@ const data = {
     }
     const o = DEMO.operators.find((x) => x.phone === phone);
     const pins = store.get("pins", {});
-    if (!o || pin !== (pins[o.id] ?? phone.slice(-4))) return { error: "badLogin" };   // last 4 digits, unless a personal PIN was set
+    if (!o) return { error: "notRegOp" };
+    if (pin !== (pins[o.id] ?? phone.slice(-4))) return { error: "wrongDigits" };   // last 4 digits, unless a personal PIN was set
     return demoOp(o);
   },
   // The usual way in: the one-time link the panchayat officer sent on WhatsApp. Nothing to type.
@@ -518,13 +548,45 @@ const data = {
     const o = DEMO.operators.find((x) => `demo-${x.id}` === code);
     return o ? demoOp(o) : { error: "linkBad" };
   },
-  // Staff a senior officer looks after (for "Reset devices" when someone changes phones).
+  // Staff a senior officer looks after: add, change, remove, sign out everywhere.
   async staffList() {
-    if (LIVE) { const { data: rows, error } = await sb.from("v_staff").select("*").order("role").order("name"); if (error) throw error; return rows.map((r) => ({ phone: r.phone, name: r.name, role: r.role, devices: r.devices })); }
-    return DEMO.staff.map((s) => ({ ...s, devices: s.role === "district" ? 2 : 1 }));
+    if (LIVE) {
+      const { data: rows, error } = await sb.from("v_staff").select("*").order("role").order("name"); if (error) throw error;
+      return rows.map((r) => ({ phone: r.phone, name: r.name, role: r.role, devices: r.devices, placeId: r.place_id, place: r.place, placeTa: r.place_ta }));
+    }
+    const me = state.officer, dev = store.get("staffDev", {});
+    return demoStaff().filter((s) => s.phone !== me.phone && (me.role === "district" || me.role === "block" && s.role === "panchayat" && DEMO.panchayats.find((p) => p.id === s.p)?.b === me.block_id))
+      .map((s) => { const pl = demoPlace(s); return { phone: s.phone, name: s.name, ta: s.ta, role: s.role, devices: dev[s.phone] ?? 1, placeId: pl?.id, place: pl?.name, placeTa: pl?.ta }; });
+  },
+  // Roles and places the signed-in officer may give someone: [{ role, id, name, ta, parent, parentTa }].
+  async staffPlaces() {
+    if (LIVE) {
+      const { data: rows, error } = await sb.rpc("staff_places"); if (error) return [];
+      return rows.map((r) => ({ role: r.role, id: r.place_id, name: r.name, ta: r.name_ta, parent: r.parent, parentTa: r.parent_ta }));
+    }
+    const me = state.officer, blk = (id) => DEMO.blocks.find((b) => b.id === id);
+    if (me.role === "block") return DEMO.panchayats.filter((p) => p.b === me.block_id).map((p) => ({ role: "panchayat", id: p.id, name: p.name, ta: p.ta, parent: blk(p.b).name, parentTa: blk(p.b).ta }));
+    if (me.role !== "district") return [];
+    return [{ role: "district", id: DEMO.district.id, name: DEMO.district.name, ta: DEMO.district.ta },
+      ...DEMO.blocks.map((b) => ({ role: "block", id: b.id, name: b.name, ta: b.ta, parent: DEMO.district.name, parentTa: DEMO.district.ta })),
+      ...DEMO.panchayats.map((p) => ({ role: "panchayat", id: p.id, name: p.name, ta: p.ta, parent: blk(p.b).name, parentTa: blk(p.b).ta }))];
+  },
+  async saveStaff(phone, name, role, place) {
+    phone = digits10(phone); name = name.trim();
+    if (!/^[6-9]\d{9}$/.test(phone)) throw new Error(t("badPhone"));
+    if (!name) throw new Error(t("nameRequired"));
+    if (LIVE) { const { error } = await sb.rpc("save_staff", { p_phone: phone, p_name: name, p_role: role, p_place: place }); if (error) throw new Error(error.code === "42501" ? t("notAllowed") : error.message); return; }
+    const list = demoStaff().filter((s) => s.phone !== phone);
+    list.push({ phone, name, role, ...(role === "district" ? { d: place } : role === "block" ? { b: place } : { p: place }) });
+    store.set("staff", list);
+  },
+  async removeStaff(phone) {
+    if (LIVE) { const { error } = await sb.rpc("remove_staff", { p_phone: phone }); if (error) throw error; return; }
+    store.set("staff", demoStaff().filter((s) => s.phone !== phone));
   },
   async resetStaff(phone) {
-    if (LIVE) { const { error } = await sb.rpc("reset_staff_devices", { p_phone: phone }); if (error) throw error; }
+    if (LIVE) { const { error } = await sb.rpc("reset_staff_devices", { p_phone: phone }); if (error) throw error; return; }
+    store.set("staffDev", { ...store.get("staffDev", {}), [phone]: 0 });
   },
   async createLink(opId) {
     if (LIVE) { const { data: code, error } = await sb.rpc("create_operator_link", { p_operator_id: opId }); if (error) throw error; return code; }
@@ -603,10 +665,10 @@ const data = {
     if (LIVE) {
       const { data: rows, error } = await sb.from("v_operators").select("*");
       if (error) throw error;
-      return rows.map((r) => ({ id: r.id, name: r.name, ta: r.name_ta, phone: r.phone, glrCount: r.glr_count, bound: !!r.bound, panchayat_id: r.panchayat_id, lastLink: r.last_link_at }));
+      return rows.map((r) => ({ id: r.id, name: r.name, ta: r.name_ta, phone: r.phone, glrCount: r.glr_count, phones: r.phones ?? (r.bound ? 1 : 0), panchayat_id: r.panchayat_id, lastLink: r.last_link_at }));
     }
     const dev = store.get("devices", {});
-    return DEMO.operators.map((o) => ({ ...o, glrCount: DEMO.glrs.filter((g) => g.op === o.id).length, bound: !!dev[o.id], panchayat_id: o.p }));
+    return DEMO.operators.map((o) => ({ ...o, glrCount: DEMO.glrs.filter((g) => g.op === o.id).length, phones: dev[o.id] ? 1 : 0, panchayat_id: o.p }));
   },
   async setPin(opId, pin) {
     if (LIVE) { const { error } = await sb.rpc("set_operator_pin", { p_operator_id: opId, p_pin: pin }); if (error) throw error; return; }
@@ -639,8 +701,14 @@ const data = {
     return d?.signedUrl ?? null;
   },
 };
-// Operator functions answer a wrong PIN, a lockout or another phone with a code instead of an error.
-const AUTH_KEY = { bad: "badLogin", locked: "pinLocked", device: "deviceLocked" };
+// Operator functions answer an unknown number, a wrong PIN or a lockout with a code instead of an error
+// ("device" only comes from an older database that still allowed one phone per operator).
+const AUTH_KEY = { unknown: "notRegOp", bad: "wrongDigits", locked: "pinLocked", device: "deviceLocked" };
+// Mobile number as typed, pasted or autofilled ("+91 98765 43210", "098765-43210") → its 10 digits.
+const digits10 = (s) => String(s ?? "").replace(/\D/g, "").slice(-10);
+// Demo staff: the built-in list plus anyone added on this phone.
+const demoStaff = () => store.get("staff", DEMO.staff);
+const demoPlace = (s) => s.p ? DEMO.panchayats.find((p) => p.id === s.p) : s.b ? DEMO.blocks.find((b) => b.id === s.b) : s.d ? DEMO.district : null;
 const authError = (code) => Object.assign(new Error(t(AUTH_KEY[code] ?? "badLogin")), { authKey: AUTH_KEY[code] ?? "badLogin" });
 // This phone's secret: 32 random bytes made once on the phone. Once linked, it is the operator's key (the server keeps only a hash).
 function deviceId() {
@@ -720,27 +788,39 @@ function render() {
 }
 
 // ---------------------------------------------------------------- operator: phone + PIN, 3 big buttons, 6 picture tiles, done
+// Number field shared by every sign-in: no length limit, so "+91 98765 43210" or an autofilled number still fits
+// (only the last 10 digits are used). The demo lists its sample people underneath; a tap fills the number in.
+const phoneField = (id, people) => `<div class="field"><label class="label" for="${id}">${esc(t("phone"))}</label>
+  <input id="${id}" class="big" inputmode="tel" autocomplete="tel" placeholder="9876543210" value="${esc(state.loginPhone)}"></div>
+  ${people ? `<div class="demo-pick"><div class="label">${esc(t(ROLE === "op" ? "opDemoHint" : "officerDemoHint"))}</div>${people.map((p) => `<button class="link" data-fill="${esc(p.phone)}">${esc(nm(p))} · ${esc(p.phone)}</button>`).join("")}</div>` : ""}`;
+function bindPhoneField(id, pinId) {
+  const el = document.getElementById(id);
+  el.addEventListener("input", () => { state.loginPhone = el.value; });
+  app.querySelectorAll("[data-fill]").forEach((b) => b.addEventListener("click", () => { el.value = state.loginPhone = b.dataset.fill; document.getElementById(pinId).focus(); }));
+}
+
 function renderOperatorLogin() {
-  const opts = DEMO.panchayats.map((p) => `<optgroup label="${esc(nm(p))}">${DEMO.operators.filter((o) => o.p === p.id).map((o) => `<option value="${o.phone}" ${o.id === 6 ? "selected" : ""}>${esc(nm(o))} · ${esc(o.phone)}</option>`).join("")}</optgroup>`).join("");
-  // Mobile number + its last 4 digits. Signed in once, the phone stays signed in.
+  // Mobile number + its last 4 digits, on any phone. Signed in once, the phone stays signed in.
   app.innerHTML = `<div class="page op">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
     <div class="card">
       <h2 style="font-size:22px;font-weight:700">${esc(t("loginTitle"))}</h2>
       <p style="margin:6px 0 0;color:var(--muted);font-size:15px">${esc(t("loginHint"))}</p>
-      <div class="field"><label class="label" for="phone">${esc(t("phone"))}</label>
-        ${LIVE ? `<input id="phone" class="big" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="98765 43210">` : `<select id="phone">${opts}</select>`}</div>
+      ${phoneField("phone", LIVE ? null : DEMO.operators)}
       <div class="field"><label class="label" for="pin">${esc(t("pin"))}</label><input id="pin" class="big" inputmode="numeric" maxlength="4" placeholder="••••"></div>
       ${state.error ? `<div class="err">${esc(t(state.error))}</div>` : ""}
-      <div style="margin-top:16px"><button class="btn" id="loginBtn">${esc(t("login"))}</button></div>
-      ${LIVE ? "" : `<p style="font-size:13px;color:var(--muted);margin:12px 0 0">${esc(t("opDemoHint"))}</p>`}
+      <div style="margin-top:16px"><button class="btn" id="loginBtn" ${state.busy ? "disabled" : ""}>${esc(t(state.busy ? "opening" : "login"))}</button></div>
     </div>
   </div>`;
+  bindPhoneField("phone", "pin");
   document.getElementById("loginBtn")?.addEventListener("click", async () => {
-    const res = await data.login(document.getElementById("phone").value, document.getElementById("pin").value);
+    const phone = document.getElementById("phone").value, pin = document.getElementById("pin").value.trim();
+    state.busy = true; state.error = ""; state.loginPhone = phone; render();
+    const res = await data.login(phone, pin).catch(() => ({ error: navigator.onLine ? "badLogin" : "offline" }));
+    state.busy = false;
     if (res.error) { state.error = res.error; return render(); }
     if (!LIVE) { const dev = store.get("devices", {}); dev[res.id] = deviceId(); store.set("devices", dev); }
-    state.error = ""; state.op = res; state.active = res.glrs.length > 1 ? "all" : 0; state.step = "home";
+    state.error = ""; state.loginPhone = ""; state.op = res; state.active = res.glrs.length > 1 ? "all" : 0; state.step = "home";
     store.set("op", res); store.set("active", state.active); here(); render();
   });
 }
@@ -838,8 +918,8 @@ async function save(glrs, status, problem) {
     state.editing = false; state.step = "home"; state.pick = null;
     toast(res.queued ? t("offline") : t("saved"));
   } catch (e) {
-    // PIN changed or number locked since sign-in: back to the sign-in screen with the reason.
-    if (e.authKey) { state.op = null; store.set("op", null); state.error = e.authKey; }
+    // Signed out by the panchayat officer, number removed or locked since sign-in: back to the sign-in screen with the reason.
+    if (e.authKey) { state.op = null; store.set("op", null); state.error = e.authKey === "wrongDigits" ? "signInAgain" : e.authKey; }
     else state.error = e.message || String(e);
   }
   state.busy = false; render();
@@ -866,37 +946,39 @@ function stopVoice() { if (rec && rec.state === "recording") rec.stop(); }
 // ---------------------------------------------------------------- staff sign-in (panchayat reviewer, block/district officer)
 // Staff sign in like operators: mobile number + its last 4 digits. Live: the staff-login edge function checks them
 // and hands back a one-time token that becomes a normal Supabase session. No email, no SMS.
+// Any staff number works on either page: a block or district officer on the review page sees their whole area.
+const STAFF_ERR = { unknown: "notRegStaff", bad: "wrongDigits", locked: "pinLocked", device: "staffDevice" };
 function renderStaffLogin() {
-  const demoStaff = DEMO.staff.filter((s) => ROLE === "rv" ? s.role === "panchayat" : s.role !== "panchayat");
+  const demoPeople = demoStaff().filter((s) => ROLE === "rv" ? s.role === "panchayat" : s.role !== "panchayat");
   app.innerHTML = `<div class="page">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
     <div class="card">
       <h2 style="font-size:20px;font-weight:700">${esc(t(ROLE === "rv" ? "reviewLogin" : "officerLogin"))}</h2>
       <p style="margin:6px 0 0;color:var(--muted);font-size:15px">${esc(t("loginHint"))}</p>
-      <div class="field"><label class="label" for="offPhone">${esc(t("phone"))}</label>
-        ${LIVE ? `<input id="offPhone" class="big" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="98765 43210">`
-          : `<select id="offPhone">${demoStaff.map((s) => `<option value="${s.phone}">${esc(nm(s))} · ${esc(s.phone)}</option>`).join("")}</select>`}</div>
+      ${phoneField("offPhone", LIVE ? null : demoPeople)}
       <div class="field"><label class="label" for="offPin">${esc(t("pin"))}</label><input id="offPin" class="big" inputmode="numeric" maxlength="4" placeholder="••••"></div>
       ${state.error ? `<div class="err">${esc(t(state.error))}</div>` : ""}
       <div style="margin-top:16px"><button class="btn" id="offLogin" ${state.busy ? "disabled" : ""}>${esc(t(state.busy ? "opening" : "signIn"))}</button></div>
-      ${LIVE ? "" : `<p style="font-size:13px;color:var(--muted);margin:12px 0 0">${esc(t("officerDemoHint"))}</p>`}
     </div>
   </div>`;
+  bindPhoneField("offPhone", "offPin");
   document.getElementById("offLogin").addEventListener("click", async () => {
-    const phone = document.getElementById("offPhone").value.replace(/\D/g, "").slice(-10), pin = document.getElementById("offPin").value.trim();
+    const phone = digits10(document.getElementById("offPhone").value), pin = document.getElementById("offPin").value.trim();
     state.error = "";
     if (!LIVE) {
-      const s = DEMO.staff.find((x) => x.phone === phone);
-      if (!s || pin !== phone.slice(-4)) { state.error = "badLogin"; return render(); }
-      state.officer = { name: s.name, phone, role: s.role, panchayat_id: s.p ?? null }; store.set("staff_" + ROLE, state.officer); return render();
+      const s = demoStaff().find((x) => x.phone === phone);
+      if (!s || pin !== phone.slice(-4)) { state.error = s ? "wrongDigits" : "notRegStaff"; return render(); }
+      state.loginPhone = "";
+      state.officer = { name: s.name, phone, role: s.role, panchayat_id: s.p ?? null, block_id: s.b ?? null, district_id: s.d ?? null }; store.set("staff_" + ROLE, state.officer); return render();
     }
     state.busy = true; render();
     try {
       const { data: r, error } = await sb.functions.invoke("staff-login", { body: { phone, pin, device: deviceId() } });
-      if (error || !r?.token_hash) state.error = r?.err === "device" ? "staffDevice" : r?.err === "locked" ? "pinLocked" : navigator.onLine ? "badLogin" : "offline";
+      if (error || !r?.token_hash) state.error = STAFF_ERR[r?.err] ?? (navigator.onLine ? "badLogin" : "offline");
       else {
         const { error: e2 } = await sb.auth.verifyOtp({ token_hash: r.token_hash, type: "magiclink" });
         if (e2) state.error = "badLogin";   // on success onAuthStateChange loads the officer record and renders the page
+        else state.loginPhone = "";
       }
     } catch { state.error = "badLogin"; }
     state.busy = false;
@@ -909,7 +991,7 @@ function renderNotRegistered() {
 }
 function signOutBtn() { const o = state.officer ?? {}; return `<div class="sub">${esc(o.name || o.phone || o.email || "")} · <button class="link" id="signOut">${esc(t("signOut"))}</button></div>`; }
 function bindSignOut() { document.getElementById("signOut")?.addEventListener("click", async () => { if (LIVE) await sb.auth.signOut(); state.officer = null; store.set("staff_" + ROLE, null); render(); }); }
-function bindReset() { document.getElementById("resetDemo")?.addEventListener("click", () => { try { localStorage.removeItem("nn." + RK); localStorage.removeItem("nn.pins"); localStorage.removeItem("nn.devices"); } catch {} seedDemo(); state.rvDraft = {}; state.newPins = {}; render(); }); }
+function bindReset() { document.getElementById("resetDemo")?.addEventListener("click", () => { try { ["nn." + RK, "nn.pins", "nn.devices", "nn.staff", "nn.staffDev"].forEach((k) => localStorage.removeItem(k)); } catch {} seedDemo(); state.rvDraft = {}; state.newPins = {}; state.staffForm = null; render(); }); }
 function bindPlay(list) {
   app.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", async () => {
     const i = +b.dataset.play, url = await data.voiceUrl(list[i]); if (!url) return;
@@ -995,11 +1077,11 @@ async function renderReview() {
     <div class="section-h" style="margin-top:8px"><h3>${esc(t("operators"))}</h3><span class="label">${myOps.length}</span></div>
     <p style="margin:-4px 0 0;color:var(--muted);font-size:14px">${esc(t("opHint"))}</p>
     <div class="rv">${myOps.map((o) => `<div class="rv-item">
-        <div class="rv-top"><div><b>${esc(nm(o))}</b> <span class="sub">· ${esc(o.phone)}</span><div class="sub">${o.glrCount} ${esc(t("tanks"))} · ${esc(o.bound ? t("deviceBound") : t("noDevice"))}${o.lastLink ? ` · ${esc(t("linkSent"))} ${esc(fmtDate(String(o.lastLink).slice(0, 10)))}` : ""}</div></div></div>
+        <div class="rv-top"><div><b>${esc(nm(o))}</b> <span class="sub">· ${esc(o.phone)}</span><div class="sub">${o.glrCount} ${esc(t("tanks"))} · ${esc(o.phones ? t("phonesIn").replace("{n}", o.phones) : t("noDevice"))}${o.lastLink ? ` · ${esc(t("linkSent"))} ${esc(fmtDate(String(o.lastLink).slice(0, 10)))}` : ""}</div></div></div>
         ${state.newPins[o.id] ? `<div class="pinbox">${esc(t("pinIs"))}: <b>${esc(state.newPins[o.id])}</b><br>${esc(t("tellOp"))}</div>` : ""}
         <div class="rv-actions">
           <button class="wa" data-walink="${o.id}">${esc(t("waLink"))}</button>
-          <button data-resetdev="${o.id}" ${o.bound ? "" : "disabled"}>${esc(t("resetDevice"))}</button>
+          <button data-resetdev="${o.id}" ${o.phones ? "" : "disabled"}>${esc(t("resetDevice"))}</button>
           <button data-setpin="${o.id}">${esc(t("setPin"))}</button>
         </div>
       </div>`).join("")}</div>
@@ -1027,7 +1109,7 @@ async function renderReview() {
     try { for (const i of silentGroups.get(b.dataset.rvall) ?? []) await data.recordFor(list[i], "yes", null, ""); toast(t("saved")); } catch (e) { toast(e.message); }
     render();
   }));
-  // A fresh one-time link for this operator, sent from the officer's own WhatsApp to the operator's registered number.
+  // A fresh sign-in link for this operator (works on any phone for 30 days), sent from the officer's own WhatsApp to the operator's registered number.
   app.querySelectorAll("[data-walink]").forEach((b) => b.addEventListener("click", async () => {
     const o = myOps.find((x) => x.id === +b.dataset.walink); if (!o) return;
     const w = window.open("about:blank", "_blank");   // opened inside the tap so the browser allows it; pointed at WhatsApp below
@@ -1050,10 +1132,42 @@ async function renderReview() {
   }));
 }
 
+// ---------------------------------------------------------------- staff: add / change a person (district and block officers)
+// The role list and each role's places come from the server (staff_places), so nobody can pick outside their area.
+const ROLE_ORDER = ["district", "block", "panchayat"];
+const placeOpts = (places, role, sel) => places.filter((p) => p.role === role)
+  .map((p) => `<option value="${p.id}" ${p.id === sel ? "selected" : ""}>${esc(nm(p))}${p.parent ? ` · ${esc(nm2(p.parent, p.parentTa))}` : ""}</option>`).join("");
+function staffForm(places) {
+  const f = state.staffForm; if (!f) return "";
+  const roles = ROLE_ORDER.filter((r) => places.some((p) => p.role === r));
+  if (!roles.includes(f.role)) f.role = roles.includes("panchayat") ? "panchayat" : roles[0];
+  if (!places.some((p) => p.role === f.role && p.id === f.place)) f.place = places.find((p) => p.role === f.role)?.id;
+  return `<div class="card staff-form">
+    <div class="field" style="margin-top:0"><label class="label" for="sfName">${esc(t("name"))}</label><input id="sfName" autocomplete="off" value="${esc(f.name)}"></div>
+    <div class="field"><label class="label" for="sfPhone">${esc(t("mobile"))}</label><input id="sfPhone" inputmode="tel" autocomplete="off" placeholder="9876543210" value="${esc(f.phone)}" ${f.edit ? "readonly" : ""}></div>
+    <div class="field"><label class="label" for="sfRole">${esc(t("roleL"))}</label><select id="sfRole">${roles.map((r) => `<option value="${r}" ${r === f.role ? "selected" : ""}>${esc(t("role_" + r))}</option>`).join("")}</select></div>
+    <div class="field"><label class="label" for="sfPlace">${esc(t("placeL"))}</label><select id="sfPlace">${placeOpts(places, f.role, f.place)}</select></div>
+    ${f.error ? `<div class="err">${esc(f.error)}</div>` : ""}
+    <div class="rv-actions"><button class="ok" id="sfSave">${esc(t("save"))}</button><button id="sfCancel">${esc(t("cancel"))}</button></div>
+  </div>`;
+}
+function bindStaffForm(places) {
+  const f = state.staffForm; if (!f) return;
+  const $ = (id) => document.getElementById(id);
+  const keep = () => { f.name = $("sfName").value; f.phone = $("sfPhone").value; f.place = +$("sfPlace").value; };
+  $("sfRole").addEventListener("change", () => { f.role = $("sfRole").value; f.place = places.find((p) => p.role === f.role)?.id; $("sfPlace").innerHTML = placeOpts(places, f.role, f.place); });
+  $("sfCancel").addEventListener("click", () => { state.staffForm = null; render(); });
+  $("sfSave").addEventListener("click", async () => {
+    keep(); f.error = ""; $("sfSave").disabled = true; $("sfSave").textContent = t("saving");
+    try { await data.saveStaff(f.phone, f.name, f.role, f.place); state.staffForm = null; toast(t("staffSaved")); } catch (e) { f.error = e.message; }
+    render();
+  });
+}
+
 // ---------------------------------------------------------------- block / district officer
 async function renderOfficer() {
-  let rows, ext, staff;
-  try { rows = await data.today(); ext = await data.external(); staff = await data.staffList().catch(() => []); } catch (e) { app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  let rows, ext, staff, places;
+  try { rows = await data.today(); ext = await data.external(); staff = await data.staffList().catch(() => []); places = await data.staffPlaces().catch(() => []); } catch (e) { app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
   const cnt = (s) => rows.filter((r) => r.status === s).length;
   const yes = cnt("yes"), partial = cnt("partial"), no = cnt("no"), silent = cnt("not_reported"), total = rows.length || 1;
   const blocks = [...new Map(rows.map((r) => [r.block_id, { id: r.block_id, name: r.block, ta: r.blockTa }])).values()];
@@ -1117,10 +1231,18 @@ async function renderOfficer() {
           <div class="row"><div><div class="h">${esc(t("notifyWa"))}</div><div class="s">${esc(t("cheap"))}</div></div><button class="switch" data-pref="wa" role="switch" aria-checked="${prefs.wa}" aria-label="WhatsApp"></button></div>
           <div class="row"><div><div class="h">${esc(t("digest"))}</div><div class="s">${esc(t("free"))}</div></div><button class="switch" data-pref="digest" role="switch" aria-checked="${prefs.digest}" aria-label="Digest"></button></div>
         </div>
-        ${staff.length ? `<div class="section-h" style="margin-top:16px"><h3>${esc(t("staffTitle"))}</h3><span class="label">${staff.length}</span></div>
+        ${places.length || staff.length ? `<div class="section-h" style="margin-top:16px"><h3>${esc(t("staffTitle"))} <span class="label">${staff.length}</span></h3>
+          ${places.length && !state.staffForm ? `<button class="link" id="addStaff">${esc(t("addPerson"))}</button>` : ""}</div>
         <p style="margin:-4px 0 8px;color:var(--muted);font-size:13px">${esc(t("staffHint"))}</p>
-        <div class="card settings">${staff.map((s) => `<div class="row"><div><div class="h">${esc(nm(s))}</div><div class="s">${esc(s.phone)} · ${s.devices}/2 ${esc(t("devices"))}</div></div>
-          <button class="link" data-resetstaff="${esc(s.phone)}" ${s.devices ? "" : "disabled"} style="${s.devices ? "" : "color:var(--muted)"}">${esc(t("resetDevices"))}</button></div>`).join("")}</div>` : ""}
+        ${staffForm(places)}
+        <div class="card settings">${staff.length ? staff.map((s) => `<div class="staff-row">
+            <div class="h">${esc(nm(s))}</div>
+            <div class="s">${esc(t("role_" + s.role))}${s.place ? ` · ${esc(nm2(s.place, s.placeTa))}` : ""} · ${esc(s.phone)} · ${esc(s.devices ? t("devicesIn").replace("{n}", s.devices) : t("noDevice"))}</div>
+            <div class="staff-acts">
+              ${places.some((p) => p.role === s.role) ? `<button class="link" data-editstaff="${esc(s.phone)}">${esc(t("editPerson"))}</button>` : ""}
+              <button class="link" data-resetstaff="${esc(s.phone)}" ${s.devices ? "" : "disabled"}>${esc(t("resetDevices"))}</button>
+              <button class="link danger" data-removestaff="${esc(s.phone)}">${esc(t("removePerson"))}</button>
+            </div></div>`).join("") : `<div class="staff-row"><div class="s">${esc(t("noStaffYet"))}</div></div>`}</div>` : ""}
       </div>
     </div>
     <div class="card">
@@ -1152,6 +1274,18 @@ async function renderOfficer() {
     try { await data.resetStaff(b.dataset.resetstaff); toast(t("devicesReset")); } catch (e) { toast(e.message); }
     render();
   }));
+  bindStaffForm(places);
+  document.getElementById("addStaff")?.addEventListener("click", () => { state.staffForm = { name: "", phone: "", role: null, place: null }; render(); });
+  app.querySelectorAll("[data-editstaff]").forEach((b) => b.addEventListener("click", () => {
+    const s = staff.find((x) => x.phone === b.dataset.editstaff);
+    state.staffForm = { name: s.name, phone: s.phone, role: s.role, place: s.placeId, edit: true }; render();
+  }));
+  app.querySelectorAll("[data-removestaff]").forEach((b) => b.addEventListener("click", async () => {
+    const s = staff.find((x) => x.phone === b.dataset.removestaff);
+    if (!confirm(t("confirmRemove").replace("{name}", nm(s)))) return;
+    try { await data.removeStaff(s.phone); toast(t("staffRemoved")); } catch (e) { toast(e.message); }
+    render();
+  }));
 }
 
 // ---------------------------------------------------------------- shell
@@ -1167,8 +1301,9 @@ if (LIVE && ROLE !== "op") {
   async function applySession(session) {
     let next = null;
     if (session?.user) {
-      const { data: me } = await sb.from("officers").select("panchayat_id, role, name, phone").eq("id", session.user.id).maybeSingle();
-      next = { email: session.user.email, name: me?.name, phone: me?.phone, panchayat_id: me?.panchayat_id ?? null, role: me?.role };
+      // select * so an older database without the `active` column still signs people in.
+      const { data: me } = await sb.from("officers").select("*").eq("id", session.user.id).maybeSingle();
+      next = { email: session.user.email, name: me?.name, phone: me?.phone, panchayat_id: me?.panchayat_id ?? null, role: me?.active === false ? undefined : me?.role };
     }
     if (JSON.stringify(next) !== JSON.stringify(state.officer)) { state.officer = next; store.set("staff_" + ROLE, next); render(); }   // also picks up a role granted after the first sign-in
   }

@@ -3,8 +3,9 @@
 -- A tank is a GLR (ground level reservoir) or an OHT (overhead tank); both live in table glrs, told apart by `kind`.
 -- A habitation supplied by another body (e.g. Singara by TNEB) has no tanks and carries a supply_note instead.
 -- Identity: each tank has a registered pump operator (name + mobile number, from the block's list).
---   Operator signs in with mobile number + 4-digit PIN given by the panchayat officer. One phone per operator.
---   Panchayat officer reviews; block/district officers watch the dashboard. Staff are registered by email in officer_invites.
+--   Everyone (operators and staff) signs in with mobile number + its last 4 digits, on any phone or computer;
+--   operators can also tap the WhatsApp link the panchayat officer sends.
+--   Panchayat officer reviews; block/district officers watch the dashboard and add the staff below them (table staff).
 -- Run in the Supabase SQL editor. Safe to re-run. Then run supabase/private/*.sql (real phone numbers, staff emails).
 
 create extension if not exists pgcrypto;
@@ -28,13 +29,17 @@ create table if not exists operators (
   pin_fails        int not null default 0,                                    -- wrong PINs since the last good one
   pin_locked_until timestamptz,                                               -- set after 5 wrong PINs
   device_id        text,                                                      -- (older versions: plain device id; no longer used)
-  device_hash      text,                                                      -- sha256 of the bound phone's secret; reset by panchayat officer
-  device_bound_at  timestamptz,
+  device_hash      text,                                                      -- (older versions: the one bound phone; moved into device_hashes)
+  device_hashes    text[] not null default '{}',                              -- sha256 of each signed-in phone's secret (last 10)
+  device_bound_at  timestamptz,                                               -- when a phone last signed in for the first time
   active           boolean not null default true
 );
 alter table operators add column if not exists pin_fails int not null default 0;
 alter table operators add column if not exists pin_locked_until timestamptz;
 alter table operators add column if not exists device_hash text;
+alter table operators add column if not exists device_hashes text[] not null default '{}';
+-- Older versions allowed one phone per operator: that phone stays signed in.
+update operators set device_hashes = array_append(device_hashes, device_hash), device_hash = null where device_hash is not null;
 
 create table if not exists glrs (
   id             serial primary key,
@@ -81,8 +86,10 @@ create table if not exists officers (
   phone          text,
   alert_email    boolean not null default true,
   alert_whatsapp boolean not null default false,
-  alert_digest   boolean not null default true
+  alert_digest   boolean not null default true,
+  active         boolean not null default true          -- false once the person is removed from staff: sees nothing
 );
+alter table officers add column if not exists active boolean not null default true;
 
 -- Register staff by email. Their first magic-link sign-in creates the officers row (trigger below);
 -- apply_officer_invites() does the same for people who signed in before they were registered.
@@ -97,7 +104,8 @@ create table if not exists officer_invites (
 
 -- Staff (panchayat officers, block and district officers) sign in like operators: mobile number + last 4 digits.
 -- The staff-login edge function checks them here, then opens a normal Supabase session for the matching officers row.
--- Up to 2 devices per person (phone + computer); a third is refused until reset_staff_devices().
+-- Any number of devices; the last 10 are remembered so a senior officer can see them and sign them all out.
+-- District and block officers add, change and remove the staff below them from the dashboard (save_staff, remove_staff).
 create table if not exists staff (
   phone            text primary key check (phone ~ '^[6-9][0-9]{9}$'),
   name             text not null,
@@ -113,16 +121,17 @@ create table if not exists staff (
   active           boolean not null default true
 );
 
--- One-time WhatsApp links: the panchayat officer sends one to the operator's registered number; opening it signs the
--- operator in on that phone with no typing. Only a hash of the code is stored; a code works once, for 7 days.
+-- WhatsApp links: the panchayat officer sends one to the operator's registered number; opening it signs the operator in
+-- with no typing, on any phone, for 30 days (a newer link replaces it). Only a hash of the code is stored.
 create table if not exists operator_links (
   code_hash      text primary key,
   operator_id    int not null references operators(id) on delete cascade,
   created_by     uuid references officers(id),
   created_at     timestamptz not null default now(),
-  expires_at     timestamptz not null default now() + interval '7 days',
-  used_at        timestamptz
+  expires_at     timestamptz not null default now() + interval '30 days',
+  used_at        timestamptz                                                  -- first opened
 );
+alter table operator_links alter column expires_at set default now() + interval '30 days';
 
 -- ---------------------------------------------------------------- reports
 create table if not exists reports (
@@ -202,21 +211,28 @@ create or replace function pin_ok(p_phone text, p_pin_hash text, p_pin text) ret
 language sql stable set search_path = public, extensions, pg_temp as $$
   select coalesce(case when p_pin_hash is null then p_pin = right(p_phone, 4) else p_pin_hash = crypt(p_pin, p_pin_hash) end, false) $$;
 
--- The operator's phone is the key. Each install makes a long random secret (p_device); the server keeps only its hash.
--- Returns the operator id, or 0 = not recognised / wrong PIN, -1 = locked, -2 = number bound to another phone.
---   1. The bound phone is recognised by its secret alone: once signed in, the app just opens.
---   2. Otherwise number + PIN; a correct PIN binds this phone if none is bound. Another phone is refused until
---      the panchayat officer taps Reset phone, which is what stops someone who merely knows the number.
+-- Signed-in phones and computers: hashes of their secrets, newest last, the last 10 kept (an older one signs in again).
+create or replace function remember_device(p_list text[], p_hash text) returns text[]
+language sql immutable as $$
+  select case when p_hash = any(p_list) then p_list
+              else (array_append(p_list, p_hash))[greatest(1, cardinality(p_list) - 8):] end $$;
+
+-- Each install makes a long random secret (p_device); the server keeps only its hash.
+-- Returns the operator id, or 0 = wrong PIN, -1 = locked, -3 = number not registered.
+--   1. A phone that signed in before is recognised by its secret alone: the app just opens.
+--   2. Otherwise number + PIN (last 4 digits, or a personal PIN) signs this phone in too. Any phone works, so a new
+--      or borrowed phone is never shut out; each report records which phone sent it and where it was.
 --   5 wrong PINs lock the number for 15 minutes, then one try per 15 minutes until a correct PIN or a new PIN.
---   A lock never blocks the already-bound phone, so guessing cannot shut the real operator out.
+--   A lock never blocks a phone that is already signed in, so guessing cannot shut the real operator out.
 create or replace function operator_auth(p_phone text, p_pin text, p_device text) returns int
 language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 declare v operators; h text;
 begin
   select * into v from operators where phone = p_phone and active;
-  if v.id is null or coalesce(length(p_device), 0) < 20 then return 0; end if;
+  if v.id is null then return -3; end if;
+  if coalesce(length(p_device), 0) < 20 then return 0; end if;
   h := encode(digest(p_device, 'sha256'), 'hex');
-  if v.device_hash = h then
+  if h = any(v.device_hashes) then
     if v.pin_fails > 0 then update operators set pin_fails = 0, pin_locked_until = null where id = v.id; end if;
     return v.id;
   end if;
@@ -229,14 +245,13 @@ begin
     end if;
     return 0;
   end if;
-  if v.device_hash is not null then return -2; end if;
-  update operators set pin_fails = 0, pin_locked_until = null, device_hash = h, device_bound_at = now() where id = v.id;
+  update operators set pin_fails = 0, pin_locked_until = null, device_hashes = remember_device(device_hashes, h), device_bound_at = now() where id = v.id;
   return v.id;
 end $$;
 
--- Opening a WhatsApp link: a new link binds this phone (replacing any earlier one) and returns the operator's tanks.
--- A used or expired link still opens the app on the phone it bound (operators tap the same message every day),
--- and nowhere else. err = 'link' otherwise.
+-- Opening a WhatsApp link signs this phone in and returns the operator's tanks. The link works on any phone until it
+-- expires or a newer link replaces it; after that it still opens on phones it already signed in (operators tap the
+-- same message every day). err = 'link' otherwise.
 create or replace function operator_join(p_code text, p_device text)
 returns table (err text, operator_phone text, operator_id int, operator_name text, operator_name_ta text,
                glr_id int, kind text, code text, glr text, glr_ta text, location text, capacity int,
@@ -249,12 +264,13 @@ begin
   h := encode(digest(p_device, 'sha256'), 'hex');
   select * into v_link from operator_links l where l.code_hash = encode(digest(coalesce(p_code, ''), 'sha256'), 'hex');
   if v_link.operator_id is null then err := 'link'; return next; return; end if;
-  if v_link.used_at is null and v_link.expires_at > now() then
-    update operator_links set used_at = now() where code_hash = v_link.code_hash;
-    update operators o set device_hash = h, device_bound_at = now(), pin_fails = 0, pin_locked_until = null
+  if v_link.expires_at > now() then
+    update operator_links set used_at = coalesce(used_at, now()) where code_hash = v_link.code_hash;
+    update operators o set device_hashes = remember_device(o.device_hashes, h), pin_fails = 0, pin_locked_until = null,
+        device_bound_at = case when h = any(o.device_hashes) then o.device_bound_at else now() end
     where o.id = v_link.operator_id and o.active returning o.phone into v_phone;
   else
-    select o.phone into v_phone from operators o where o.id = v_link.operator_id and o.active and o.device_hash = h;
+    select o.phone into v_phone from operators o where o.id = v_link.operator_id and o.active and h = any(o.device_hashes);
   end if;
   if v_phone is null then err := 'link'; return next; return; end if;
   return query
@@ -264,7 +280,7 @@ begin
 end $$;
 
 create or replace function auth_code(p int) returns text
-language sql immutable as $$ select case p when -1 then 'locked' when -2 then 'device' else 'bad' end $$;
+language sql immutable as $$ select case p when -1 then 'locked' when -2 then 'device' when -3 then 'unknown' else 'bad' end $$;
 
 -- Sign-in: one row per tank (GLR or OHT) the operator looks after; on failure a single row with err set.
 create function operator_login(p_phone text, p_pin text, p_device text)
@@ -320,14 +336,15 @@ returns text
 language sql security definer set search_path = public, extensions, pg_temp as $$
   select submit_reports(p_phone, p_pin, p_device, array[p_glr_id], p_status, p_problem) $$;
 
--- Panchayat officer: a fresh one-time link for an operator (earlier unused links stop working).
+-- Panchayat officer: a fresh link for an operator. Earlier links stop signing in new phones (phones they already
+-- signed in keep opening with them).
 create or replace function create_operator_link(p_operator_id int) returns text
 language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 declare v_code text;
 begin
   if not can_see_panchayat((select panchayat_id from operators where id = p_operator_id)) then raise exception 'not allowed' using errcode = '42501'; end if;
   v_code := translate(encode(gen_random_bytes(12), 'base64'), '+/=', '-_');   -- 96 bits, URL-safe
-  delete from operator_links where operator_id = p_operator_id and used_at is null;
+  update operator_links set expires_at = now() where operator_id = p_operator_id and expires_at > now();
   insert into operator_links (code_hash, operator_id, created_by) values (encode(digest(v_code, 'sha256'), 'hex'), p_operator_id, auth.uid());
   return v_code;
 end $$;
@@ -377,7 +394,7 @@ drop policy if exists voice_read on storage.objects;    create policy voice_read
 -- ---------------------------------------------------------------- officer scope
 create or replace function officer_scope() returns table (role text, district_id int, block_id int, panchayat_id int)
 language sql stable security definer set search_path = public, pg_temp as $$
-  select o.role, o.district_id, o.block_id, o.panchayat_id from officers o where o.id = auth.uid() $$;
+  select o.role, o.district_id, o.block_id, o.panchayat_id from officers o where o.id = auth.uid() and o.active $$;
 
 create or replace function can_see_panchayat(p_panchayat_id int) returns boolean
 language sql stable security definer set search_path = public, pg_temp as $$
@@ -389,15 +406,16 @@ $$;
 create or replace function can_see_glr(p_glr_id int) returns boolean
 language sql stable security definer set search_path = public, pg_temp as $$ select can_see_panchayat((select panchayat_id from v_glr where glr_id = p_glr_id)) $$;
 
--- Operators visible to the signed-in officer (no PIN or phone secret, only whether a phone is linked).
+-- Operators visible to the signed-in officer (no PIN or phone secret, only how many phones are signed in).
 drop view if exists v_operators;
 create view v_operators as
-select o.id, o.panchayat_id, o.name, o.name_ta, o.phone, (o.device_hash is not null) as bound, o.device_bound_at, o.active,
+select o.id, o.panchayat_id, o.name, o.name_ta, o.phone, cardinality(o.device_hashes) > 0 as bound, cardinality(o.device_hashes) as phones, o.device_bound_at, o.active,
        (select count(*) from glrs g where g.operator_id = o.id and g.active) as glr_count,
        (select max(l.created_at) from operator_links l where l.operator_id = o.id) as last_link_at
 from operators o where o.active and can_see_panchayat(o.panchayat_id);
 
--- Panchayat officer sets / resets an operator's PIN (also clears a lockout) and phone binding.
+-- Panchayat officer sets / resets an operator's PIN (also clears a lockout), and signs out all their phones
+-- (lost phone): their WhatsApp links stop working too, so the next sign-in needs the number + digits or a new link.
 create or replace function set_operator_pin(p_operator_id int, p_pin text) returns void
 language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 begin
@@ -409,7 +427,8 @@ create or replace function reset_operator_device(p_operator_id int) returns void
 language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not can_see_panchayat((select panchayat_id from operators where id = p_operator_id)) then raise exception 'not allowed' using errcode = '42501'; end if;
-  update operators set device_id = null, device_hash = null, device_bound_at = null where id = p_operator_id;
+  update operators set device_id = null, device_hash = null, device_hashes = '{}', device_bound_at = null where id = p_operator_id;
+  update operator_links set expires_at = now() where operator_id = p_operator_id and expires_at > now();
 end $$;
 grant execute on function set_operator_pin(int, text) to authenticated;
 grant execute on function reset_operator_device(int) to authenticated;
@@ -462,14 +481,15 @@ left join reports r on r.glr_id = v.glr_id and r.report_date = ist_today()
 where v.active and can_see_panchayat(v.panchayat_id);
 
 -- ---------------------------------------------------------------- staff sign-in (number + last 4 digits)
--- Called only by the staff-login edge function (service role). err: 'bad' | 'locked' | 'device'.
+-- Called only by the staff-login edge function (service role). err: 'unknown' (number not registered) | 'bad' | 'locked'.
 create or replace function staff_auth(p_phone text, p_pin text, p_device text)
 returns table (err text, phone text, name text, role text, district_id int, block_id int, panchayat_id int, user_id uuid)
 language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 declare v staff; h text;
 begin
   select * into v from staff s where s.phone = p_phone and s.active;
-  if v.phone is null or coalesce(length(p_device), 0) < 20 then err := 'bad'; return next; return; end if;
+  if v.phone is null then err := 'unknown'; return next; return; end if;
+  if coalesce(length(p_device), 0) < 20 then err := 'bad'; return next; return; end if;
   if v.pin_locked_until > now() then err := 'locked'; return next; return; end if;
   if not pin_ok(v.phone, v.pin_hash, p_pin) then
     update staff s set pin_fails = s.pin_fails + 1,
@@ -478,11 +498,7 @@ begin
     err := 'bad'; return next; return;
   end if;
   h := encode(digest(p_device, 'sha256'), 'hex');
-  if not (h = any(v.device_hashes)) then
-    if cardinality(v.device_hashes) >= 2 then err := 'device'; return next; return; end if;
-    update staff s set device_hashes = array_append(s.device_hashes, h) where s.phone = v.phone;
-  end if;
-  update staff s set pin_fails = 0, pin_locked_until = null where s.phone = v.phone;
+  update staff s set device_hashes = remember_device(s.device_hashes, h), pin_fails = 0, pin_locked_until = null where s.phone = v.phone;
   return query select null::text, v.phone, v.name, v.role, v.district_id, v.block_id, v.panchayat_id, v.user_id;
 end $$;
 revoke execute on function staff_auth(text, text, text) from public, anon, authenticated;
@@ -494,25 +510,109 @@ language sql stable security definer set search_path = public, pg_temp as $$
     select 1 from staff s, officer_scope() me
     where s.phone = p_phone and s.phone is distinct from (select o.phone from officers o where o.id = auth.uid())
       and (me.role = 'state'
-        or (me.role = 'district' and coalesce(s.district_id, (select b.district_id from blocks b where b.id = coalesce(s.block_id,
+        or (me.role = 'district' and s.role <> 'state' and coalesce(s.district_id, (select b.district_id from blocks b where b.id = coalesce(s.block_id,
               (select p.block_id from panchayats p where p.id = s.panchayat_id)))) = me.district_id)
         or (me.role = 'block' and s.role = 'panchayat' and (select p.block_id from panchayats p where p.id = s.panchayat_id) = me.block_id)))
 $$;
 
--- Staff a senior officer can see on the dashboard (no PIN or device secrets, only how many devices are signed in).
+-- The same rule for a role and place someone is being given (the place id is the district, block or panchayat).
+create or replace function can_assign_staff(p_role text, p_place int) returns boolean
+language sql stable security definer set search_path = public, pg_temp as $$
+  select exists (
+    select 1 from officer_scope() me
+    where me.role = 'state' and p_role <> 'state'
+       or me.role = 'district' and (
+            p_role = 'district' and p_place = me.district_id
+         or p_role = 'block' and (select b.district_id from blocks b where b.id = p_place) = me.district_id
+         or p_role = 'panchayat' and (select b.district_id from panchayats p join blocks b on b.id = p.block_id where p.id = p_place) = me.district_id)
+       or me.role = 'block' and p_role = 'panchayat' and (select p.block_id from panchayats p where p.id = p_place) = me.block_id)
+$$;
+
+-- Staff a senior officer looks after, for the dashboard (no PIN or device secrets, only how many devices are signed in).
 drop view if exists v_staff;
 create view v_staff as
-select s.phone, s.name, s.role, s.district_id, s.block_id, s.panchayat_id, cardinality(s.device_hashes) as devices, s.active
-from staff s where can_manage_staff(s.phone);
+select s.phone, s.name, s.role, s.district_id, s.block_id, s.panchayat_id, cardinality(s.device_hashes) as devices, s.active,
+       coalesce(s.panchayat_id, s.block_id, s.district_id) as place_id,
+       case s.role when 'panchayat' then pa.name when 'block' then bl.name when 'district' then di.name end as place,
+       case s.role when 'panchayat' then pa.name_ta when 'block' then bl.name_ta when 'district' then di.name_ta end as place_ta
+from staff s
+left join panchayats pa on pa.id = s.panchayat_id
+left join blocks bl on bl.id = s.block_id
+left join districts di on di.id = s.district_id
+where s.active and can_manage_staff(s.phone);
 
--- New or lost phone: frees the staff member's devices so they can sign in again.
-create or replace function reset_staff_devices(p_phone text) returns void
+-- Places the signed-in officer can put staff in, by role (for the Add person form).
+create or replace function staff_places() returns table (role text, place_id int, name text, name_ta text, parent text, parent_ta text)
+language sql stable security definer set search_path = public, pg_temp as $$
+  select 'district', d.id, d.name, d.name_ta, null::text, null::text from districts d where can_assign_staff('district', d.id)
+  union all
+  select 'block', b.id, b.name, b.name_ta, d.name, d.name_ta from blocks b join districts d on d.id = b.district_id where can_assign_staff('block', b.id)
+  union all
+  select 'panchayat', p.id, p.name, p.name_ta, b.name, b.name_ta from panchayats p join blocks b on b.id = p.block_id where can_assign_staff('panchayat', p.id)
+  order by 1, 5, 3
+$$;
+
+-- Add someone, or change a person's name, role or place. The mobile number is who they are; they sign in with it
+-- and its last 4 digits straight away. A changed role or place applies at once, also to a session already open.
+create or replace function save_staff(p_phone text, p_name text, p_role text, p_place int) returns void
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare v staff; d int; b int; p int;
+begin
+  p_phone := right(regexp_replace(coalesce(p_phone, ''), '[^0-9]', '', 'g'), 10);
+  p_name := trim(coalesce(p_name, ''));
+  if p_phone !~ '^[6-9][0-9]{9}$' then raise exception 'bad phone' using errcode = '23514'; end if;
+  if p_name = '' then raise exception 'name required' using errcode = '23514'; end if;
+  if p_role not in ('district','block','panchayat') or not can_assign_staff(p_role, p_place) then raise exception 'not allowed' using errcode = '42501'; end if;
+  select * into v from staff s where s.phone = p_phone;
+  -- Someone already active (and not yourself) must be within your reach to be changed; a removed number is free to reuse.
+  if v.phone is not null and v.active and not can_manage_staff(p_phone) then raise exception 'not allowed' using errcode = '42501'; end if;
+  if p_role = 'district' then d := p_place; elsif p_role = 'block' then b := p_place; else p := p_place; end if;
+  insert into staff as s (phone, name, role, district_id, block_id, panchayat_id, active)
+  values (p_phone, p_name, p_role, d, b, p, true)
+  on conflict (phone) do update set name = excluded.name, role = excluded.role, district_id = excluded.district_id,
+      block_id = excluded.block_id, panchayat_id = excluded.panchayat_id, active = true,
+      device_hashes = case when s.active then s.device_hashes else '{}' end, pin_fails = 0, pin_locked_until = null;
+  if v.user_id is not null then
+    update officers set name = p_name, role = p_role, district_id = d, block_id = b, panchayat_id = p, phone = p_phone, active = true where id = v.user_id;
+  end if;
+end $$;
+
+-- Ends a staff account's open sessions on every device (an access token already issued lasts until it expires, ≤ 1 hour).
+create or replace function end_sessions(p_uid uuid) returns void
 language plpgsql security definer set search_path = public, pg_temp as $$
 begin
-  if not can_manage_staff(p_phone) then raise exception 'not allowed' using errcode = '42501'; end if;
-  update staff s set device_hashes = '{}', pin_fails = 0, pin_locked_until = null where s.phone = p_phone;
+  if p_uid is not null then delete from auth.sessions where user_id = p_uid; end if;
+exception when others then null;   -- best effort: without access to auth.sessions, removal still cuts all access
 end $$;
+revoke execute on function end_sessions(uuid) from public, anon, authenticated;
+
+-- Remove someone: they can no longer sign in, and a session already open sees nothing from now on.
+create or replace function remove_staff(p_phone text) returns void
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare v_uid uuid;
+begin
+  if not can_manage_staff(p_phone) then raise exception 'not allowed' using errcode = '42501'; end if;
+  update staff s set active = false, device_hashes = '{}', pin_fails = 0, pin_locked_until = null where s.phone = p_phone returning s.user_id into v_uid;
+  if v_uid is not null then update officers set active = false where id = v_uid; perform end_sessions(v_uid); end if;
+end $$;
+
+-- Lost phone: signs the person out of every device (they sign in again with the number + last 4 digits).
+create or replace function reset_staff_devices(p_phone text) returns void
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare v_uid uuid;
+begin
+  if not can_manage_staff(p_phone) then raise exception 'not allowed' using errcode = '42501'; end if;
+  update staff s set device_hashes = '{}', pin_fails = 0, pin_locked_until = null where s.phone = p_phone returning s.user_id into v_uid;
+  perform end_sessions(v_uid);
+end $$;
+revoke execute on function can_assign_staff(text, int) from public, anon;
+revoke execute on function staff_places() from public, anon;
+revoke execute on function save_staff(text, text, text, int) from public, anon;
+revoke execute on function remove_staff(text) from public, anon;
 revoke execute on function reset_staff_devices(text) from public, anon;
+grant execute on function staff_places() to authenticated;
+grant execute on function save_staff(text, text, text, int) to authenticated;
+grant execute on function remove_staff(text) to authenticated;
 grant execute on function reset_staff_devices(text) to authenticated;
 
 -- ---------------------------------------------------------------- staff registration (email, kept for later)
