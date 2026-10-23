@@ -760,7 +760,12 @@ const locLine = (r) => r.entered_by !== "operator" || r.status === "not_reported
 const kindCount = (rows) => { const o = rows.filter((r) => r.kind === "OHT").length, g = rows.length - o; return [g ? `${g} GLR` : "", o ? `${o} OHT` : ""].filter(Boolean).join(" · "); };
 const extLine = (list) => list.length ? `<div class="ext">${list.map((h) => `<b>${esc(nm(h))}</b>: ${esc(t("extSupply").replace("{who}", nm2(h.ext, h.extTa)))}`).join("<br>")}</div>` : "";
 
+// Pages that load data first drop their result when a newer render() has started meanwhile (sign-out, session check
+// on opening), so a slow, stale page never covers the sign-in form.
+let renderSeq = 0;
+const stale = (seq) => seq !== renderSeq;
 function render() {
+  renderSeq++;
   document.getElementById("langTa").setAttribute("aria-pressed", state.lang === "ta");
   document.getElementById("langEn").setAttribute("aria-pressed", state.lang === "en");
   document.getElementById("brandSub").textContent = t(ROLE === "of" ? "officerSub" : ROLE === "rv" ? "reviewSub" : "operatorSub");
@@ -814,7 +819,9 @@ function renderOperatorLogin() {
 async function renderOperator() {
   const op = state.op, glrs = op.glrs;
   if (state.active !== "all" && state.active >= glrs.length) state.active = glrs.length > 1 ? "all" : 0;
+  const seq = renderSeq;
   const allRows = await data.historyAll(glrs);
+  if (stale(seq)) return;
   const todayOf = (g) => allRows.find((r) => r.glr_id === g.id && r.date === istToday());
   const targets = state.active === "all" ? glrs.filter((g) => state.editing || !todayOf(g)) : [glrs[state.active]];
   const allDone = glrs.every(todayOf);
@@ -988,7 +995,9 @@ function bindPlay(list) {
 // ---------------------------------------------------------------- panchayat review: confirm/flag, diagnostics, record on behalf, operators
 async function renderReview() {
   let rows, ops, ext;
-  try { rows = await data.today(); ops = await data.operators(); ext = await data.external(); } catch (e) { app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  const seq = renderSeq;
+  try { rows = await data.today(); ops = await data.operators(); ext = await data.external(); } catch (e) { if (!stale(seq)) app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  if (stale(seq)) return;
   const pid = state.officer.panchayat_id;
   const mine = LIVE ? rows : rows.filter((r) => r.panchayat_id === pid);
   const myOps = LIVE ? ops : ops.filter((o) => o.panchayat_id === pid);
@@ -1153,7 +1162,9 @@ function bindStaffForm(places) {
 // ---------------------------------------------------------------- block / district officer
 async function renderOfficer() {
   let rows, ext, staff, places;
-  try { rows = await data.today(); ext = await data.external(); staff = await data.staffList().catch(() => []); places = await data.staffPlaces().catch(() => []); } catch (e) { app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  const seq = renderSeq;
+  try { rows = await data.today(); ext = await data.external(); staff = await data.staffList().catch(() => []); places = await data.staffPlaces().catch(() => []); } catch (e) { if (!stale(seq)) app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  if (stale(seq)) return;
   const cnt = (s) => rows.filter((r) => r.status === s).length;
   const yes = cnt("yes"), partial = cnt("partial"), no = cnt("no"), silent = cnt("not_reported"), total = rows.length || 1;
   const blocks = [...new Map(rows.map((r) => [r.block_id, { id: r.block_id, name: r.block, ta: r.blockTa }])).values()];
