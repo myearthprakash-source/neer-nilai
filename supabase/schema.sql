@@ -538,17 +538,42 @@ from v_glr v
 left join reports r on r.glr_id = v.glr_id and r.report_date = ist_today()
 where v.active and can_see_panchayat(v.panchayat_id);
 
+-- Any earlier day, as the officer app shows it: the same rows as v_today for p_date (tanks as they are now; the
+-- operator is the one who sent that day's report, else today's operator). Never a future day.
+create or replace function officer_day(p_date date)
+returns table (glr_id int, kind text, code text, glr text, glr_ta text, location text, capacity int, habitation text, habitation_ta text,
+               panchayat_id int, panchayat text, panchayat_ta text, block_id int, block text, block_ta text, district text, district_ta text,
+               operator_id int, operator_name text, operator_name_ta text, operator_phone text,
+               report_id bigint, status text, problem text, source_ok text, pump_ok text, glr_filled text, remarks text, voice_path text,
+               entered_by text, reported_at timestamptz, review_status text, review_note text, lat double precision, lng double precision, loc_accuracy real)
+language sql stable security definer set search_path = public, pg_temp as $$
+  select v.glr_id, v.kind, v.code, v.glr, v.glr_ta, v.location, v.capacity, v.habitation, v.habitation_ta,
+         v.panchayat_id, v.panchayat, v.panchayat_ta, v.block_id, v.block, v.block_ta, v.district, v.district_ta,
+         coalesce(r.operator_id, v.operator_id), coalesce(ro.name, v.operator_name), coalesce(ro.name_ta, v.operator_name_ta), coalesce(ro.phone, v.operator_phone),
+         r.id, coalesce(r.status, 'not_reported'), r.problem, r.source_ok, r.pump_ok, r.glr_filled, r.remarks, r.voice_path,
+         r.entered_by, r.reported_at, r.review_status, r.review_note, r.lat, r.lng, r.loc_accuracy
+  from v_glr v
+  left join reports r on r.glr_id = v.glr_id and r.report_date = p_date
+  left join operators ro on ro.id = r.operator_id
+  where v.active and can_see_panchayat(v.panchayat_id) and p_date <= ist_today()
+  order by v.glr_id
+$$;
+revoke execute on function officer_day(date) from public, anon;
+grant execute on function officer_day(date) to authenticated;
+
 -- Officer charts: for each day and panchayat in the signed-in officer's area, how many tanks reported normal /
--- partial / not supplied, and which problems were behind the bad days, over the last p_days days (today included,
--- at most 60). One JSON value, so a whole district fits in one answer.
-create or replace function officer_trends(p_days int default 14) returns json
+-- partial / not supplied, and which problems were behind the bad days, over p_days days ending p_end (default today;
+-- at most 60 days). One JSON value, so a whole district fits in one answer.
+drop function if exists officer_trends(int);
+create or replace function officer_trends(p_days int default 14, p_end date default null) returns json
 language sql stable security definer set search_path = public, pg_temp as $$
   with scope as (select p.id from panchayats p where can_see_panchayat(p.id)),
+  span as (select least(coalesce(p_end, ist_today()), ist_today()) as e, least(greatest(coalesce(p_days, 14), 1), 60) as n),
   r as (
     select r.report_date d, h.panchayat_id pid, r.status, r.problem
-    from reports r join glrs g on g.id = r.glr_id join habitations h on h.id = g.habitation_id
+    from reports r join glrs g on g.id = r.glr_id join habitations h on h.id = g.habitation_id, span
     where h.panchayat_id in (select id from scope) and g.active
-      and r.report_date between ist_today() - (least(greatest(coalesce(p_days, 14), 1), 60) - 1) and ist_today())
+      and r.report_date between span.e - (span.n - 1) and span.e)
   select json_build_object(
     'daily', coalesce((select json_agg(json_build_array(d, pid, yes, partial, no) order by d, pid) from (
         select d, pid, count(*) filter (where status = 'yes') yes, count(*) filter (where status = 'partial') partial,
@@ -557,8 +582,8 @@ language sql stable security definer set search_path = public, pg_temp as $$
     'problems', coalesce((select json_agg(json_build_array(problem, n) order by n desc, problem) from (
         select problem, count(*) n from r where status <> 'yes' and problem is not null group by problem) y), '[]'::json))
 $$;
-revoke execute on function officer_trends(int) from public, anon;
-grant execute on function officer_trends(int) to authenticated;
+revoke execute on function officer_trends(int, date) from public, anon;
+grant execute on function officer_trends(int, date) to authenticated;
 
 -- ---------------------------------------------------------------- staff sign-in (number + last 4 digits)
 -- Called only by the staff-login edge function (service role). err: 'unknown' (number not registered) | 'bad' | 'locked'.

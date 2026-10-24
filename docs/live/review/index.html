@@ -169,7 +169,7 @@ textarea{min-height:76px;resize:vertical}
 .tc-stack i{display:block;flex:1 1 0;min-height:2px}
 .tc-stack i:last-child{border-radius:4px 4px 0 0}
 .tc-x{display:grid;grid-template-columns:repeat(14,1fr);font-size:11px;color:var(--muted);text-align:center;margin-top:6px;font-variant-numeric:tabular-nums}
-.tc-x .today,.hm-head .today{color:var(--ink);font-weight:700}
+.tc-x .sel,.hm-head .sel{color:var(--ink);font-weight:700}
 @media (max-width:520px){.tc-x span:nth-last-child(even),.hm-head span:nth-last-child(even){visibility:hidden}}
 .tview{margin-top:10px;font-size:14px}
 .tview summary{color:var(--accent);font-weight:600;cursor:pointer}
@@ -271,6 +271,13 @@ td.time{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:no
 .tabs{display:flex;gap:4px;background:var(--soft);padding:4px;border-radius:12px}
 .tabs button{border:0;background:none;padding:9px 14px;border-radius:9px;font-weight:600;font-size:15px;color:var(--muted)}
 .tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.datebar{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap}
+.daychips{display:flex;gap:6px;max-width:100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.daychips button{flex:none;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap}
+.daychips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.cal-pick{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);font-weight:600}
+.cal-pick input{width:auto;padding:6px 8px;font-size:14px}
+.pastnote{background:var(--accent-soft);border-radius:10px;padding:9px 12px;font-size:14px}
 .pan-pick{display:block;width:auto;min-width:260px;max-width:100%;font-size:18px;font-weight:600;margin:6px 0 12px}
 .pan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
 .pan-card{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;cursor:pointer}
@@ -343,9 +350,9 @@ const T = {
     reportedAt: "பதிவு நேரம்", offline: "இணையம் இல்லை. இணைப்பு வந்ததும் அனுப்பப்படும்.", saved: "சேமிக்கப்பட்டது",
     demoBanner: "டெமோ முறை: தரவு இந்த போனில் மட்டும். Supabase இணைத்தால் நேரடி முறை.", reset: "டெமோ தரவை மீட்டமை",
     delivered: "வழக்கம்", partialDelivered: "பகுதியளவு", notDelivered: "வரவில்லை", notReported: "பதிவு இல்லை",
-    alerts: "இன்றைய எச்சரிக்கைகள்", noAlerts: "இன்று எச்சரிக்கை எதுவும் இல்லை.", all: "அனைத்தும்", glr: "தொட்டி", status: "நிலை", time: "நேரம்", problemCol: "பிரச்சனை / நடவடிக்கை", operator: "ஆபரேட்டர்",
+    alerts: "எச்சரிக்கைகள் — {when}", noAlerts: "இந்த நாளுக்கு எச்சரிக்கை எதுவும் இல்லை.", all: "அனைத்தும்", glr: "தொட்டி", status: "நிலை", time: "நேரம்", problemCol: "பிரச்சனை / நடவடிக்கை", operator: "ஆபரேட்டர்",
     review: "சரிபார்ப்பு", pending: "நிலுவை", confirmed: "உறுதி", flagged: "குறியிடப்பட்டது", confirm: "உறுதி செய்", flag: "தவறு எனக் குறி", notePh: "எடுத்த நடவடிக்கை / குறிப்பு",
-    reviewTitle: "ஊராட்சி சரிபார்ப்பு — இன்று", reviewHint: "ஒவ்வொரு தொட்டி பதிவையும் சரிபார்த்து உறுதி செய்யவும். பதிவு இல்லாத தொட்டிக்கு ஆபரேட்டரை அழைத்து நீங்களே பதிவு செய்யலாம்.",
+    reviewTitle: "ஊராட்சி சரிபார்ப்பு — {when}", reviewHint: "ஒவ்வொரு தொட்டி பதிவையும் சரிபார்த்து உறுதி செய்யவும். பதிவு இல்லாத தொட்டிக்கு ஆபரேட்டரை அழைத்து நீங்களே பதிவு செய்யலாம்.",
     nothingToReview: "இன்று சரிபார்க்க பதிவுகள் இல்லை.", recordFor: "ஆபரேட்டர் சார்பாக பதிவு:", byReviewer: "ஊராட்சி அலுவலர் பதிவு", voiceNote: "குரல் குறிப்பு", play: "▶ கேள்",
     operators: "ஆபரேட்டர்கள்", opHint: "ஆபரேட்டர் தன் கைபேசி எண் + அதன் கடைசி 4 இலக்கத்துடன் எந்த போனிலும் உள்நுழையலாம், அல்லது WhatsApp இணைப்பைத் தொடலாம். புதியவரை '+ ஆபரேட்டரைச் சேர்' மூலம் சேர்க்கவும். போன் தொலைந்தால் 'எல்லா போன்களிலும் வெளியேற்று'.",
     setPin: "புதிய PIN", resetDevice: "எல்லா போன்களிலும் வெளியேற்று", waLink: "WhatsApp-ல் ஆப் இணைப்பு", pinIs: "புதிய PIN", tellOp: "ஆபரேட்டரிடம் நேரில் சொல்லவும். இது மீண்டும் காட்டப்படாது.",
@@ -369,9 +376,10 @@ const T = {
     pinLocked: "பல முறை தவறான PIN. 15 நிமிடம் கழித்து முயற்சிக்கவும் அல்லது ஊராட்சி அலுவலரிடம் புதிய PIN கேட்கவும்.",
     notRegistered: "இந்த எண் அலுவலராக பதிவு செய்யப்படவில்லை. மேல் அலுவலரை அணுகவும்.",
     extSupply: "{who} மூலம் தண்ணீர் — இந்த ஆப்பில் பதிவு இல்லை",
-    silentNote: "மதியம் வரை பதிவு இல்லை", officerTitle: "தண்ணீர் நிலை — இன்று",
+    silentNote: "மதியம் வரை பதிவு இல்லை", officerTitle: "தண்ணீர் நிலை — {when}",
     settings: "அறிவிப்பு அமைப்புகள்", notifyIn: "பயன்பாட்டில்", notifyEmail: "மின்னஞ்சல்", notifyWa: "வாட்ஸ்அப்", digest: "மதியம் 12:00 சுருக்கம்", alwaysOn: "எப்போதும்", free: "இலவசம்", cheap: "ஒரு செய்திக்கு ≈ ₹0.12",
-    tabDash: "டாஷ்போர்டு", tabReview: "சரிபார்ப்பு & ஆபரேட்டர்கள்", openReview: "விவரம் →", pendingN: "{n} சரிபார்க்க வேண்டும்",
+    tabDash: "டாஷ்போர்டு", whenToday: "இன்று", yesterday: "நேற்று", otherDay: "வேறு தேதி", pickDay: "நாள்", showingDay: "{date} காட்டப்படுகிறது", backToday: "இன்றைக்குத் திரும்பு", silentPast: "அன்று பதிவு இல்லை", normalOnDay: "அன்று வழக்கம்",
+    tabReview: "சரிபார்ப்பு & ஆபரேட்டர்கள்", openReview: "விவரம் →", pendingN: "{n} சரிபார்க்க வேண்டும்",
     panTitle: "ஊராட்சிகள்", panHint: "ஒரு ஊராட்சியைத் தொட்டு அதன் தொட்டிகள், சரிபார்ப்பு, ஆபரேட்டர்களைப் பார்க்கவும்.",
     trendTitle: "கடந்த 14 நாட்கள்", trendSince: "{date} முதல்", avgSince: "தொடக்கம் முதல் சராசரி", sparkSince: "வழக்கமான விநியோகம், தொடக்கம் முதல்", normalToday: "இன்று இதுவரை வழக்கம்", avg14: "14 நாள் சராசரி", showTable: "அட்டவணையாகக் காட்டு", date: "தேதி",
     probTitle: "என்ன பிரச்சனை? (14 நாள்)", probHint: "குறைவாக அல்லது தண்ணீர் வராத தொட்டி-நாட்கள், காரணப்படி", noProblems: "கடந்த 14 நாட்களில் பிரச்சனை எதுவும் பதிவாகவில்லை.",
@@ -407,9 +415,9 @@ const T = {
     reportedAt: "Reported at", offline: "You are offline. The report will send when signal returns.", saved: "Saved",
     demoBanner: "Demo mode: data stays on this phone. Connect Supabase for live mode.", reset: "Reset demo data",
     delivered: "Normal", partialDelivered: "Partial", notDelivered: "Not supplied", notReported: "Not reported",
-    alerts: "Alerts today", noAlerts: "No alerts today.", all: "All", glr: "Tank", status: "Status", time: "Time", problemCol: "Problem / action taken", operator: "Operator",
+    alerts: "Alerts — {when}", noAlerts: "No alerts for this day.", all: "All", glr: "Tank", status: "Status", time: "Time", problemCol: "Problem / action taken", operator: "Operator",
     review: "Review", pending: "Pending", confirmed: "Confirmed", flagged: "Flagged", confirm: "Confirm", flag: "Flag as incorrect", notePh: "Action taken / remarks",
-    reviewTitle: "Panchayat review — today", reviewHint: "Check each tank's report and confirm it. For a tank with no report, call the operator and record it yourself.",
+    reviewTitle: "Panchayat review — {when}", reviewHint: "Check each tank's report and confirm it. For a tank with no report, call the operator and record it yourself.",
     nothingToReview: "Nothing to review today.", recordFor: "Record on behalf of operator:", byReviewer: "Entered by panchayat officer", voiceNote: "Voice note", play: "▶ Play",
     operators: "Operators", opHint: "Operators sign in on any phone with their mobile number and its last 4 digits, or by tapping the WhatsApp link. Add someone new with + Add operator. Lost phone? Tap Sign out all phones.",
     setPin: "New PIN", resetDevice: "Sign out all phones", waLink: "Send app link on WhatsApp", pinIs: "New PIN", tellOp: "Tell the operator in person. It will not be shown again.",
@@ -433,9 +441,10 @@ const T = {
     pinLocked: "Too many wrong PINs. Try again in 15 minutes, or ask the panchayat officer for a new PIN.",
     notRegistered: "This number is not registered as an officer. Ask your senior officer.",
     extSupply: "water supplied by {who} — not reported in this app",
-    silentNote: "No report by noon", officerTitle: "Water status — today",
+    silentNote: "No report by noon", officerTitle: "Water status — {when}",
     settings: "Notification settings", notifyIn: "In-app", notifyEmail: "Email", notifyWa: "WhatsApp", digest: "12:00 noon digest", alwaysOn: "Always on", free: "Free", cheap: "≈ ₹0.12 per message",
-    tabDash: "Dashboard", tabReview: "Review & operators", openReview: "Details →", pendingN: "{n} to review",
+    tabDash: "Dashboard", whenToday: "today", yesterday: "Yesterday", otherDay: "Other date", pickDay: "Day", showingDay: "Showing {date}", backToday: "Back to today", silentPast: "No report that day", normalOnDay: "normal that day",
+    tabReview: "Review & operators", openReview: "Details →", pendingN: "{n} to review",
     panTitle: "Panchayats", panHint: "Tap a panchayat to see its tanks, reviews and operators.",
     trendTitle: "Last 14 days", trendSince: "Since {date}", avgSince: "average since the start", sparkSince: "Normal supply since the start", normalToday: "normal so far today", avg14: "14-day average", showTable: "Show as table", date: "Date",
     probTitle: "What went wrong (14 days)", probHint: "Tank-days with less or no water, by cause", noProblems: "No problems reported in the last 14 days.",
@@ -570,6 +579,10 @@ const store = {
 const RK = "reports_v8";   // v8: 14 days of history for every tank (charts)
 const istToday = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 const dayOffset = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); };
+const addDays = (ymd, n) => { const d = new Date(ymd + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+// The day the officer app shows: today, or an earlier day picked on the date bar (kept in the address as ?date=).
+const viewDay = () => state.viewDate && state.viewDate < istToday() ? state.viewDate : istToday();
+const isPast = () => viewDay() !== istToday();
 const nowIso = () => new Date().toISOString();
 // Demo: operators added or changed on this phone are kept like the reports; "Reset demo data" brings back the sheet.
 const DEMO_SHEET = JSON.stringify({ operators: DEMO.operators, tanks: DEMO.glrs.map((g) => [g.id, g.op]) });
@@ -588,6 +601,7 @@ let state = {
   officer: store.get("officer", null) ?? (LIVE ? store.get("staff_" + ROLE, null) : null),   // (older versions: one per page)
   tab: ROLE === "rv" ? "review" : "dash",   // officer app: "dash" (dashboard) | "review" (review & operators)
   rvPanchayat: store.get("rvPanchayat", null),   // the panchayat open on the review tab (block / district officers pick one)
+  viewDate: ((d) => /^\d{4}-\d{2}-\d{2}$/.test(d ?? "") ? d : null)(new URLSearchParams(location.search).get("date")),   // null = today
   rvDraft: {}, rvOpen: {}, newPins: {},
   filterBlock: 0, filterStatus: "all",
   busy: false, error: "", info: "", loginPhone: "",
@@ -812,11 +826,12 @@ const data = {
     for (const g of glrs) { const r = rows.find((x) => x.glr_id === g.id && x.date === istToday()); if (r) r.voice = dataUrl; }
     store.set(RK, rows);
   },
-  async today() {
+  // Every tank in the officer's area with its report for one day: today (live view) or any earlier day.
+  async today(date = istToday()) {
     if (LIVE) {
-      const { data: rows, error } = await sb.from("v_today").select("*");
+      const { data: rows, error } = date === istToday() ? await sb.from("v_today").select("*") : await sb.rpc("officer_day", { p_date: date });
       if (error) throw error;
-      return rows.map((r) => ({ id: r.glr_id, kind: r.kind ?? "GLR", code: r.code, name: r.glr, ta: r.glr_ta, location: r.location, capacity: r.capacity, hab: r.habitation, habTa: r.habitation_ta, panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta,
+      return rows.map((r) => ({ date, id: r.glr_id, kind: r.kind ?? "GLR", code: r.code, name: r.glr, ta: r.glr_ta, location: r.location, capacity: r.capacity, hab: r.habitation, habTa: r.habitation_ta, panchayat_id: r.panchayat_id, panchayat: r.panchayat, panchayatTa: r.panchayat_ta,
         block_id: r.block_id, block: r.block, blockTa: r.block_ta, district: r.district, districtTa: r.district_ta, operator_id: r.operator_id, operator: r.operator_name, operatorTa: r.operator_name_ta, operator_phone: r.operator_phone,
         report_id: r.report_id, status: r.status, source_ok: r.source_ok, pump_ok: r.pump_ok, glr_filled: r.glr_filled, problem: r.problem, remarks: r.remarks, voice: r.voice_path, entered_by: r.entered_by, at: r.reported_at,
         review_status: r.review_status ?? "pending", review_note: r.review_note ?? "", lat: r.lat, lng: r.lng, acc: r.loc_accuracy }));
@@ -824,8 +839,8 @@ const data = {
     const rows = store.get(RK, []);
     return DEMO.glrs.map((g) => {
       const info = glrInfo(g);
-      const r = rows.find((x) => x.glr_id === g.id && x.date === istToday());
-      return { ...info, report_id: r ? g.id : null, status: r ? r.status : "not_reported", source_ok: r?.source_ok ?? null, pump_ok: r?.pump_ok ?? null, glr_filled: r?.glr_filled ?? null,
+      const r = rows.find((x) => x.glr_id === g.id && x.date === date);
+      return { ...info, date, report_id: r ? g.id : null, status: r ? r.status : "not_reported", source_ok: r?.source_ok ?? null, pump_ok: r?.pump_ok ?? null, glr_filled: r?.glr_filled ?? null,
         problem: r?.problem ?? null, remarks: r?.remarks ?? "", voice: r?.voice ?? null, entered_by: r?.entered_by ?? null, at: r?.at ?? null, review_status: r?.review_status ?? "pending", review_note: r?.review_note ?? "",
         lat: r?.lat ?? null, lng: r?.lng ?? null, acc: r?.acc ?? null };
     });
@@ -839,17 +854,18 @@ const data = {
     return DEMO.habitations.filter((h) => h.ext).map((h) => ({ ...h, panchayat_id: h.p }));
   },
   // Charts: per day and panchayat in the officer's area { daily: [[date, panchayat_id, yes, partial, no]], problems: [[code, n]] }.
-  // Kept for 2 minutes: past days don't change, and today's column is drawn from today's live rows instead.
-  async trends(days = 14) {
-    const hit = state.cache.trends;
-    if (hit && Date.now() - hit.at < 120000) return hit.v;
+  // `days` days ending `end` (default today). Kept for 2 minutes: past days don't change, and the chosen day's column is
+  // drawn from that day's rows instead.
+  async trends(days = 14, end = istToday()) {
+    const key = `${days}|${end}`, hit = state.cache.trends;
+    if (hit && hit.key === key && Date.now() - hit.at < 120000) return hit.v;
     let v;
-    if (LIVE) { const { data: j, error } = await sb.rpc("officer_trends", { p_days: days }); if (error) return null; v = j; }
+    if (LIVE) { const { data: j, error } = await sb.rpc("officer_trends", { p_days: days, p_end: end }); if (error) return null; v = j; }
     else {
-      const from = dayOffset(-(days - 1)), info = new Map(DEMO.glrs.map((g) => [g.id, glrInfo(g)])), agg = new Map(), probs = new Map();
+      const from = addDays(end, -(days - 1)), info = new Map(DEMO.glrs.map((g) => [g.id, glrInfo(g)])), agg = new Map(), probs = new Map();
       for (const r of store.get(RK, [])) {
         const g = info.get(r.glr_id);
-        if (!g || r.date < from || !inScope(g)) continue;
+        if (!g || r.date < from || r.date > end || !inScope(g)) continue;
         const k = `${r.date}|${g.panchayat_id}`;
         if (!agg.has(k)) agg.set(k, [r.date, g.panchayat_id, 0, 0, 0]);
         agg.get(k)[{ yes: 2, partial: 3, no: 4 }[r.status]]++;
@@ -857,19 +873,19 @@ const data = {
       }
       v = { daily: [...agg.values()], problems: [...probs].sort((a, b) => b[1] - a[1]) };
     }
-    state.cache.trends = { at: Date.now(), v };
+    state.cache.trends = { key, at: Date.now(), v };
     return v;
   },
-  // Each tank's report per day, for the review tab's 14-day calendar (one panchayat's tanks).
-  async tankHistory(ids, days = 14) {
-    const from = dayOffset(-(days - 1));
+  // Each tank's report per day, for the review tab's 14-day calendar (one panchayat's tanks), ending `end`.
+  async tankHistory(ids, days = 14, end = istToday()) {
+    const from = addDays(end, -(days - 1));
     if (LIVE) {
       if (!ids.length) return [];
-      const { data: rows, error } = await sb.from("reports").select("glr_id, report_date, status, problem").in("glr_id", ids).gte("report_date", from);
+      const { data: rows, error } = await sb.from("reports").select("glr_id, report_date, status, problem").in("glr_id", ids).gte("report_date", from).lte("report_date", end);
       if (error) return [];
       return rows.map((r) => ({ glr_id: r.glr_id, date: r.report_date, status: r.status, problem: r.problem }));
     }
-    return store.get(RK, []).filter((r) => ids.includes(r.glr_id) && r.date >= from);
+    return store.get(RK, []).filter((r) => ids.includes(r.glr_id) && r.date >= from && r.date <= end);
   },
   async operators() {
     if (LIVE) {
@@ -894,7 +910,7 @@ const data = {
       if (error) throw error; return;
     }
     const rows = store.get(RK, []);
-    const r = rows.find((x) => x.glr_id === row.id && x.date === istToday());
+    const r = rows.find((x) => x.glr_id === row.id && x.date === (row.date ?? istToday()));   // a past day's report can be reviewed too
     if (r) { Object.assign(r, { review_status: d.review_status, remarks: d.remarks ?? r.remarks, source_ok: d.source_ok, pump_ok: d.pump_ok, glr_filled: d.glr_filled, problem: d.problem ?? r.problem, reviewed_at: nowIso() }); store.set(RK, rows); }
   },
   async recordFor(row, status, problem, remarks) {
@@ -1018,7 +1034,38 @@ function openTab(tab, panchayatId) {
 function bindTabs() {
   app.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", () => { if (b.dataset.tab !== state.tab) openTab(b.dataset.tab); }));
   app.querySelectorAll("[data-openrv]").forEach((b) => b.addEventListener("click", () => openTab("review", +b.dataset.openrv)));
+  bindDateBar();
 }
+
+// Date bar (both tabs): today, the six days before as chips, and a calendar for any earlier day. Everything below
+// shows that day: what each operator reported, the review, and charts ending on it. The day is kept in the address.
+const dayChip = (ymd) => new Date(ymd + "T00:00:00").toLocaleDateString(state.lang === "ta" ? "ta-IN" : "en-IN", { weekday: "short", day: "numeric" });
+const when = () => isPast() ? fmtDate(viewDay()) : t("whenToday");
+const tw = (k) => t(k).replace("{when}", when());
+function dateBar() {
+  const cur = viewDay(), today = istToday();
+  const chips = lastDays(7, today).reverse().map((d, i) =>
+    `<button data-day="${d}" aria-pressed="${d === cur}">${esc(i === 0 ? t("today") : i === 1 ? t("yesterday") : dayChip(d))}</button>`).join("");
+  return `<div class="datebar">
+      <div class="daychips" role="group" aria-label="${esc(t("pickDay"))}">${chips}</div>
+      <label class="cal-pick">📅 <span>${esc(t("otherDay"))}</span><input type="date" id="viewDate" max="${today}" value="${cur}"></label>
+    </div>
+    ${isPast() ? `<div class="pastnote">${esc(t("showingDay").replace("{date}", fmtDate(cur)))} · <button class="link" data-day="${today}">${esc(t("backToday"))}</button></div>` : ""}`;
+}
+function setDay(d) {
+  state.viewDate = d && d < istToday() ? d : null;
+  const q = new URLSearchParams(location.search);
+  if (state.viewDate) q.set("date", state.viewDate); else q.delete("date");
+  history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : ""));
+  state.rvDraft = {}; state.rvOpen = {}; render();
+}
+function bindDateBar() {
+  const row = app.querySelector(".daychips"), sel = row?.querySelector('[aria-pressed="true"]');
+  if (sel) row.scrollLeft = sel.offsetLeft - row.offsetLeft - (row.clientWidth - sel.offsetWidth) / 2;   // keep the chosen chip in view
+  app.querySelectorAll("[data-day]").forEach((b) => b.addEventListener("click", () => setDay(b.dataset.day)));
+  document.getElementById("viewDate")?.addEventListener("change", (e) => { if (e.target.value) setDay(e.target.value); });
+}
+const silentText = () => t(isPast() ? "silentPast" : "silentNote");
 // Demo keeps every tank on the phone, so it narrows to the signed-in officer's area itself (live: row-level security).
 const inScope = (r) => {
   if (LIVE) return true;
@@ -1031,15 +1078,15 @@ const inScope = (r) => {
 // separation. Every chart has a legend, a tooltip on hover / tap / keyboard focus, and its numbers in labels or a table.
 const SERIES = [["yes", "delivered"], ["partial", "partialDelivered"], ["no", "notDelivered"], ["none", "notReported"]];
 const DAYS = 14;
-const lastDays = (n = DAYS) => [...Array(n)].map((_, i) => dayOffset(i - n + 1));
+const lastDays = (n = DAYS, end = viewDay()) => [...Array(n)].map((_, i) => addDays(end, i - n + 1));
 const dayNum = (ymd) => String(+ymd.slice(8));
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 const legendHtml = () => `<div class="legend">${SERIES.map(([k, l]) => `<span><i class="sw ${k}"></i>${esc(t(l))}</span>`).join("")}</div>`;
-// Tanks by status for each day; today's column comes from today's rows, so it is always current.
+// Tanks by status for each day; the shown day's column comes from its own rows, so today's is always current.
 function dailyTotals(trend, rows, days = lastDays()) {
-  const n = rows.length, today = istToday(), by = new Map(days.map((d) => [d, { d, yes: 0, partial: 0, no: 0 }]));
-  for (const [d, pid, y, p, no] of trend?.daily ?? []) { const x = by.get(d); if (x && d !== today && (!rows.pidSet || rows.pidSet.has(pid))) { x.yes += y; x.partial += p; x.no += no; } }
-  const td = by.get(today); if (td) for (const k of ["yes", "partial", "no"]) td[k] = rows.filter((r) => r.status === k).length;
+  const n = rows.length, cur = viewDay(), by = new Map(days.map((d) => [d, { d, yes: 0, partial: 0, no: 0 }]));
+  for (const [d, pid, y, p, no] of trend?.daily ?? []) { const x = by.get(d); if (x && d !== cur && (!rows.pidSet || rows.pidSet.has(pid))) { x.yes += y; x.partial += p; x.no += no; } }
+  const td = by.get(cur); if (td) for (const k of ["yes", "partial", "no"]) td[k] = rows.filter((r) => r.status === k).length;
   return days.map((d) => { const x = by.get(d); return { ...x, n, none: Math.max(0, n - x.yes - x.partial - x.no) }; });
 }
 const forPanchayat = (rows, pid) => Object.assign(rows.filter((r) => r.panchayat_id === pid), { pidSet: new Set([pid]) });
@@ -1073,13 +1120,13 @@ const trendTip = (x) => [`${fmtDate(x.d)}${x.d === istToday() ? ` · ${t("today"
 
 // 100 % stacked columns, one per day: normal at the base, then partial, not supplied, no report on top.
 function trendChart(per) {
-  const today = istToday();
+  const cur = viewDay();
   const cols = per.map((x, i) => `<button class="tc-col" data-tip="tr:${i}" aria-label="${esc(trendTip(x)[0] + ": " + trendTip(x)[1].map(([, v, l]) => `${v} ${l}`).join(", "))}">
     <span class="tc-stack">${SERIES.map(([k]) => x[k] ? `<i class="${k}" style="flex-grow:${x[k]}"></i>` : "").join("")}</span></button>`).join("");
   return `<div class="tc">
     <div class="tc-y"><span style="top:0">100%</span><span style="top:50%">50%</span><span style="top:100%">0</span></div>
     <div class="tc-plot"><i class="tc-g" style="top:0"></i><i class="tc-g" style="top:50%"></i><i class="tc-g" style="top:100%"></i><div class="tc-cols" style="grid-template-columns:repeat(${per.length},1fr)">${cols}</div></div>
-    <span></span><div class="tc-x" style="grid-template-columns:repeat(${per.length},1fr)">${per.map((x) => `<span class="${x.d === today ? "today" : ""}">${dayNum(x.d)}</span>`).join("")}</div>
+    <span></span><div class="tc-x" style="grid-template-columns:repeat(${per.length},1fr)">${per.map((x) => `<span class="${x.d === cur ? "sel" : ""}">${dayNum(x.d)}</span>`).join("")}</div>
   </div>`;
 }
 const trendTable = (per) => `<details class="tview"><summary>${esc(t("showTable"))}</summary><div class="tbl-wrap"><table>
@@ -1104,14 +1151,14 @@ function spark(vals) {
 
 // Review tab: every tank of the panchayat × the last 14 days, tanks with the most trouble first.
 function tankCalendar(tanks, hist, days = lastDays()) {
-  const at = new Map(hist.map((h) => [`${h.glr_id}|${h.date}`, h])), today = istToday();
-  const cell = (r, d) => d === today ? (r.status === "not_reported" ? null : { status: r.status, problem: r.problem }) : at.get(`${r.id}|${d}`) ?? null;
+  const at = new Map(hist.map((h) => [`${h.glr_id}|${h.date}`, h])), cur = viewDay();
+  const cell = (r, d) => d === cur ? (r.status === "not_reported" ? null : { status: r.status, problem: r.problem }) : at.get(`${r.id}|${d}`) ?? null;
   const score = (r) => days.reduce((s, d) => { const c = cell(r, d); return s + (!c ? 1 : c.status === "no" ? 3 : c.status === "partial" ? 2 : 0); }, 0);
   const sorted = [...tanks].sort((a, b) => score(b) - score(a) || String(a.code).localeCompare(String(b.code)));
   const tip = (r, d) => { const c = cell(r, d); return [`${nm(r)} (${r.kind}) · ${fmtDate(d)}`,
     [[c?.status ?? "none", statusLabel(c?.status ?? "not_reported"), c && c.status !== "yes" && c.problem ? problemLabel(c.problem) : ""]]]; };
   const html = `<div class="hm">
-    <div class="hm-row hm-head"><span></span>${days.map((d) => `<span class="${d === today ? "today" : ""}">${dayNum(d)}</span>`).join("")}</div>
+    <div class="hm-row hm-head"><span></span>${days.map((d) => `<span class="${d === cur ? "sel" : ""}">${dayNum(d)}</span>`).join("")}</div>
     ${sorted.map((r, i) => `<div class="hm-row"><span class="hm-t" title="${esc(`${nm(r)} · ${nm2(r.hab, r.habTa)}`)}">${kindTag(r.kind)} ${esc(nm(r))}</span>${days.map((d, j) => {
       const c = cell(r, d), [title, [[, s, p]]] = tip(r, d);
       return `<button class="hm-c ${c?.status ?? "none"}" data-tip="hm:${i}:${j}" aria-label="${esc(`${title}: ${s}${p ? ", " + p : ""}`)}"></button>`; }).join("")}</div>`).join("")}
@@ -1346,7 +1393,7 @@ function bindPlay(list) {
 async function renderReview() {
   let rows, ops, ext;
   const seq = renderSeq;
-  try { [rows, ops, ext] = await Promise.all([data.today(), data.operators(), data.external()]); } catch (e) { if (!stale(seq)) app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  try { [rows, ops, ext] = await Promise.all([data.today(viewDay()), data.operators(), data.external()]); } catch (e) { if (!stale(seq)) app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
   if (stale(seq)) return;
   // One panchayat at a time: the officer's own, or the one picked (default: the one with the most to look at).
   const scoped = rows.filter(inScope);
@@ -1357,7 +1404,7 @@ async function renderReview() {
   if (!pans.some((p) => p.id === pid)) pid = [...pans].sort((a, b) => todo(b.id) - todo(a.id))[0]?.id;
   state.rvPanchayat = pid;
   const mine = scoped.filter((r) => r.panchayat_id === pid);
-  const hist = await data.tankHistory(mine.map((r) => r.id)).catch(() => []);
+  const hist = await data.tankHistory(mine.map((r) => r.id), DAYS, viewDay()).catch(() => []);
   if (stale(seq)) return;
   const cal = tankCalendar(mine, hist);
   const myOps = ops.filter((o) => o.panchayat_id === pid);
@@ -1380,13 +1427,13 @@ async function renderReview() {
     if (idx.length === 1 || state.rvOpen[k]) return idx.map((i) => item(list[i], i)).join("");
     return `<div class="rv-item">
       <div class="rv-top"><div><b>${esc(nm2(r0.operator, r0.operatorTa) || "—")}</b> <span class="sub">· ${esc(r0.operator_phone ?? "")}</span>
-          <div class="sub">${idx.length} ${esc(t("tanks"))} (${esc(kindCount(tanks))}) · ${esc(t("silentNote"))}</div></div>${statusPill("not_reported")}</div>
+          <div class="sub">${idx.length} ${esc(t("tanks"))} (${esc(kindCount(tanks))}) · ${esc(silentText())}</div></div>${statusPill("not_reported")}</div>
       <div class="rv-body" style="color:var(--muted)">${tanks.map((r) => esc(nm(r))).join(" · ")}</div>
-      <div class="rv-actions">
+      ${isPast() ? "" : `<div class="rv-actions">
         ${r0.operator_phone ? `<a class="call" href="tel:+91${esc(r0.operator_phone)}">${esc(t("call"))}</a>` : ""}
         <button class="st-yes" data-rvall="${esc(k)}">${esc(t("allNormal"))}</button>
         <button data-rvopen="${esc(k)}">${esc(t("oneByOne"))}</button>
-      </div>
+      </div>`}
     </div>`;
   };
   const item = (r, i) => {
@@ -1398,8 +1445,9 @@ async function renderReview() {
         <div class="rv-top"><div>${kindTag(r.kind)} <b>${esc(nm(r))}</b> <span class="sub">· ${esc(nm2(r.hab, r.habTa))} · ${esc(fmtCap(r.capacity))}</span>
             <div class="sub">${esc(nm2(r.operator, r.operatorTa))} · ${esc(r.operator_phone ?? "")}${r.at ? ` · ${esc(fmtTime(r.at))}` : ""}${r.entered_by === "reviewer" ? ` · ${esc(t("byReviewer"))}` : ""}</div>${locLine(r)}</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${statusPill(r.status)}${!silent ? reviewPill(r.review_status) : ""}</div></div>
-        ${silent ? `
-          <div class="rv-body" style="color:var(--muted)">${esc(t("silentNote"))}</div>
+        ${silent && isPast() ? `<div class="rv-body" style="color:var(--muted)">${esc(silentText())}</div>`
+        : silent ? `
+          <div class="rv-body" style="color:var(--muted)">${esc(silentText())}</div>
           <div class="rv-body" style="margin-top:8px"><b>${esc(t("recordFor"))}</b></div>
           <div class="rv-actions">${["yes", "partial", "no"].map((s) => `<button class="st-${s}" data-rf="${i}" data-s="${s}" style="${d.status === s ? "background:var(--soft)" : ""}">${esc(statusLabel(s))}</button>`).join("")}</div>
           ${draftIssue ? `<div class="rv-diag"><div class="chips">${PROBLEMS.map((p) => `<button data-rfp="${i}" data-p="${p.code}" aria-pressed="${d.problem === p.code}">${esc(state.lang === "ta" ? p.ta : p.en)}</button>`).join("")}</div>
@@ -1427,7 +1475,8 @@ async function renderReview() {
   app.innerHTML = `<div class="page wide">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
     <div class="topbar">${staffTabs()}${signOutBtn()}</div>
-    <div class="head"><div>${panPick}<h2>${panPick ? "" : `${esc(pname)} · `}${esc(t("reviewTitle"))}</h2><div class="sub">${esc(fmtDate(istToday()))} · ${mine.length} ${esc(t("tanks"))} (${esc(kindCount(mine))}) · ${pending} ${esc(t("pending").toLowerCase())}</div></div></div>
+    ${dateBar()}
+    <div class="head"><div>${panPick}<h2>${panPick ? "" : `${esc(pname)} · `}${esc(tw("reviewTitle"))}</h2><div class="sub">${isPast() ? "" : `${esc(fmtDate(viewDay()))} · `}${mine.length} ${esc(t("tanks"))} (${esc(kindCount(mine))}) · ${pending} ${esc(t("pending").toLowerCase())}</div></div></div>
     <p style="margin:0;color:var(--muted);font-size:14px">${esc(t("reviewHint"))}</p>
     ${extLine(myExt)}
     ${mine.length ? `<details class="card cal" id="cal" ${state.calOpen ? "open" : ""}><summary><b>${esc(t("calTitle"))}</b></summary>
@@ -1586,7 +1635,7 @@ async function renderOfficer() {
   let rows, ext, staff, places, trend;
   const seq = renderSeq;
   try {
-    [rows, ext, staff, places, trend] = await Promise.all([data.today(), data.external(), data.staffList().catch(() => []), data.staffPlaces().catch(() => []), data.trends(DAYS + 1).catch(() => null)]);
+    [rows, ext, staff, places, trend] = await Promise.all([data.today(viewDay()), data.external(), data.staffList().catch(() => []), data.staffPlaces().catch(() => []), data.trends(DAYS + 1, viewDay()).catch(() => null)]);
   } catch (e) { if (!stale(seq)) app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
   if (stale(seq)) return;
   rows = rows.filter(inScope);
@@ -1635,7 +1684,8 @@ async function renderOfficer() {
   app.innerHTML = `<div class="page wide">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
     <div class="topbar">${staffTabs()}${signOutBtn()}</div>
-    <div class="head"><div><h2>${esc(dName)} · ${esc(t("officerTitle"))}</h2><div class="sub">${esc(fmtDate(istToday()))} · ${rows.length} ${esc(t("tanks"))} (${esc(kindCount(rows))})</div></div></div>
+    ${dateBar()}
+    <div class="head"><div><h2>${esc(dName)} · ${esc(tw("officerTitle"))}</h2><div class="sub">${isPast() ? "" : `${esc(fmtDate(viewDay()))} · `}${rows.length} ${esc(t("tanks"))} (${esc(kindCount(rows))})</div></div></div>
     <div class="tiles">
       <div class="tile yes"><div class="n">${yes}</div><div class="t">${esc(t("delivered"))}</div></div>
       <div class="tile partial"><div class="n">${partial}</div><div class="t">${esc(t("partialDelivered"))}</div></div>
@@ -1646,7 +1696,7 @@ async function renderOfficer() {
     <div class="two charts">
       <div class="card chart-card">
         <div class="section-h"><h3>${esc(per.length < DAYS ? t("trendSince").replace("{date}", fmtDate(per[0].d)) : t("trendTitle"))}</h3></div>
-        <div class="tc-stat"><b>${pct(yes, rows.length)}%</b> ${esc(t("normalToday"))}${avgNormal != null ? ` · ${esc(t(done.length < DAYS ? "avgSince" : "avg14"))} <b>${avgNormal}%</b>` : ""}</div>
+        <div class="tc-stat"><b>${pct(yes, rows.length)}%</b> ${esc(t(isPast() ? "normalOnDay" : "normalToday"))}${avgNormal != null ? ` · ${esc(t(done.length < DAYS ? "avgSince" : "avg14"))} <b>${avgNormal}%</b>` : ""}</div>
         ${trendChart(per)}${legendHtml()}${trendTable(per)}
       </div>
       <div class="card chart-card">
@@ -1670,7 +1720,7 @@ async function renderOfficer() {
     </div>` : ""}
     <div class="two">
       <div>
-        <div class="section-h"><h3>${esc(t("alerts"))}</h3><span class="label">${alerts.length + silent2.length}</span></div>
+        <div class="section-h"><h3>${esc(tw("alerts"))}</h3><span class="label">${alerts.length + silent2.length}</span></div>
         <div class="alerts">${alerts.map((r, i) => `
           <div class="alert ${r.status}"><span class="stripe"></span>
             <div><b>${kindTag(r.kind)} ${esc(nm(r))} <span style="font-weight:400;color:var(--muted)">· ${esc(nm2(r.hab, r.habTa))} · ${esc(nm2(r.panchayat, r.panchayatTa))}</span></b>
@@ -1680,7 +1730,7 @@ async function renderOfficer() {
           </div>`).join("")}${silent2.map((g) => `
           <div class="alert silent"><span class="stripe"></span>
             <div><b>${esc(nm2(g[0].operator, g[0].operatorTa) || "—")} <span style="font-weight:400;color:var(--muted)">· ${esc(nm2(g[0].panchayat, g[0].panchayatTa))} · ${esc(nm2(g[0].block, g[0].blockTa))}</span></b>
-              <div class="meta">${esc(t("silentNote"))} · ${g.length === 1 ? esc(kindCount(g)) : `${g.length} ${esc(t("tanks"))} (${esc(kindCount(g))})`} · ${toReview(g[0].panchayat_id)}</div>
+              <div class="meta">${esc(silentText())} · ${g.length === 1 ? esc(kindCount(g)) : `${g.length} ${esc(t("tanks"))} (${esc(kindCount(g))})`} · ${toReview(g[0].panchayat_id)}</div>
               <div class="diagline">${g.map((r) => esc(nm(r))).join(" · ")}</div></div>
             <div class="time"></div>
           </div>`).join("")}${alerts.length + silent2.length ? "" : `<div class="card" style="color:var(--muted)">${esc(t("noAlerts"))}</div>`}
