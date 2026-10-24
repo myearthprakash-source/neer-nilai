@@ -15,10 +15,9 @@ One habitation can have several tanks of either kind. A habitation supplied by a
 | Role | Page | Sign-in | What they do |
 |---|---|---|---|
 | Pump operator | https://myearthprakash-source.github.io/neer-nilai/ | Registered mobile number + its last 4 digits, on any phone, or the WhatsApp link (demo: tap a person, type the last 4 digits) | Enters the daily report for each tank they look after |
-| Panchayat officer (reviewer) | https://myearthprakash-source.github.io/neer-nilai/review/ | Registered mobile number + its last 4 digits (demo: tap a person) | Confirms or flags each tank report for their panchayat, adds a note, records for a silent operator after a call |
-| Block / district officer | https://myearthprakash-source.github.io/neer-nilai/officer/ | Registered mobile number + its last 4 digits (demo: tap a person) | Dashboard: counts, alerts, per-tank table with review status; adds, changes and removes the staff below them |
+| Officers: panchayat, block, district | https://myearthprakash-source.github.io/neer-nilai/officer/ (same app at …/review/, opening on the Review tab) | Registered mobile number + its last 4 digits (demo: tap a person) | One app, two tabs. **Dashboard**: counts, a card per panchayat (tap for details), alerts, per-tank table; district/block officers add, change and remove the staff below them. **Review & operators**: one panchayat at a time (block/district officers pick it): confirm or flag each tank report, record for a silent operator after a call, add / change / remove operators |
 
-The three pages never link to each other. In live mode the database enforces the split: operator functions accept only a registered mobile number + digits (or a phone that already signed in that way), and every officer sees only the tanks inside their panchayat, block or district (row-level security).
+Each officer sees only their own area: a panchayat officer their panchayat, a block officer their block, a district officer the district. The operator app and the officer app never link to each other. In live mode the database enforces the split: operator functions accept only a registered mobile number + digits (or a phone that already signed in that way), and every officer sees only the tanks inside their panchayat, block or district (row-level security).
 
 ## Who can report: registered operators only
 

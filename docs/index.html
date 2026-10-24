@@ -212,6 +212,18 @@ td.time{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:no
 .staff-acts{display:flex;gap:18px;flex-wrap:wrap;margin-top:4px}
 .link.danger{color:var(--bad)}
 .newhere{margin:14px 0 0;font-size:14px;color:var(--muted);text-align:center}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tabs{display:flex;gap:4px;background:var(--soft);padding:4px;border-radius:12px}
+.tabs button{border:0;background:none;padding:9px 14px;border-radius:9px;font-weight:600;font-size:15px;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.pan-pick{display:block;width:auto;min-width:260px;max-width:100%;font-size:18px;font-weight:600;margin:6px 0 12px}
+.pan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.pan-card{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;cursor:pointer}
+.pan-card:hover,.pan-card:focus-visible{border-color:var(--accent)}
+.pan-card .sub{color:var(--muted);font-size:13px}
+.pc-counts{font-size:13px;color:var(--muted)}
+.pc-counts .no{color:var(--bad);font-weight:600} .pc-counts .partial{color:var(--warn);font-weight:600}
+.pc-go{color:var(--accent);font-weight:600;font-size:14px}
 .rv-actions button:disabled{opacity:.4;cursor:not-allowed}
 .op-form{margin-top:4px}
 .tankpick{display:flex;flex-direction:column;gap:2px;max-height:360px;overflow:auto;border:1.5px solid var(--line);border-radius:10px;padding:6px}
@@ -244,10 +256,15 @@ td.time{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:no
 // Fill these to go live against Supabase. Leave empty for demo mode (sample data kept on this phone only).
 const CONFIG = { SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };
 const LIVE = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY && window.supabase);
-// Three pages, one file. Role is fixed by the URL:  /  operator   /review/  panchayat officer   /officer/  block + district.
+// One file, two apps. /  is the operator's. /officer/ and /review/ are the same officer app (one sign-in, tabs
+// Dashboard | Review & operators); the address only picks the tab it opens on.
 const ROLE = /\/officer(\/|\.html|$)/i.test(location.pathname) ? "of" : /\/review(\/|\.html|$)/i.test(location.pathname) ? "rv" : "op";
-// Each page keeps its own staff session, so one person can test the review and officer pages side by side.
-const sb = LIVE ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { storageKey: "nnl-auth-" + ROLE } }) : null;
+const STAFF = ROLE !== "op";
+// Officers share one session across both addresses (earlier versions kept one per page: carry it over).
+if (LIVE && STAFF) try {
+  if (!localStorage.getItem("nnl-auth-staff")) { const old = localStorage.getItem("nnl-auth-" + ROLE) ?? localStorage.getItem("nnl-auth-of") ?? localStorage.getItem("nnl-auth-rv"); if (old) localStorage.setItem("nnl-auth-staff", old); }
+} catch {}
+const sb = LIVE ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { storageKey: STAFF ? "nnl-auth-staff" : "nnl-auth-op" } }) : null;
 
 // ---------------------------------------------------------------- i18n
 const T = {
@@ -297,8 +314,11 @@ const T = {
     pinLocked: "பல முறை தவறான PIN. 15 நிமிடம் கழித்து முயற்சிக்கவும் அல்லது ஊராட்சி அலுவலரிடம் புதிய PIN கேட்கவும்.",
     notRegistered: "இந்த எண் அலுவலராக பதிவு செய்யப்படவில்லை. மேல் அலுவலரை அணுகவும்.",
     extSupply: "{who} மூலம் தண்ணீர் — இந்த ஆப்பில் பதிவு இல்லை",
-    silentNote: "மதியம் வரை பதிவு இல்லை", officerTitle: "மாவட்ட நிலை — இன்று",
+    silentNote: "மதியம் வரை பதிவு இல்லை", officerTitle: "தண்ணீர் நிலை — இன்று",
     settings: "அறிவிப்பு அமைப்புகள்", notifyIn: "பயன்பாட்டில்", notifyEmail: "மின்னஞ்சல்", notifyWa: "வாட்ஸ்அப்", digest: "மதியம் 12:00 சுருக்கம்", alwaysOn: "எப்போதும்", free: "இலவசம்", cheap: "ஒரு செய்திக்கு ≈ ₹0.12",
+    tabDash: "டாஷ்போர்டு", tabReview: "சரிபார்ப்பு & ஆபரேட்டர்கள்", openReview: "விவரம் →", pendingN: "{n} சரிபார்க்க வேண்டும்",
+    panTitle: "ஊராட்சிகள்", panHint: "ஒரு ஊராட்சியைத் தொட்டு அதன் தொட்டிகள், சரிபார்ப்பு, ஆபரேட்டர்களைப் பார்க்கவும்.",
+    staffLoginHint: "ஊராட்சி, வட்டார, மாவட்ட அலுவலர்கள்: பதிவு செய்யப்பட்ட கைபேசி எண்ணையும் அதன் கடைசி 4 இலக்கத்தையும் உள்ளிடவும்.",
     officerLogin: "அலுவலர் உள்நுழைவு", reviewLogin: "ஊராட்சி அலுவலர் உள்நுழைவு", email: "அலுவலக மின்னஞ்சல்", accessCode: "அணுகல் குறியீடு", signIn: "உள்நுழை", signOut: "வெளியேறு",
     magicSent: "உள்நுழைவு இணைப்பு உங்கள் மின்னஞ்சலுக்கு அனுப்பப்பட்டது. அதை திறக்கவும்.", badStaffLogin: "மின்னஞ்சல் அல்லது குறியீடு தவறு",
     officerDemoHint: "டெமோ: ஒருவரை தேர்வு செய்து, எண்ணின் கடைசி 4 இலக்கத்தை உள்ளிடவும்", install: "ஆப் நிறுவு",
@@ -354,8 +374,11 @@ const T = {
     pinLocked: "Too many wrong PINs. Try again in 15 minutes, or ask the panchayat officer for a new PIN.",
     notRegistered: "This number is not registered as an officer. Ask your senior officer.",
     extSupply: "water supplied by {who} — not reported in this app",
-    silentNote: "No report by noon", officerTitle: "District status — today",
+    silentNote: "No report by noon", officerTitle: "Water status — today",
     settings: "Notification settings", notifyIn: "In-app", notifyEmail: "Email", notifyWa: "WhatsApp", digest: "12:00 noon digest", alwaysOn: "Always on", free: "Free", cheap: "≈ ₹0.12 per message",
+    tabDash: "Dashboard", tabReview: "Review & operators", openReview: "Details →", pendingN: "{n} to review",
+    panTitle: "Panchayats", panHint: "Tap a panchayat to see its tanks, reviews and operators.",
+    staffLoginHint: "Panchayat, block and district officers: enter your registered mobile number and its last 4 digits.",
     officerLogin: "Officer sign in", reviewLogin: "Panchayat officer sign in", email: "Official email", accessCode: "Access code", signIn: "Sign in", signOut: "Sign out",
     magicSent: "A sign-in link has been sent to your email. Open it to continue.", badStaffLogin: "Wrong email or access code",
     officerDemoHint: "Demo: pick a person, then type the last 4 digits of the number", install: "Install app",
@@ -499,7 +522,9 @@ let state = {
   op: ((o) => o?.glrs?.every((g) => g.kind) ? o : null)(store.get("op", null)),   // signed-in operator: {id, name, ta, phone, pin, glrs:[...]}; pre-GLR/OHT sessions sign in again
   active: store.get("active", "all"),       // "all" or index into op.glrs
   editing: false, step: "home", pick: null, recording: false,
-  officer: store.get("staff_" + ROLE, null),
+  officer: store.get("officer", null) ?? (LIVE ? store.get("staff_" + ROLE, null) : null),   // (older versions: one per page)
+  tab: ROLE === "rv" ? "review" : "dash",   // officer app: "dash" (dashboard) | "review" (review & operators)
+  rvPanchayat: store.get("rvPanchayat", null),   // the panchayat open on the review tab (block / district officers pick one)
   rvDraft: {}, rvOpen: {}, newPins: {},
   filterBlock: 0, filterStatus: "all",
   busy: false, error: "", info: "", loginPhone: "",
@@ -852,15 +877,39 @@ function render() {
   renderSeq++;
   document.getElementById("langTa").setAttribute("aria-pressed", state.lang === "ta");
   document.getElementById("langEn").setAttribute("aria-pressed", state.lang === "en");
-  document.getElementById("brandSub").textContent = t(ROLE === "of" ? "officerSub" : ROLE === "rv" ? "reviewSub" : "operatorSub");
+  document.getElementById("brandSub").textContent = t(!STAFF ? "operatorSub" : state.officer && state.tab === "review" ? "reviewSub" : "officerSub");
   document.getElementById("installBtn").textContent = t("install");
   document.documentElement.lang = state.lang === "ta" ? "ta" : "en";
-  if (ROLE === "op") state.op ? renderOperator() : renderOperatorLogin();
+  if (!STAFF) state.op ? renderOperator() : renderOperatorLogin();
   else if (!state.officer) renderStaffLogin();
   else if (LIVE && !state.officer.role) renderNotRegistered();
-  else if (ROLE === "rv") renderReview();
+  else if (state.tab === "review") renderReview();
   else renderOfficer();
 }
+
+// ---------------------------------------------------------------- officer app: tabs, scope
+// Every officer gets both tabs. Panchayat officers see their own panchayat; block and district officers see all of
+// theirs on the dashboard and pick one on the review tab (the dashboard's "Review →" links open it directly).
+const staffTabs = () => `<div class="tabs" role="tablist">
+  <button role="tab" data-tab="dash" aria-selected="${state.tab === "dash"}">${esc(t("tabDash"))}</button>
+  <button role="tab" data-tab="review" aria-selected="${state.tab === "review"}">${esc(t("tabReview"))}</button></div>`;
+function openTab(tab, panchayatId) {
+  if (panchayatId) { state.rvPanchayat = panchayatId; store.set("rvPanchayat", panchayatId); }
+  state.tab = tab;
+  // The address follows the tab, so a reload or a shared link opens the same one.
+  history.replaceState(null, "", location.pathname.replace(/(review|officer)\/?(index\.html)?$/, tab === "review" ? "review/" : "officer/") + location.search);
+  render(); window.scrollTo(0, 0);
+}
+function bindTabs() {
+  app.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", () => { if (b.dataset.tab !== state.tab) openTab(b.dataset.tab); }));
+  app.querySelectorAll("[data-openrv]").forEach((b) => b.addEventListener("click", () => openTab("review", +b.dataset.openrv)));
+}
+// Demo keeps every tank on the phone, so it narrows to the signed-in officer's area itself (live: row-level security).
+const inScope = (r) => {
+  if (LIVE) return true;
+  const o = state.officer;
+  return o.role === "panchayat" ? r.panchayat_id === o.panchayat_id : o.role === "block" ? r.block_id === o.block_id : true;
+};
 
 // ---------------------------------------------------------------- operator: phone + PIN, 3 big buttons, 6 picture tiles, done
 // Number field shared by every sign-in: no length limit, so "+91 98765 43210" or an autofilled number still fits
@@ -1032,16 +1081,15 @@ function stopVoice() { if (rec && rec.state === "recording") rec.stop(); }
 // ---------------------------------------------------------------- staff sign-in (panchayat reviewer, block/district officer)
 // Staff sign in like operators: mobile number + its last 4 digits. Live: the staff-login edge function checks them
 // and hands back a one-time token that becomes a normal Supabase session. No email, no SMS.
-// Any staff number works on either page: a block or district officer on the review page sees their whole area.
+// One sign-in for panchayat, block and district officers; the role and area come from the number.
 const STAFF_ERR = { unknown: "notRegStaff", bad: "wrongDigits", locked: "pinLocked", device: "staffDevice" };
 function renderStaffLogin() {
-  const demoPeople = demoStaff().filter((s) => ROLE === "rv" ? s.role === "panchayat" : s.role !== "panchayat");
   app.innerHTML = `<div class="page">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
     <div class="card">
-      <h2 style="font-size:20px;font-weight:700">${esc(t(ROLE === "rv" ? "reviewLogin" : "officerLogin"))}</h2>
-      <p style="margin:6px 0 0;color:var(--muted);font-size:15px">${esc(t("loginHint"))}</p>
-      ${phoneField("offPhone", LIVE ? null : demoPeople)}
+      <h2 style="font-size:20px;font-weight:700">${esc(t("officerLogin"))}</h2>
+      <p style="margin:6px 0 0;color:var(--muted);font-size:15px">${esc(t("staffLoginHint"))}</p>
+      ${phoneField("offPhone", LIVE ? null : demoStaff())}
       <div class="field"><label class="label" for="offPin">${esc(t("pin"))}</label><input id="offPin" class="big" inputmode="numeric" maxlength="4" placeholder="••••"></div>
       ${state.error ? `<div class="err">${esc(t(state.error))}</div>` : ""}
       <div style="margin-top:16px"><button class="btn" id="offLogin" ${state.busy ? "disabled" : ""}>${esc(t(state.busy ? "opening" : "signIn"))}</button></div>
@@ -1056,7 +1104,7 @@ function renderStaffLogin() {
       const s = demoStaff().find((x) => x.phone === phone);
       if (!s || pin !== phone.slice(-4)) { state.error = s ? "wrongDigits" : "notRegStaff"; return render(); }
       state.loginPhone = "";
-      state.officer = { name: s.name, phone, role: s.role, panchayat_id: s.p ?? null, block_id: s.b ?? null, district_id: s.d ?? null }; store.set("staff_" + ROLE, state.officer); return render();
+      state.officer = { name: s.name, phone, role: s.role, panchayat_id: s.p ?? null, block_id: s.b ?? null, district_id: s.d ?? null }; store.set("officer", state.officer); return render();
     }
     state.busy = true; render();
     try {
@@ -1077,7 +1125,7 @@ function renderNotRegistered() {
   bindSignOut();
 }
 function signOutBtn() { const o = state.officer ?? {}; return `<div class="sub">${esc(o.name || o.phone || o.email || "")} · <button class="link" id="signOut">${esc(t("signOut"))}</button></div>`; }
-function bindSignOut() { document.getElementById("signOut")?.addEventListener("click", async () => { if (LIVE) await sb.auth.signOut(); state.officer = null; store.set("staff_" + ROLE, null); render(); }); }
+function bindSignOut() { document.getElementById("signOut")?.addEventListener("click", async () => { if (LIVE) await sb.auth.signOut(); state.officer = null; store.set("officer", null); render(); }); }
 function bindReset() { document.getElementById("resetDemo")?.addEventListener("click", () => { try { ["nn." + RK, "nn.pins", "nn.devices", "nn.staff", "nn.staffDev", "nn.ops"].forEach((k) => localStorage.removeItem(k)); } catch {} loadDemoOps(); seedDemo(); state.rvDraft = {}; state.newPins = {}; state.staffForm = state.opForm = state.justAdded = null; render(); }); }
 function bindPlay(list) {
   app.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", async () => {
@@ -1092,17 +1140,26 @@ async function renderReview() {
   const seq = renderSeq;
   try { rows = await data.today(); ops = await data.operators(); ext = await data.external(); } catch (e) { if (!stale(seq)) app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
   if (stale(seq)) return;
-  const pid = state.officer.panchayat_id;
-  const mine = LIVE ? rows : rows.filter((r) => r.panchayat_id === pid);
-  const myOps = LIVE ? ops : ops.filter((o) => o.panchayat_id === pid);
-  const myExt = ext.filter((h) => mine.some((r) => r.panchayat_id === h.panchayat_id));
+  // One panchayat at a time: the officer's own, or the one picked (default: the one with the most to look at).
+  const scoped = rows.filter(inScope);
+  const todo = (pid) => scoped.filter((r) => r.panchayat_id === pid && (r.status === "no" || r.status === "partial" || r.status !== "not_reported" && r.review_status === "pending")).length;
+  const pans = [...new Map(scoped.map((r) => [r.panchayat_id, { id: r.panchayat_id, name: r.panchayat, ta: r.panchayatTa, block: r.block, blockTa: r.blockTa }])).values()]
+    .sort((a, b) => nm(a).localeCompare(nm(b)));
+  let pid = state.officer.role === "panchayat" && state.officer.panchayat_id ? state.officer.panchayat_id : state.rvPanchayat;
+  if (!pans.some((p) => p.id === pid)) pid = [...pans].sort((a, b) => todo(b.id) - todo(a.id))[0]?.id;
+  state.rvPanchayat = pid;
+  const mine = scoped.filter((r) => r.panchayat_id === pid);
+  const myOps = ops.filter((o) => o.panchayat_id === pid);
+  const myExt = ext.filter((h) => h.panchayat_id === pid);
   const pname = mine[0] ? nm2(mine[0].panchayat, mine[0].panchayatTa) : "";
+  const panPick = pans.length > 1 ? `<label class="label" for="rvPan">${esc(t("panchayat"))}</label>
+    <select id="rvPan" class="pan-pick">${pans.map((p) => `<option value="${p.id}" ${p.id === pid ? "selected" : ""}>${esc(nm(p))} · ${esc(nm2(p.block, p.blockTa))}${todo(p.id) ? ` (${esc(t("pendingN").replace("{n}", todo(p.id)))})` : ""}</option>`).join("")}</select>` : "";
   const rank = { no: 0, partial: 1, not_reported: 2, yes: 3 };
   const pend = (r) => r.review_status === "pending" ? 0 : 1;
   const list = [...mine].sort((a, b) => rank[a.status] - rank[b.status] || pend(a) - pend(b) || String(a.code).localeCompare(String(b.code)));
   const pending = mine.filter((r) => r.status !== "not_reported" && r.review_status === "pending").length;
   const draft = (r) => state.rvDraft[r.id] ?? (state.rvDraft[r.id] = { status: null, problem: r.problem, source_ok: r.source_ok, pump_ok: r.pump_ok, glr_filled: r.glr_filled, remarks: r.remarks ?? "" });
-  const appUrl = location.origin + location.pathname.replace(/review\/?(index\.html)?$/, "");
+  const appUrl = location.origin + location.pathname.replace(/(review|officer)\/?(index\.html)?$/, "");
 
   // Silent tanks are grouped per operator: one call to the operator usually settles all of them ("all came").
   const silentGroups = new Map();
@@ -1158,7 +1215,8 @@ async function renderReview() {
 
   app.innerHTML = `<div class="page wide">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
-    <div class="head"><div><h2>${esc(pname)} · ${esc(t("reviewTitle"))}</h2><div class="sub">${esc(fmtDate(istToday()))} · ${mine.length} ${esc(t("tanks"))} (${esc(kindCount(mine))}) · ${pending} ${esc(t("pending").toLowerCase())}</div></div>${signOutBtn()}</div>
+    <div class="topbar">${staffTabs()}${signOutBtn()}</div>
+    <div class="head"><div>${panPick}<h2>${panPick ? "" : `${esc(pname)} · `}${esc(t("reviewTitle"))}</h2><div class="sub">${esc(fmtDate(istToday()))} · ${mine.length} ${esc(t("tanks"))} (${esc(kindCount(mine))}) · ${pending} ${esc(t("pending").toLowerCase())}</div></div></div>
     <p style="margin:0;color:var(--muted);font-size:14px">${esc(t("reviewHint"))}</p>
     ${extLine(myExt)}
     <div class="rv">${ordered || `<div class="card" style="color:var(--muted)">${esc(t("nothingToReview"))}</div>`}</div>
@@ -1181,7 +1239,8 @@ async function renderReview() {
       </div>`).join("")}</div>
     ${LIVE ? "" : `<div style="text-align:center"><button class="link" id="resetDemo">${esc(t("reset"))}</button></div>`}
   </div>`;
-  bindSignOut(); bindReset(); bindPlay(list);
+  bindSignOut(); bindReset(); bindPlay(list); bindTabs();
+  document.getElementById("rvPan")?.addEventListener("change", (e) => { state.opForm = null; state.justAdded = null; openTab("review", +e.target.value); });
   const keepNotes = () => app.querySelectorAll("input[id^='note-'],input[id^='rfnote-']").forEach((inp) => { const i = +inp.id.split("-")[1]; draft(list[i]).remarks = inp.value; });
   app.querySelectorAll("[data-rvd]").forEach((b) => b.addEventListener("click", () => { keepNotes(); const d = draft(list[+b.dataset.rvd]); d[b.dataset.k] = d[b.dataset.k] === b.dataset.v ? null : b.dataset.v; render(); }));
   app.querySelectorAll("[data-rvp]").forEach((b) => b.addEventListener("click", () => { keepNotes(); draft(list[+b.dataset.rvp]).problem = b.dataset.p; render(); }));
@@ -1226,7 +1285,7 @@ async function renderReview() {
   }));
   bindOpForm();
   document.getElementById("addOp")?.addEventListener("click", () => {
-    state.opForm = { id: null, panchayat_id: LIVE ? mine[0]?.panchayat_id : pid, name: "", ta: "", phone: "", glrIds: [], scroll: true }; render();
+    state.opForm = { id: null, panchayat_id: pid, name: "", ta: "", phone: "", glrIds: [], scroll: true }; render();
   });
   app.querySelectorAll("[data-editop]").forEach((b) => b.addEventListener("click", () => {
     const o = myOps.find((x) => x.id === +b.dataset.editop);
@@ -1313,6 +1372,7 @@ async function renderOfficer() {
   const seq = renderSeq;
   try { rows = await data.today(); ext = await data.external(); staff = await data.staffList().catch(() => []); places = await data.staffPlaces().catch(() => []); } catch (e) { if (!stale(seq)) app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
   if (stale(seq)) return;
+  rows = rows.filter(inScope);
   const cnt = (s) => rows.filter((r) => r.status === s).length;
   const yes = cnt("yes"), partial = cnt("partial"), no = cnt("no"), silent = cnt("not_reported"), total = rows.length || 1;
   const blocks = [...new Map(rows.map((r) => [r.block_id, { id: r.block_id, name: r.block, ta: r.blockTa }])).values()];
@@ -1321,7 +1381,15 @@ async function renderOfficer() {
   const alerts = rows.filter((r) => r.status === "no" || r.status === "partial").sort((a, b) => rank[a.status] - rank[b.status] || (b.at ?? "").localeCompare(a.at ?? ""));
   // Silence is one alert per operator, not one per tank (an operator with 12 tanks would otherwise bury the real issues).
   const silent2 = [...rows.filter((r) => r.status === "not_reported").reduce((m, r) => { const k = `${r.panchayat_id}:${r.operator_id ?? r.id}`; if (!m.has(k)) m.set(k, []); m.get(k).push(r); return m; }, new Map()).values()];
-  const dName = rows[0] ? nm2(rows[0].district, rows[0].districtTa) : "";
+  // Title names the officer's own area: their panchayat, block or district.
+  const r0 = rows[0], role = state.officer.role;
+  const dName = !r0 ? "" : role === "panchayat" ? nm2(r0.panchayat, r0.panchayatTa) : role === "block" ? nm2(r0.block, r0.blockTa) : nm2(r0.district, r0.districtTa);
+  const toReview = (pid) => `<button class="link" data-openrv="${pid}">${esc(t("openReview"))}</button>`;
+  // One card per panchayat, the ones needing attention first; a tap opens its details (review & operators).
+  const panCards = [...new Map(rows.map((r) => [r.panchayat_id, { id: r.panchayat_id, name: r.panchayat, ta: r.panchayatTa, block: r.block, blockTa: r.blockTa }])).values()].map((p) => {
+    const it = rows.filter((r) => r.panchayat_id === p.id), c = (s) => it.filter((r) => r.status === s).length;
+    return { ...p, n: it.length, yes: c("yes"), partial: c("partial"), no: c("no"), silent: c("not_reported"), pending: it.filter((r) => r.status !== "not_reported" && r.review_status === "pending").length };
+  }).sort((a, b) => (b.no * 3 + b.partial * 2 + b.silent) - (a.no * 3 + a.partial * 2 + a.silent) || nm(a).localeCompare(nm(b)));
 
   let tableRows = "";
   const groups = new Map();
@@ -1329,7 +1397,7 @@ async function renderOfficer() {
   for (const { r: g, items } of groups.values()) {
     const bad = items.filter((x) => x.status === "no").length, part = items.filter((x) => x.status === "partial").length;
     const gExt = ext.filter((h) => h.panchayat_id === g.panchayat_id);
-    tableRows += `<tr class="grp"><td colspan="5">${esc(nm2(g.panchayat, g.panchayatTa))} <span style="color:var(--muted);font-weight:400">· ${esc(nm2(g.block, g.blockTa))} · ${items.length} ${esc(t("tanks"))} (${esc(kindCount(items))})${bad ? ` · <span style="color:var(--bad)">${bad} ${esc(t("notDelivered").toLowerCase())}</span>` : ""}${part ? ` · <span style="color:var(--warn)">${part} ${esc(t("partialDelivered").toLowerCase())}</span>` : ""}</span>${gExt.length ? `<div style="color:var(--muted);font-weight:400;font-size:13px;margin-top:2px">${gExt.map((h) => `${esc(nm(h))}: ${esc(t("extSupply").replace("{who}", nm2(h.ext, h.extTa)))}`).join(" · ")}</div>` : ""}</td></tr>`;
+    tableRows += `<tr class="grp"><td colspan="5">${esc(nm2(g.panchayat, g.panchayatTa))} <span style="color:var(--muted);font-weight:400">· ${esc(nm2(g.block, g.blockTa))} · ${items.length} ${esc(t("tanks"))} (${esc(kindCount(items))})${bad ? ` · <span style="color:var(--bad)">${bad} ${esc(t("notDelivered").toLowerCase())}</span>` : ""}${part ? ` · <span style="color:var(--warn)">${part} ${esc(t("partialDelivered").toLowerCase())}</span>` : ""}</span> · ${toReview(g.panchayat_id)}${gExt.length ? `<div style="color:var(--muted);font-weight:400;font-size:13px;margin-top:2px">${gExt.map((h) => `${esc(nm(h))}: ${esc(t("extSupply").replace("{who}", nm2(h.ext, h.extTa)))}`).join(" · ")}</div>` : ""}</td></tr>`;
     tableRows += items.map((r) => `<tr>
       <td>${kindTag(r.kind)} <b>${esc(nm(r))}</b><br><span style="color:var(--muted);font-size:13px">${esc(nm2(r.hab, r.habTa))} · ${esc(fmtCap(r.capacity))}</span><br><span style="color:var(--muted);font-size:13px">${esc(nm2(r.operator, r.operatorTa))}</span>${locLine(r)}</td>
       <td>${statusPill(r.status)}</td>
@@ -1342,7 +1410,8 @@ async function renderOfficer() {
   const prefs = state.prefs;
   app.innerHTML = `<div class="page wide">
     ${LIVE ? "" : `<div class="demo-note">${esc(t("demoBanner"))}</div>`}
-    <div class="head"><div><h2>${esc(dName)} · ${esc(t("officerTitle"))}</h2><div class="sub">${esc(fmtDate(istToday()))} · ${rows.length} ${esc(t("tanks"))} (${esc(kindCount(rows))})</div></div>${signOutBtn()}</div>
+    <div class="topbar">${staffTabs()}${signOutBtn()}</div>
+    <div class="head"><div><h2>${esc(dName)} · ${esc(t("officerTitle"))}</h2><div class="sub">${esc(fmtDate(istToday()))} · ${rows.length} ${esc(t("tanks"))} (${esc(kindCount(rows))})</div></div></div>
     <div class="tiles">
       <div class="tile yes"><div class="n">${yes}</div><div class="t">${esc(t("delivered"))}</div></div>
       <div class="tile partial"><div class="n">${partial}</div><div class="t">${esc(t("partialDelivered"))}</div></div>
@@ -1350,19 +1419,31 @@ async function renderOfficer() {
       <div class="tile silent"><div class="n">${silent}</div><div class="t">${esc(t("notReported"))}</div></div>
     </div>
     <div class="bar"><i class="y" style="width:${yes / total * 100}%"></i><i class="p" style="width:${partial / total * 100}%"></i><i class="n" style="width:${no / total * 100}%"></i><i class="s" style="width:${silent / total * 100}%"></i></div>
+    ${panCards.length > 1 ? `<div>
+      <div class="section-h"><h3>${esc(t("panTitle"))} <span class="label">${panCards.length}</span></h3></div>
+      <p style="margin:-4px 0 10px;color:var(--muted);font-size:14px">${esc(t("panHint"))}</p>
+      <div class="pan-grid">${panCards.map((p) => `<button class="pan-card" data-openrv="${p.id}">
+        <div><b>${esc(nm(p))}</b> <span class="sub">· ${esc(nm2(p.block, p.blockTa))} · ${p.n} ${esc(t("tanks"))}</span></div>
+        <div class="bar"><i class="y" style="width:${p.yes / p.n * 100}%"></i><i class="p" style="width:${p.partial / p.n * 100}%"></i><i class="n" style="width:${p.no / p.n * 100}%"></i><i class="s" style="width:${p.silent / p.n * 100}%"></i></div>
+        <div class="pc-counts">${[["no", p.no, "notDelivered"], ["partial", p.partial, "partialDelivered"], ["silent", p.silent, "notReported"], ["yes", p.yes, "delivered"]]
+          .filter(([, n]) => n).map(([k, n, l]) => `<span class="${k}">${n} ${esc(t(l))}</span>`).join(" · ")}</div>
+        ${p.pending ? `<div class="sub">${esc(t("pendingN").replace("{n}", p.pending))}</div>` : ""}
+        <span class="pc-go">${esc(t("openReview"))}</span>
+      </button>`).join("")}</div>
+    </div>` : ""}
     <div class="two">
       <div>
         <div class="section-h"><h3>${esc(t("alerts"))}</h3><span class="label">${alerts.length + silent2.length}</span></div>
         <div class="alerts">${alerts.map((r, i) => `
           <div class="alert ${r.status}"><span class="stripe"></span>
             <div><b>${kindTag(r.kind)} ${esc(nm(r))} <span style="font-weight:400;color:var(--muted)">· ${esc(nm2(r.hab, r.habTa))} · ${esc(nm2(r.panchayat, r.panchayatTa))}</span></b>
-              <div class="meta">${r.status === "partial" ? esc(t("partialDelivered")) + " · " : ""}${esc(problemLabel(r.problem))} · ${reviewPill(r.review_status)} · ${esc(nm2(r.operator, r.operatorTa))}</div>
+              <div class="meta">${r.status === "partial" ? esc(t("partialDelivered")) + " · " : ""}${esc(problemLabel(r.problem))} · ${reviewPill(r.review_status)} · ${esc(nm2(r.operator, r.operatorTa))} · ${toReview(r.panchayat_id)}</div>
               ${r.remarks ? `<div class="cm">“${esc(r.remarks)}”</div>` : ""}${diagSummary(r)}${locLine(r)}${voiceBtn(r, i)}</div>
             <div class="time">${esc(fmtTime(r.at))}</div>
           </div>`).join("")}${silent2.map((g) => `
           <div class="alert silent"><span class="stripe"></span>
             <div><b>${esc(nm2(g[0].operator, g[0].operatorTa) || "—")} <span style="font-weight:400;color:var(--muted)">· ${esc(nm2(g[0].panchayat, g[0].panchayatTa))} · ${esc(nm2(g[0].block, g[0].blockTa))}</span></b>
-              <div class="meta">${esc(t("silentNote"))} · ${g.length === 1 ? esc(kindCount(g)) : `${g.length} ${esc(t("tanks"))} (${esc(kindCount(g))})`}</div>
+              <div class="meta">${esc(t("silentNote"))} · ${g.length === 1 ? esc(kindCount(g)) : `${g.length} ${esc(t("tanks"))} (${esc(kindCount(g))})`} · ${toReview(g[0].panchayat_id)}</div>
               <div class="diagline">${g.map((r) => esc(nm(r))).join(" · ")}</div></div>
             <div class="time"></div>
           </div>`).join("")}${alerts.length + silent2.length ? "" : `<div class="card" style="color:var(--muted)">${esc(t("noAlerts"))}</div>`}
@@ -1406,7 +1487,7 @@ async function renderOfficer() {
     </div>
     ${LIVE ? "" : `<div style="text-align:center"><button class="link" id="resetDemo">${esc(t("reset"))}</button></div>`}
   </div>`;
-  bindSignOut(); bindReset();
+  bindSignOut(); bindReset(); bindTabs();
   app.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", async () => {
     const key = b.dataset.play, row = key.startsWith("t") ? rows.find((r) => String(r.id) === key.slice(1)) : alerts[+key];
     const url = row && await data.voiceUrl(row); if (!url) return;
@@ -1450,7 +1531,7 @@ if (LIVE && ROLE !== "op") {
       const { data: me } = await sb.from("officers").select("*").eq("id", session.user.id).maybeSingle();
       next = { email: session.user.email, name: me?.name, phone: me?.phone, panchayat_id: me?.panchayat_id ?? null, role: me?.active === false ? undefined : me?.role };
     }
-    if (JSON.stringify(next) !== JSON.stringify(state.officer)) { state.officer = next; store.set("staff_" + ROLE, next); render(); }   // also picks up a role granted after the first sign-in
+    if (JSON.stringify(next) !== JSON.stringify(state.officer)) { state.officer = next; store.set("officer", next); render(); }   // also picks up a role granted after the first sign-in
   }
 }
 
