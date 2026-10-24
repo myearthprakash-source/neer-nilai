@@ -21,6 +21,7 @@
   --bg:#F5F7F8; --surface:#FFFFFF; --ink:#16212B; --muted:#5F6B76; --line:#DCE2E7; --soft:#EEF2F5;
   --accent:#1D6FB4; --accent-ink:#FFFFFF; --accent-soft:#E3EEF8;
   --good:#1C8A5A; --good-bg:#E1F3E9; --bad:#C2432D; --bad-bg:#FBE7E2; --warn:#B8770F; --warn-bg:#FBF0D9;
+  --c-yes:#1C8A5A; --c-partial:#E0A526; --c-no:#C2432D; --c-none:#D3DAE0;   /* chart fills (text keeps --good / --warn / --bad) */
   --shadow:0 1px 2px rgba(22,33,43,.06),0 8px 24px rgba(22,33,43,.06);
   --sans:"IBM Plex Sans","Noto Sans Tamil",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -140,16 +141,70 @@ textarea{min-height:76px;resize:vertical}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;border-top:4px solid var(--line)}
 .tile .n{font-size:34px;font-weight:600;line-height:1;font-family:var(--mono);font-variant-numeric:tabular-nums}
 .tile .t{font-size:13px;color:var(--muted);margin-top:6px}
-.tile.yes{border-top-color:var(--good)} .tile.partial{border-top-color:var(--warn)} .tile.no{border-top-color:var(--bad)} .tile.silent{border-top-color:var(--muted)}
-.bar{height:8px;border-radius:4px;overflow:hidden;display:flex;background:var(--line)}
+.tile.yes{border-top-color:var(--c-yes)} .tile.partial{border-top-color:var(--c-partial)} .tile.no{border-top-color:var(--c-no)} .tile.silent{border-top-color:var(--c-none)}
+.bar{height:8px;border-radius:4px;overflow:hidden;display:flex;gap:2px;background:var(--soft)}
 .bar i{display:block;height:100%}
-.bar .y{background:var(--good)} .bar .p{background:var(--warn)} .bar .n{background:var(--bad)} .bar .s{background:var(--muted)}
+.bar i:empty[style*="width:0%"]{display:none}
+.bar .y{background:var(--c-yes)} .bar .p{background:var(--c-partial)} .bar .n{background:var(--c-no)} .bar .s{background:var(--c-none)}
+/* charts: status colours (checked for colour-blind separation) + a light neutral for "no report" */
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin-top:12px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.sw.yes,.key.yes,.tc-stack .yes,.hm-c.yes{background:var(--c-yes)}
+.sw.partial,.key.partial,.tc-stack .partial,.hm-c.partial{background:var(--c-partial)}
+.sw.no,.key.no,.tc-stack .no,.hm-c.no{background:var(--c-no)}
+.sw.none,.key.none,.tc-stack .none,.hm-c.none{background:var(--c-none)}
+.chart-card{display:flex;flex-direction:column}
+.tc-stat{font-size:14px;color:var(--muted);margin:-4px 0 14px}
+.tc-stat b{color:var(--ink);font-size:18px}
+.tc{display:grid;grid-template-columns:36px 1fr;column-gap:8px}
+.tc-y{position:relative;height:150px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tc-y span{position:absolute;right:0;transform:translateY(-50%)}
+.tc-plot{position:relative;height:150px}
+.tc-g{position:absolute;left:0;right:0;height:1px;background:var(--line)}
+.tc-cols{position:absolute;inset:0;display:grid;grid-template-columns:repeat(14,1fr)}
+.tc-col{border:0;background:none;padding:0;height:100%;display:flex;justify-content:center;cursor:pointer;border-radius:6px}
+.tc-col:hover,.tc-col:focus-visible{background:var(--soft);outline:none}
+.tc-stack{width:min(22px,72%);display:flex;flex-direction:column-reverse;gap:2px}
+.tc-stack i{display:block;flex:1 1 0;min-height:2px}
+.tc-stack i:last-child{border-radius:4px 4px 0 0}
+.tc-x{display:grid;grid-template-columns:repeat(14,1fr);font-size:11px;color:var(--muted);text-align:center;margin-top:6px;font-variant-numeric:tabular-nums}
+.tc-x .today,.hm-head .today{color:var(--ink);font-weight:700}
+@media (max-width:520px){.tc-x span:nth-last-child(even),.hm-head span:nth-last-child(even){visibility:hidden}}
+.tview{margin-top:10px;font-size:14px}
+.tview summary{color:var(--accent);font-weight:600;cursor:pointer}
+.tview table td.num{font-variant-numeric:tabular-nums;text-align:right}
+.pb{display:grid;grid-template-columns:22px max-content 1fr 30px;align-items:center;gap:12px 10px;font-size:14px}
+.pb-row{display:contents}
+.pb-ic svg{display:block;width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pb-t{height:10px}
+.pb-t i{display:block;height:100%;background:var(--accent);border-radius:0 4px 4px 0}
+.pb-v{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.spark{display:block;flex:none}
+.spark polyline{fill:none;stroke:#9AA5AF;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.spark circle{fill:var(--accent);stroke:var(--surface);stroke-width:2}
+.pc-trend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.cal summary{cursor:pointer;font-size:16px}
+.hm{display:flex;flex-direction:column;gap:2px;overflow-x:auto;padding:2px}
+.hm-row{display:grid;grid-template-columns:minmax(80px,170px) repeat(14,minmax(11px,20px));gap:2px;align-items:center}
+.hm-head span{font-size:10px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+.hm-t{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px}
+@media (max-width:520px){.hm-t .kind{display:none}}
+.hm-c{width:100%;aspect-ratio:1;border:0;border-radius:4px;padding:0;cursor:pointer}
+.hm-c:hover,.hm-c:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.tip{position:absolute;z-index:50;left:0;top:0;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:10px;padding:8px 10px;font-size:13px;pointer-events:none;opacity:0;transition:opacity .12s;max-width:270px}
+.tip.on{opacity:1}
+.tip-h{color:var(--muted);font-size:12px;margin-bottom:4px}
+.tip-r{display:flex;align-items:center;gap:8px;line-height:1.6}
+.tip-r b{font-variant-numeric:tabular-nums;color:var(--ink)}
+.tip-r span{color:var(--muted)}
+.tip .key{display:inline-block;width:12px;height:3px;border-radius:2px;flex:none}
 .section-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
 .section-h h3{font-size:16px;font-weight:700}
 .alerts{display:flex;flex-direction:column;gap:8px}
 .alert{display:grid;grid-template-columns:4px 1fr auto;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px 0;overflow:hidden}
 .alert .stripe{background:var(--bad);border-radius:0 2px 2px 0}
-.alert.partial .stripe{background:var(--warn)}
+.alert.partial .stripe{background:var(--c-partial)}
 .alert.silent .stripe{background:var(--muted)}
 .alert b{display:block;font-weight:600}
 .alert .meta{color:var(--muted);font-size:13px}
@@ -221,8 +276,8 @@ td.time{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:no
 .pan-card{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;cursor:pointer}
 .pan-card:hover,.pan-card:focus-visible{border-color:var(--accent)}
 .pan-card .sub{color:var(--muted);font-size:13px}
-.pc-counts{font-size:13px;color:var(--muted)}
-.pc-counts .no{color:var(--bad);font-weight:600} .pc-counts .partial{color:var(--warn);font-weight:600}
+.pc-counts{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--ink)}
+.pc-counts span{display:inline-flex;align-items:center;gap:5px}
 .pc-go{color:var(--accent);font-weight:600;font-size:14px}
 .rv-actions button:disabled{opacity:.4;cursor:not-allowed}
 .op-form{margin-top:4px}
@@ -318,6 +373,10 @@ const T = {
     settings: "அறிவிப்பு அமைப்புகள்", notifyIn: "பயன்பாட்டில்", notifyEmail: "மின்னஞ்சல்", notifyWa: "வாட்ஸ்அப்", digest: "மதியம் 12:00 சுருக்கம்", alwaysOn: "எப்போதும்", free: "இலவசம்", cheap: "ஒரு செய்திக்கு ≈ ₹0.12",
     tabDash: "டாஷ்போர்டு", tabReview: "சரிபார்ப்பு & ஆபரேட்டர்கள்", openReview: "விவரம் →", pendingN: "{n} சரிபார்க்க வேண்டும்",
     panTitle: "ஊராட்சிகள்", panHint: "ஒரு ஊராட்சியைத் தொட்டு அதன் தொட்டிகள், சரிபார்ப்பு, ஆபரேட்டர்களைப் பார்க்கவும்.",
+    trendTitle: "கடந்த 14 நாட்கள்", normalToday: "இன்று இதுவரை வழக்கம்", avg14: "14 நாள் சராசரி", showTable: "அட்டவணையாகக் காட்டு", date: "தேதி",
+    probTitle: "என்ன பிரச்சனை? (14 நாள்)", probHint: "குறைவாக அல்லது தண்ணீர் வராத தொட்டி-நாட்கள், காரணப்படி", noProblems: "கடந்த 14 நாட்களில் பிரச்சனை எதுவும் பதிவாகவில்லை.",
+    sparkCap: "வழக்கமான விநியோகம், 14 நாள்", calTitle: "கடந்த 14 நாட்கள், தொட்டி வாரியாக",
+    calHint: "அதிக பிரச்சனை உள்ள தொட்டிகள் முதலில். ஒரு கட்டத்தைத் தொட்டு அந்த நாளைப் பார்க்கவும்.",
     staffLoginHint: "ஊராட்சி, வட்டார, மாவட்ட அலுவலர்கள்: பதிவு செய்யப்பட்ட கைபேசி எண்ணையும் அதன் கடைசி 4 இலக்கத்தையும் உள்ளிடவும்.",
     officerLogin: "அலுவலர் உள்நுழைவு", reviewLogin: "ஊராட்சி அலுவலர் உள்நுழைவு", email: "அலுவலக மின்னஞ்சல்", accessCode: "அணுகல் குறியீடு", signIn: "உள்நுழை", signOut: "வெளியேறு",
     magicSent: "உள்நுழைவு இணைப்பு உங்கள் மின்னஞ்சலுக்கு அனுப்பப்பட்டது. அதை திறக்கவும்.", badStaffLogin: "மின்னஞ்சல் அல்லது குறியீடு தவறு",
@@ -378,6 +437,10 @@ const T = {
     settings: "Notification settings", notifyIn: "In-app", notifyEmail: "Email", notifyWa: "WhatsApp", digest: "12:00 noon digest", alwaysOn: "Always on", free: "Free", cheap: "≈ ₹0.12 per message",
     tabDash: "Dashboard", tabReview: "Review & operators", openReview: "Details →", pendingN: "{n} to review",
     panTitle: "Panchayats", panHint: "Tap a panchayat to see its tanks, reviews and operators.",
+    trendTitle: "Last 14 days", normalToday: "normal so far today", avg14: "14-day average", showTable: "Show as table", date: "Date",
+    probTitle: "What went wrong (14 days)", probHint: "Tank-days with less or no water, by cause", noProblems: "No problems reported in the last 14 days.",
+    sparkCap: "Normal supply, 14 days", calTitle: "Last 14 days, tank by tank",
+    calHint: "Tanks with the most trouble first. Tap a square to see that day.",
     staffLoginHint: "Panchayat, block and district officers: enter your registered mobile number and its last 4 digits.",
     officerLogin: "Officer sign in", reviewLogin: "Panchayat officer sign in", email: "Official email", accessCode: "Access code", signIn: "Sign in", signOut: "Sign out",
     magicSent: "A sign-in link has been sent to your email. Open it to continue.", badStaffLogin: "Wrong email or access code",
@@ -504,7 +567,7 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(SP + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(SP + k, JSON.stringify(v)); } catch {} },
 };
-const RK = "reports_v7";
+const RK = "reports_v8";   // v8: 14 days of history for every tank (charts)
 const istToday = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 const dayOffset = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); };
 const nowIso = () => new Date().toISOString();
@@ -530,6 +593,8 @@ let state = {
   busy: false, error: "", info: "", loginPhone: "",
   staffForm: null,                          // officer page: the Add / Change person form ({ phone, name, role, place, edit, error })
   opForm: null, justAdded: null,            // review page: the Add / Change operator form; the operator just added
+  cache: {},                                // chart data kept briefly between renders
+  calOpen: store.get("calOpen", true),      // review tab: 14-day tank calendar shown
   prefs: store.get("prefs", { email: true, wa: false, digest: true }),
 };
 const t = (k) => T[state.lang][k] ?? k;
@@ -542,10 +607,32 @@ function seedDemo() {
   const today = istToday(), rows = [];
   const R = (glr_id, date, status, extra, hh, mm, review) => rows.push({ glr_id, date, status, source_ok: null, pump_ok: null, glr_filled: null, problem: null, remarks: "", voice: null, entered_by: "operator", ...extra, at: at(hh, mm),
     review_status: review?.[0] ?? "pending", review_note: review?.[1] ?? "", reviewed_at: review ? at(hh + 1, 0) : null });
-  // Kurumudi GLR 1 history (Kantharaj), last 6 days.
-  ["yes", "yes", "no", "partial", "yes", "yes"].forEach((v, i) => [9, 10].forEach((g) => R(g, dayOffset(-6 + i), v,
-    v === "no" ? { source_ok: "yes", pump_ok: "no", glr_filled: "no", problem: "power", remarks: "EB line fault, restored next day" }
-    : v === "partial" ? { source_ok: "no", pump_ok: "yes", glr_filled: "no", problem: "source" } : {}, 8, 30, ["confirmed", ""])));
+  // The last 14 days for every tank, so the charts have a story: mostly normal, the odd short or dry day, and a few
+  // running threads (Degili's motor failing this week, Kurumudi's power cut, Moyar running short as the source drops,
+  // Moyar Road OHT filling to half, Yanaipadi's operator often silent). Same every time (seeded by tank and day).
+  const rnd = (a, b) => { let x = Math.imul(a * 374761 + b * 668265 + 1013904223, 2654435761) >>> 0; x ^= x >>> 15; x = Math.imul(x, 2246822519) >>> 0; x ^= x >>> 13; return (x >>> 0) / 4294967296; };
+  const story = (g, d) =>   // d = days ago
+    g >= 6 && g <= 8 && d <= 3 ? (g === 6 || d <= 2 ? ["no", "pump", "Motor tripping, mechanic called"] : ["partial", "pump"])
+    : (g === 9 || g === 10) && d === 4 ? ["no", "power", "EB line fault, restored next day"]
+    : (g === 9 || g === 10) && d === 3 ? ["partial", "source"]
+    : (g === 30 || g === 31) && d >= 3 && d <= 7 ? ["partial", "source", d === 5 ? "Source low after a dry week" : ""]
+    : g === 22 && (d === 2 || d === 5 || d === 9) ? ["partial", "glr", "OHT filled to half; GLR level low"]
+    : g === 32 && d % 2 === 0 ? null
+    : g === 11 && d <= 2 ? null : undefined;
+  for (let d = 14; d >= 1; d--) for (const g of DEMO.glrs) {
+    let s = story(g.id, d);
+    if (s === null) continue;   // no report that day
+    if (!s) {
+      const x = rnd(g.id, d);
+      s = x < 0.83 ? ["yes"] : x < 0.9 ? ["partial", ["source", "glr", "power"][Math.floor(rnd(d, g.id) * 3)]] : x < 0.94 ? ["no", ["power", "pump", "pipe"][Math.floor(rnd(g.id + 50, d) * 3)]] : null;
+      if (!s) continue;
+    }
+    const [st, problem, remarks] = s;
+    const date = dayOffset(-d), hh = 6 + Math.floor(rnd(g.id, d + 99) * 3), mm = Math.floor(rnd(d + 7, g.id) * 60);
+    rows.push({ glr_id: g.id, date, status: st, source_ok: null, pump_ok: null, glr_filled: null, problem: st === "yes" ? null : problem, remarks: remarks ?? "", voice: null,
+      entered_by: "operator", at: new Date(`${date}T${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00+05:30`).toISOString(),
+      review_status: rnd(g.id + 9, d) < 0.06 ? "flagged" : "confirmed", review_note: "", reviewed_at: null });
+  }
   // Location stamps (approximate, demo only): around Kookal and Masinagudi. Ragavendran's have none, as if he refused location.
   const at2 = (lat, lng, acc) => ({ lat, lng, acc });
   // Today: Sivakumar and Gopal reported; Suresh reported one of three; Kantharaj not yet.
@@ -553,11 +640,6 @@ function seedDemo() {
   R(3, today, "yes", at2(11.4861, 76.6107, 14), 8, 5); R(4, today, "yes", at2(11.4861, 76.6107, 14), 8, 5);
   R(5, today, "partial", { source_ok: "no", pump_ok: "yes", glr_filled: "no", problem: "source", remarks: "Main road tank half; source low after dry week", ...at2(11.4861, 76.6107, 14) }, 8, 5, ["confirmed", ""]);
   R(6, today, "no", { problem: "pump", ...at2(11.4952, 76.5934, 22) }, 8, 20);
-  // Masinagudi: Sidick Shameer's 12 tanks (4 GLR + 8 OHT), last 6 days; Moyar Road OHT ran short twice.
-  for (let i = 0; i < 6; i++) for (let g = 14; g <= 25; g++) {
-    const short = g === 22 && (i === 1 || i === 4);
-    R(g, dayOffset(-6 + i), short ? "partial" : "yes", short ? { source_ok: "yes", pump_ok: "yes", glr_filled: "no", problem: "glr", remarks: "OHT filled to half; GLR level low" } : {}, 6, 45, ["confirmed", ""]);
-  }
   // Today: Ramesh all fine; Manigandan's Kel Boothanatham OHT has no water (motor); Ragavendran short at Undi Moyar.
   // Sidick Shameer (the demo sign-in) and Maran / Badichi have not reported yet.
   R(12, today, "yes", at2(11.5791, 76.6236, 11), 6, 50, ["confirmed", ""]); R(13, today, "yes", at2(11.5791, 76.6236, 11), 6, 50, ["confirmed", ""]);
@@ -756,6 +838,39 @@ const data = {
     }
     return DEMO.habitations.filter((h) => h.ext).map((h) => ({ ...h, panchayat_id: h.p }));
   },
+  // Charts: per day and panchayat in the officer's area { daily: [[date, panchayat_id, yes, partial, no]], problems: [[code, n]] }.
+  // Kept for 2 minutes: past days don't change, and today's column is drawn from today's live rows instead.
+  async trends(days = 14) {
+    const hit = state.cache.trends;
+    if (hit && Date.now() - hit.at < 120000) return hit.v;
+    let v;
+    if (LIVE) { const { data: j, error } = await sb.rpc("officer_trends", { p_days: days }); if (error) return null; v = j; }
+    else {
+      const from = dayOffset(-(days - 1)), info = new Map(DEMO.glrs.map((g) => [g.id, glrInfo(g)])), agg = new Map(), probs = new Map();
+      for (const r of store.get(RK, [])) {
+        const g = info.get(r.glr_id);
+        if (!g || r.date < from || !inScope(g)) continue;
+        const k = `${r.date}|${g.panchayat_id}`;
+        if (!agg.has(k)) agg.set(k, [r.date, g.panchayat_id, 0, 0, 0]);
+        agg.get(k)[{ yes: 2, partial: 3, no: 4 }[r.status]]++;
+        if (r.status !== "yes" && r.problem) probs.set(r.problem, (probs.get(r.problem) ?? 0) + 1);
+      }
+      v = { daily: [...agg.values()], problems: [...probs].sort((a, b) => b[1] - a[1]) };
+    }
+    state.cache.trends = { at: Date.now(), v };
+    return v;
+  },
+  // Each tank's report per day, for the review tab's 14-day calendar (one panchayat's tanks).
+  async tankHistory(ids, days = 14) {
+    const from = dayOffset(-(days - 1));
+    if (LIVE) {
+      if (!ids.length) return [];
+      const { data: rows, error } = await sb.from("reports").select("glr_id, report_date, status, problem").in("glr_id", ids).gte("report_date", from);
+      if (error) return [];
+      return rows.map((r) => ({ glr_id: r.glr_id, date: r.report_date, status: r.status, problem: r.problem }));
+    }
+    return store.get(RK, []).filter((r) => ids.includes(r.glr_id) && r.date >= from);
+  },
   async operators() {
     if (LIVE) {
       const { data: rows, error } = await sb.from("v_operators").select("*");
@@ -874,7 +989,7 @@ const extLine = (list) => list.length ? `<div class="ext">${list.map((h) => `<b>
 let renderSeq = 0;
 const stale = (seq) => seq !== renderSeq;
 function render() {
-  renderSeq++;
+  renderSeq++; hideTip();
   document.getElementById("langTa").setAttribute("aria-pressed", state.lang === "ta");
   document.getElementById("langEn").setAttribute("aria-pressed", state.lang === "en");
   document.getElementById("brandSub").textContent = t(!STAFF ? "operatorSub" : state.officer && state.tab === "review" ? "reviewSub" : "officerSub");
@@ -910,6 +1025,99 @@ const inScope = (r) => {
   const o = state.officer;
   return o.role === "panchayat" ? r.panchayat_id === o.panchayat_id : o.role === "block" ? r.block_id === o.block_id : true;
 };
+
+// ---------------------------------------------------------------- charts: water status over the last 14 days
+// Status colours only (--c-yes / --c-partial / --c-no, a light neutral for "no report"), checked for colour-blind
+// separation. Every chart has a legend, a tooltip on hover / tap / keyboard focus, and its numbers in labels or a table.
+const SERIES = [["yes", "delivered"], ["partial", "partialDelivered"], ["no", "notDelivered"], ["none", "notReported"]];
+const DAYS = 14;
+const lastDays = (n = DAYS) => [...Array(n)].map((_, i) => dayOffset(i - n + 1));
+const dayNum = (ymd) => String(+ymd.slice(8));
+const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+const legendHtml = () => `<div class="legend">${SERIES.map(([k, l]) => `<span><i class="sw ${k}"></i>${esc(t(l))}</span>`).join("")}</div>`;
+// Tanks by status for each day; today's column comes from today's rows, so it is always current.
+function dailyTotals(trend, rows, days = lastDays()) {
+  const n = rows.length, today = istToday(), by = new Map(days.map((d) => [d, { d, yes: 0, partial: 0, no: 0 }]));
+  for (const [d, pid, y, p, no] of trend?.daily ?? []) { const x = by.get(d); if (x && d !== today && (!rows.pidSet || rows.pidSet.has(pid))) { x.yes += y; x.partial += p; x.no += no; } }
+  const td = by.get(today); if (td) for (const k of ["yes", "partial", "no"]) td[k] = rows.filter((r) => r.status === k).length;
+  return days.map((d) => { const x = by.get(d); return { ...x, n, none: Math.max(0, n - x.yes - x.partial - x.no) }; });
+}
+const forPanchayat = (rows, pid) => Object.assign(rows.filter((r) => r.panchayat_id === pid), { pidSet: new Set([pid]) });
+
+// One tooltip for every chart. Text goes in with textContent (names come from the database).
+const tipEl = Object.assign(document.createElement("div"), { className: "tip" });
+tipEl.setAttribute("role", "tooltip"); document.body.appendChild(tipEl);
+function showTip(target, title, lines) {   // lines: [[seriesKey | null, value, label]]
+  tipEl.replaceChildren(Object.assign(document.createElement("div"), { className: "tip-h", textContent: title }));
+  for (const [k, v, l] of lines) {
+    const row = Object.assign(document.createElement("div"), { className: "tip-r" });
+    if (k) row.appendChild(Object.assign(document.createElement("i"), { className: "key " + k }));
+    row.append(Object.assign(document.createElement("b"), { textContent: v }), Object.assign(document.createElement("span"), { textContent: l }));
+    tipEl.appendChild(row);
+  }
+  tipEl.classList.add("on");
+  const r = target.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+  const x = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)), y = r.top - h - 8 < 8 ? r.bottom + 8 : r.top - h - 8;
+  tipEl.style.left = x + scrollX + "px"; tipEl.style.top = y + scrollY + "px";
+}
+const hideTip = () => tipEl.classList.remove("on");
+function bindTips(resolve) {
+  app.querySelectorAll("[data-tip]").forEach((el) => {
+    const on = () => { const v = resolve(el.dataset.tip); if (v) showTip(el, ...v); };
+    el.addEventListener("pointerenter", on); el.addEventListener("focus", on); el.addEventListener("click", on);
+    el.addEventListener("pointerleave", hideTip); el.addEventListener("blur", hideTip);
+  });
+}
+const trendTip = (x) => [`${fmtDate(x.d)}${x.d === istToday() ? ` · ${t("today")}` : ""}`,
+  SERIES.map(([k, l]) => [k, String(x[k]), `${t(l)} · ${pct(x[k], x.n)}%`])];
+
+// 100 % stacked columns, one per day: normal at the base, then partial, not supplied, no report on top.
+function trendChart(per) {
+  const today = istToday();
+  const cols = per.map((x, i) => `<button class="tc-col" data-tip="tr:${i}" aria-label="${esc(trendTip(x)[0] + ": " + trendTip(x)[1].map(([, v, l]) => `${v} ${l}`).join(", "))}">
+    <span class="tc-stack">${SERIES.map(([k]) => x[k] ? `<i class="${k}" style="flex-grow:${x[k]}"></i>` : "").join("")}</span></button>`).join("");
+  return `<div class="tc">
+    <div class="tc-y"><span style="top:0">100%</span><span style="top:50%">50%</span><span style="top:100%">0</span></div>
+    <div class="tc-plot"><i class="tc-g" style="top:0"></i><i class="tc-g" style="top:50%"></i><i class="tc-g" style="top:100%"></i><div class="tc-cols">${cols}</div></div>
+    <span></span><div class="tc-x">${per.map((x) => `<span class="${x.d === today ? "today" : ""}">${dayNum(x.d)}</span>`).join("")}</div>
+  </div>`;
+}
+const trendTable = (per) => `<details class="tview"><summary>${esc(t("showTable"))}</summary><div class="tbl-wrap"><table>
+  <thead><tr><th>${esc(t("date"))}</th>${SERIES.map(([, l]) => `<th>${esc(t(l))}</th>`).join("")}</tr></thead>
+  <tbody>${[...per].reverse().map((x) => `<tr><td>${esc(fmtDate(x.d))}</td>${SERIES.map(([k]) => `<td class="num">${x[k]}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`;
+
+// What went wrong: tank-days with less or no water, by cause. One hue; the count is printed at each bar's end.
+const PICON = { pipe_source: "pipe", pipe_dist: "pipe", other: "unknown" };
+function problemBars(list) {
+  if (!list?.length) return `<p class="sub" style="margin:0">${esc(t("noProblems"))}</p>`;
+  const top = list.slice(0, 6), max = top[0][1];
+  return `<div class="pb">${top.map(([code, n]) => `<div class="pb-row"><span class="pb-ic">${ICONS[problemOf(code)?.icon ?? PICON[code] ?? "unknown"] ?? ""}</span>
+    <span class="pb-l">${esc(problemLabel(code) || code)}</span><span class="pb-t"><i style="width:${Math.max(3, n / max * 100)}%"></i></span><span class="pb-v">${n}</span></div>`).join("")}</div>`;
+}
+
+// Sparkline of the share of tanks with normal supply each day (grey line, today's dot in the accent).
+function spark(vals) {
+  const w = 112, h = 30, n = vals.length, x = (i) => 3 + i * (w - 6) / (n - 1), y = (v) => h - 4 - v * (h - 8);
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">
+    <polyline points="${vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}"/><circle cx="${x(n - 1).toFixed(1)}" cy="${y(vals[n - 1]).toFixed(1)}" r="4"/></svg>`;
+}
+
+// Review tab: every tank of the panchayat × the last 14 days, tanks with the most trouble first.
+function tankCalendar(tanks, hist, days = lastDays()) {
+  const at = new Map(hist.map((h) => [`${h.glr_id}|${h.date}`, h])), today = istToday();
+  const cell = (r, d) => d === today ? (r.status === "not_reported" ? null : { status: r.status, problem: r.problem }) : at.get(`${r.id}|${d}`) ?? null;
+  const score = (r) => days.reduce((s, d) => { const c = cell(r, d); return s + (!c ? 1 : c.status === "no" ? 3 : c.status === "partial" ? 2 : 0); }, 0);
+  const sorted = [...tanks].sort((a, b) => score(b) - score(a) || String(a.code).localeCompare(String(b.code)));
+  const tip = (r, d) => { const c = cell(r, d); return [`${nm(r)} (${r.kind}) · ${fmtDate(d)}`,
+    [[c?.status ?? "none", statusLabel(c?.status ?? "not_reported"), c && c.status !== "yes" && c.problem ? problemLabel(c.problem) : ""]]]; };
+  const html = `<div class="hm">
+    <div class="hm-row hm-head"><span></span>${days.map((d) => `<span class="${d === today ? "today" : ""}">${dayNum(d)}</span>`).join("")}</div>
+    ${sorted.map((r, i) => `<div class="hm-row"><span class="hm-t" title="${esc(`${nm(r)} · ${nm2(r.hab, r.habTa)}`)}">${kindTag(r.kind)} ${esc(nm(r))}</span>${days.map((d, j) => {
+      const c = cell(r, d), [title, [[, s, p]]] = tip(r, d);
+      return `<button class="hm-c ${c?.status ?? "none"}" data-tip="hm:${i}:${j}" aria-label="${esc(`${title}: ${s}${p ? ", " + p : ""}`)}"></button>`; }).join("")}</div>`).join("")}
+  </div>`;
+  return { html, tipFor: (i, j) => tip(sorted[i], days[j]) };
+}
 
 // ---------------------------------------------------------------- operator: phone + PIN, 3 big buttons, 6 picture tiles, done
 // Number field shared by every sign-in: no length limit, so "+91 98765 43210" or an autofilled number still fits
@@ -1125,8 +1333,8 @@ function renderNotRegistered() {
   bindSignOut();
 }
 function signOutBtn() { const o = state.officer ?? {}; return `<div class="sub">${esc(o.name || o.phone || o.email || "")} · <button class="link" id="signOut">${esc(t("signOut"))}</button></div>`; }
-function bindSignOut() { document.getElementById("signOut")?.addEventListener("click", async () => { if (LIVE) await sb.auth.signOut(); state.officer = null; store.set("officer", null); render(); }); }
-function bindReset() { document.getElementById("resetDemo")?.addEventListener("click", () => { try { ["nn." + RK, "nn.pins", "nn.devices", "nn.staff", "nn.staffDev", "nn.ops"].forEach((k) => localStorage.removeItem(k)); } catch {} loadDemoOps(); seedDemo(); state.rvDraft = {}; state.newPins = {}; state.staffForm = state.opForm = state.justAdded = null; render(); }); }
+function bindSignOut() { document.getElementById("signOut")?.addEventListener("click", async () => { if (LIVE) await sb.auth.signOut(); state.officer = null; state.cache = {}; store.set("officer", null); render(); }); }
+function bindReset() { document.getElementById("resetDemo")?.addEventListener("click", () => { try { ["nn." + RK, "nn.pins", "nn.devices", "nn.staff", "nn.staffDev", "nn.ops"].forEach((k) => localStorage.removeItem(k)); } catch {} loadDemoOps(); seedDemo(); state.rvDraft = {}; state.newPins = {}; state.staffForm = state.opForm = state.justAdded = null; state.cache = {}; render(); }); }
 function bindPlay(list) {
   app.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", async () => {
     const i = +b.dataset.play, url = await data.voiceUrl(list[i]); if (!url) return;
@@ -1138,7 +1346,7 @@ function bindPlay(list) {
 async function renderReview() {
   let rows, ops, ext;
   const seq = renderSeq;
-  try { rows = await data.today(); ops = await data.operators(); ext = await data.external(); } catch (e) { if (!stale(seq)) app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  try { [rows, ops, ext] = await Promise.all([data.today(), data.operators(), data.external()]); } catch (e) { if (!stale(seq)) app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
   if (stale(seq)) return;
   // One panchayat at a time: the officer's own, or the one picked (default: the one with the most to look at).
   const scoped = rows.filter(inScope);
@@ -1149,6 +1357,9 @@ async function renderReview() {
   if (!pans.some((p) => p.id === pid)) pid = [...pans].sort((a, b) => todo(b.id) - todo(a.id))[0]?.id;
   state.rvPanchayat = pid;
   const mine = scoped.filter((r) => r.panchayat_id === pid);
+  const hist = await data.tankHistory(mine.map((r) => r.id)).catch(() => []);
+  if (stale(seq)) return;
+  const cal = tankCalendar(mine, hist);
   const myOps = ops.filter((o) => o.panchayat_id === pid);
   const myExt = ext.filter((h) => h.panchayat_id === pid);
   const pname = mine[0] ? nm2(mine[0].panchayat, mine[0].panchayatTa) : "";
@@ -1219,6 +1430,8 @@ async function renderReview() {
     <div class="head"><div>${panPick}<h2>${panPick ? "" : `${esc(pname)} · `}${esc(t("reviewTitle"))}</h2><div class="sub">${esc(fmtDate(istToday()))} · ${mine.length} ${esc(t("tanks"))} (${esc(kindCount(mine))}) · ${pending} ${esc(t("pending").toLowerCase())}</div></div></div>
     <p style="margin:0;color:var(--muted);font-size:14px">${esc(t("reviewHint"))}</p>
     ${extLine(myExt)}
+    ${mine.length ? `<details class="card cal" id="cal" ${state.calOpen ? "open" : ""}><summary><b>${esc(t("calTitle"))}</b></summary>
+      <p class="sub" style="margin:4px 0 12px">${esc(t("calHint"))}</p>${cal.html}${legendHtml()}</details>` : ""}
     <div class="rv">${ordered || `<div class="card" style="color:var(--muted)">${esc(t("nothingToReview"))}</div>`}</div>
 
     <div class="section-h" style="margin-top:8px"><h3>${esc(t("operators"))} <span class="label">${myOps.length}</span></h3>
@@ -1240,6 +1453,8 @@ async function renderReview() {
     ${LIVE ? "" : `<div style="text-align:center"><button class="link" id="resetDemo">${esc(t("reset"))}</button></div>`}
   </div>`;
   bindSignOut(); bindReset(); bindPlay(list); bindTabs();
+  bindTips((key) => { const [kind, i, j] = key.split(":"); return kind === "hm" ? cal.tipFor(+i, +j) : null; });
+  document.getElementById("cal")?.addEventListener("toggle", (e) => { state.calOpen = e.target.open; store.set("calOpen", state.calOpen); });
   document.getElementById("rvPan")?.addEventListener("change", (e) => { state.opForm = null; state.justAdded = null; openTab("review", +e.target.value); });
   const keepNotes = () => app.querySelectorAll("input[id^='note-'],input[id^='rfnote-']").forEach((inp) => { const i = +inp.id.split("-")[1]; draft(list[i]).remarks = inp.value; });
   app.querySelectorAll("[data-rvd]").forEach((b) => b.addEventListener("click", () => { keepNotes(); const d = draft(list[+b.dataset.rvd]); d[b.dataset.k] = d[b.dataset.k] === b.dataset.v ? null : b.dataset.v; render(); }));
@@ -1368,11 +1583,16 @@ function bindStaffForm(places) {
 
 // ---------------------------------------------------------------- block / district officer
 async function renderOfficer() {
-  let rows, ext, staff, places;
+  let rows, ext, staff, places, trend;
   const seq = renderSeq;
-  try { rows = await data.today(); ext = await data.external(); staff = await data.staffList().catch(() => []); places = await data.staffPlaces().catch(() => []); } catch (e) { if (!stale(seq)) app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
+  try {
+    [rows, ext, staff, places, trend] = await Promise.all([data.today(), data.external(), data.staffList().catch(() => []), data.staffPlaces().catch(() => []), data.trends(DAYS + 1).catch(() => null)]);
+  } catch (e) { if (!stale(seq)) app.innerHTML = `<div class="page"><div class="card err">${esc(e.message)}</div></div>`; return; }
   if (stale(seq)) return;
   rows = rows.filter(inScope);
+  // The chart shows the last 14 days with today (so far); the average and sparklines use the 14 completed days before it.
+  const per = dailyTotals(trend, rows), done = lastDays(DAYS + 1).slice(0, DAYS);
+  const avgNormal = ((tot) => pct(tot.reduce((s, x) => s + x.yes, 0), tot.reduce((s, x) => s + x.n, 0)))(dailyTotals(trend, rows, done));
   const cnt = (s) => rows.filter((r) => r.status === s).length;
   const yes = cnt("yes"), partial = cnt("partial"), no = cnt("no"), silent = cnt("not_reported"), total = rows.length || 1;
   const blocks = [...new Map(rows.map((r) => [r.block_id, { id: r.block_id, name: r.block, ta: r.blockTa }])).values()];
@@ -1388,7 +1608,8 @@ async function renderOfficer() {
   // One card per panchayat, the ones needing attention first; a tap opens its details (review & operators).
   const panCards = [...new Map(rows.map((r) => [r.panchayat_id, { id: r.panchayat_id, name: r.panchayat, ta: r.panchayatTa, block: r.block, blockTa: r.blockTa }])).values()].map((p) => {
     const it = rows.filter((r) => r.panchayat_id === p.id), c = (s) => it.filter((r) => r.status === s).length;
-    return { ...p, n: it.length, yes: c("yes"), partial: c("partial"), no: c("no"), silent: c("not_reported"), pending: it.filter((r) => r.status !== "not_reported" && r.review_status === "pending").length };
+    return { ...p, n: it.length, yes: c("yes"), partial: c("partial"), no: c("no"), silent: c("not_reported"), pending: it.filter((r) => r.status !== "not_reported" && r.review_status === "pending").length,
+      spark: dailyTotals(trend, forPanchayat(rows, p.id), done).map((x) => x.n ? x.yes / x.n : 0) };
   }).sort((a, b) => (b.no * 3 + b.partial * 2 + b.silent) - (a.no * 3 + a.partial * 2 + a.silent) || nm(a).localeCompare(nm(b)));
 
   let tableRows = "";
@@ -1419,14 +1640,27 @@ async function renderOfficer() {
       <div class="tile silent"><div class="n">${silent}</div><div class="t">${esc(t("notReported"))}</div></div>
     </div>
     <div class="bar"><i class="y" style="width:${yes / total * 100}%"></i><i class="p" style="width:${partial / total * 100}%"></i><i class="n" style="width:${no / total * 100}%"></i><i class="s" style="width:${silent / total * 100}%"></i></div>
+    <div class="two charts">
+      <div class="card chart-card">
+        <div class="section-h"><h3>${esc(t("trendTitle"))}</h3></div>
+        <div class="tc-stat"><b>${pct(yes, rows.length)}%</b> ${esc(t("normalToday"))} · ${esc(t("avg14"))} <b>${avgNormal}%</b></div>
+        ${trendChart(per)}${legendHtml()}${trendTable(per)}
+      </div>
+      <div class="card chart-card">
+        <div class="section-h"><h3>${esc(t("probTitle"))}</h3></div>
+        <p class="sub" style="margin:-4px 0 12px">${esc(t("probHint"))}</p>
+        ${problemBars(trend?.problems)}
+      </div>
+    </div>
     ${panCards.length > 1 ? `<div>
       <div class="section-h"><h3>${esc(t("panTitle"))} <span class="label">${panCards.length}</span></h3></div>
       <p style="margin:-4px 0 10px;color:var(--muted);font-size:14px">${esc(t("panHint"))}</p>
       <div class="pan-grid">${panCards.map((p) => `<button class="pan-card" data-openrv="${p.id}">
         <div><b>${esc(nm(p))}</b> <span class="sub">· ${esc(nm2(p.block, p.blockTa))} · ${p.n} ${esc(t("tanks"))}</span></div>
         <div class="bar"><i class="y" style="width:${p.yes / p.n * 100}%"></i><i class="p" style="width:${p.partial / p.n * 100}%"></i><i class="n" style="width:${p.no / p.n * 100}%"></i><i class="s" style="width:${p.silent / p.n * 100}%"></i></div>
-        <div class="pc-counts">${[["no", p.no, "notDelivered"], ["partial", p.partial, "partialDelivered"], ["silent", p.silent, "notReported"], ["yes", p.yes, "delivered"]]
-          .filter(([, n]) => n).map(([k, n, l]) => `<span class="${k}">${n} ${esc(t(l))}</span>`).join(" · ")}</div>
+        <div class="pc-counts">${[["no", p.no, "notDelivered"], ["partial", p.partial, "partialDelivered"], ["none", p.silent, "notReported"], ["yes", p.yes, "delivered"]]
+          .filter(([, n]) => n).map(([k, n, l]) => `<span><i class="sw ${k}"></i>${n} ${esc(t(l))}</span>`).join("")}</div>
+        <div class="pc-trend">${spark(p.spark)}<span>${esc(t("sparkCap"))}</span></div>
         ${p.pending ? `<div class="sub">${esc(t("pendingN").replace("{n}", p.pending))}</div>` : ""}
         <span class="pc-go">${esc(t("openReview"))}</span>
       </button>`).join("")}</div>
@@ -1488,6 +1722,7 @@ async function renderOfficer() {
     ${LIVE ? "" : `<div style="text-align:center"><button class="link" id="resetDemo">${esc(t("reset"))}</button></div>`}
   </div>`;
   bindSignOut(); bindReset(); bindTabs();
+  bindTips((key) => { const [kind, i] = key.split(":"); return kind === "tr" && per[+i] ? trendTip(per[+i]) : null; });
   app.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", async () => {
     const key = b.dataset.play, row = key.startsWith("t") ? rows.find((r) => String(r.id) === key.slice(1)) : alerts[+key];
     const url = row && await data.voiceUrl(row); if (!url) return;
@@ -1531,7 +1766,7 @@ if (LIVE && ROLE !== "op") {
       const { data: me } = await sb.from("officers").select("*").eq("id", session.user.id).maybeSingle();
       next = { email: session.user.email, name: me?.name, phone: me?.phone, panchayat_id: me?.panchayat_id ?? null, role: me?.active === false ? undefined : me?.role };
     }
-    if (JSON.stringify(next) !== JSON.stringify(state.officer)) { state.officer = next; store.set("officer", next); render(); }   // also picks up a role granted after the first sign-in
+    if (JSON.stringify(next) !== JSON.stringify(state.officer)) { state.officer = next; state.cache = {}; store.set("officer", next); render(); }   // also picks up a role granted after the first sign-in
   }
 }
 

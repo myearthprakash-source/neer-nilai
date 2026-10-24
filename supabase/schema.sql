@@ -538,6 +538,28 @@ from v_glr v
 left join reports r on r.glr_id = v.glr_id and r.report_date = ist_today()
 where v.active and can_see_panchayat(v.panchayat_id);
 
+-- Officer charts: for each day and panchayat in the signed-in officer's area, how many tanks reported normal /
+-- partial / not supplied, and which problems were behind the bad days, over the last p_days days (today included,
+-- at most 60). One JSON value, so a whole district fits in one answer.
+create or replace function officer_trends(p_days int default 14) returns json
+language sql stable security definer set search_path = public, pg_temp as $$
+  with scope as (select p.id from panchayats p where can_see_panchayat(p.id)),
+  r as (
+    select r.report_date d, h.panchayat_id pid, r.status, r.problem
+    from reports r join glrs g on g.id = r.glr_id join habitations h on h.id = g.habitation_id
+    where h.panchayat_id in (select id from scope) and g.active
+      and r.report_date between ist_today() - (least(greatest(coalesce(p_days, 14), 1), 60) - 1) and ist_today())
+  select json_build_object(
+    'daily', coalesce((select json_agg(json_build_array(d, pid, yes, partial, no) order by d, pid) from (
+        select d, pid, count(*) filter (where status = 'yes') yes, count(*) filter (where status = 'partial') partial,
+               count(*) filter (where status = 'no') no
+        from r group by d, pid) x), '[]'::json),
+    'problems', coalesce((select json_agg(json_build_array(problem, n) order by n desc, problem) from (
+        select problem, count(*) n from r where status <> 'yes' and problem is not null group by problem) y), '[]'::json))
+$$;
+revoke execute on function officer_trends(int) from public, anon;
+grant execute on function officer_trends(int) to authenticated;
+
 -- ---------------------------------------------------------------- staff sign-in (number + last 4 digits)
 -- Called only by the staff-login edge function (service role). err: 'unknown' (number not registered) | 'bad' | 'locked'.
 create or replace function staff_auth(p_phone text, p_pin text, p_device text)
