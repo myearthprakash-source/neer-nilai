@@ -378,6 +378,7 @@ const T = {
     extSupply: "{who} மூலம் தண்ணீர் — இந்த ஆப்பில் பதிவு இல்லை",
     silentNote: "மதியம் வரை பதிவு இல்லை", officerTitle: "தண்ணீர் நிலை — {when}",
     settings: "அறிவிப்பு அமைப்புகள்", notifyIn: "பயன்பாட்டில்", notifyEmail: "மின்னஞ்சல்", notifyWa: "வாட்ஸ்அப்", digest: "மதியம் 12:00 சுருக்கம்", alwaysOn: "எப்போதும்", free: "இலவசம்", cheap: "ஒரு செய்திக்கு ≈ ₹0.12",
+    reviewHintPast: "அன்று ஆபரேட்டர்கள் அனுப்பிய பதிவுகள். இவற்றை இப்போதும் உறுதி செய்யலாம் அல்லது தவறு எனக் குறிக்கலாம்.",
     tabDash: "டாஷ்போர்டு", whenToday: "இன்று", yesterday: "நேற்று", otherDay: "வேறு தேதி", pickDay: "நாள்", showingDay: "{date} காட்டப்படுகிறது", backToday: "இன்றைக்குத் திரும்பு", silentPast: "அன்று பதிவு இல்லை", normalOnDay: "அன்று வழக்கம்",
     tabReview: "சரிபார்ப்பு & ஆபரேட்டர்கள்", openReview: "விவரம் →", pendingN: "{n} சரிபார்க்க வேண்டும்",
     panTitle: "ஊராட்சிகள்", panHint: "ஒரு ஊராட்சியைத் தொட்டு அதன் தொட்டிகள், சரிபார்ப்பு, ஆபரேட்டர்களைப் பார்க்கவும்.",
@@ -443,6 +444,7 @@ const T = {
     extSupply: "water supplied by {who} — not reported in this app",
     silentNote: "No report by noon", officerTitle: "Water status — {when}",
     settings: "Notification settings", notifyIn: "In-app", notifyEmail: "Email", notifyWa: "WhatsApp", digest: "12:00 noon digest", alwaysOn: "Always on", free: "Free", cheap: "≈ ₹0.12 per message",
+    reviewHintPast: "What operators reported that day. You can still confirm or flag these reports.",
     tabDash: "Dashboard", whenToday: "today", yesterday: "Yesterday", otherDay: "Other date", pickDay: "Day", showingDay: "Showing {date}", backToday: "Back to today", silentPast: "No report that day", normalOnDay: "normal that day",
     tabReview: "Review & operators", openReview: "Details →", pendingN: "{n} to review",
     panTitle: "Panchayats", panHint: "Tap a panchayat to see its tanks, reviews and operators.",
@@ -1477,7 +1479,7 @@ async function renderReview() {
     <div class="topbar">${staffTabs()}${signOutBtn()}</div>
     ${dateBar()}
     <div class="head"><div>${panPick}<h2>${panPick ? "" : `${esc(pname)} · `}${esc(tw("reviewTitle"))}</h2><div class="sub">${isPast() ? "" : `${esc(fmtDate(viewDay()))} · `}${mine.length} ${esc(t("tanks"))} (${esc(kindCount(mine))}) · ${pending} ${esc(t("pending").toLowerCase())}</div></div></div>
-    <p style="margin:0;color:var(--muted);font-size:14px">${esc(t("reviewHint"))}</p>
+    <p style="margin:0;color:var(--muted);font-size:14px">${esc(t(isPast() ? "reviewHintPast" : "reviewHint"))}</p>
     ${extLine(myExt)}
     ${mine.length ? `<details class="card cal" id="cal" ${state.calOpen ? "open" : ""}><summary><b>${esc(t("calTitle"))}</b></summary>
       <p class="sub" style="margin:4px 0 12px">${esc(t("calHint"))}</p>${cal.html}${legendHtml()}</details>` : ""}
